@@ -116,6 +116,7 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
+          delivery_method: string
           id: string
           status: string
           total: number
@@ -127,6 +128,7 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string
+          delivery_method?: string
           id?: string
           status?: string
           total: number
@@ -138,6 +140,7 @@ export type Database = {
           customer_email?: string
           customer_name?: string
           customer_phone?: string
+          delivery_method?: string
           id?: string
           status?: string
           total?: number

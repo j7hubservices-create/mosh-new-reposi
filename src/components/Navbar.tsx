@@ -69,6 +69,9 @@ export const Navbar = () => {
       <Link to="/products" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
         Products
       </Link>
+      <Link to="/about" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
+        About
+      </Link>
       <Link to="/contact" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
         Contact
       </Link>

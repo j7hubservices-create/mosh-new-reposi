@@ -5,11 +5,13 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Truck, Store } from "lucide-react";
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -29,6 +31,7 @@ const Checkout = () => {
     email: '',
     phone: '',
     address: '',
+    deliveryMethod: 'delivery' as 'delivery' | 'pickup',
   });
 
   useEffect(() => {
@@ -90,6 +93,7 @@ const Checkout = () => {
           customer_email: formData.email,
           customer_phone: formData.phone,
           customer_address: formData.address,
+          delivery_method: formData.deliveryMethod,
           status: 'pending'
         })
         .select()
@@ -147,8 +151,44 @@ const Checkout = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-6">Delivery Information</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <h2 className="text-2xl font-semibold mb-6">Order Information</h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Label className="text-base font-semibold mb-3 block">Fulfillment Method *</Label>
+                  <RadioGroup 
+                    value={formData.deliveryMethod} 
+                    onValueChange={(value: 'delivery' | 'pickup') => setFormData({ ...formData, deliveryMethod: value })}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    <div>
+                      <RadioGroupItem value="delivery" id="delivery" className="peer sr-only" />
+                      <Label
+                        htmlFor="delivery"
+                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      >
+                        <Truck className="mb-3 h-6 w-6" />
+                        <div className="text-center">
+                          <div className="font-semibold">Delivery</div>
+                          <div className="text-xs text-muted-foreground mt-1">Home delivery</div>
+                        </div>
+                      </Label>
+                    </div>
+                    <div>
+                      <RadioGroupItem value="pickup" id="pickup" className="peer sr-only" />
+                      <Label
+                        htmlFor="pickup"
+                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      >
+                        <Store className="mb-3 h-6 w-6" />
+                        <div className="text-center">
+                          <div className="font-semibold">Pickup</div>
+                          <div className="text-xs text-muted-foreground mt-1">Collect in store</div>
+                        </div>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
@@ -178,16 +218,32 @@ const Checkout = () => {
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="address">Delivery Address *</Label>
-                  <Textarea
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    rows={3}
-                    required
-                  />
-                </div>
+                {formData.deliveryMethod === 'delivery' ? (
+                  <div>
+                    <Label htmlFor="address">Delivery Address *</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      rows={3}
+                      placeholder="Enter your complete delivery address"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Store className="h-5 w-5" />
+                      Pickup Location
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      9, Bolanle Awosika street, Coca cola road, Oju Oore, Ota, Ogun state
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      We'll notify you when your order is ready for pickup.
+                    </p>
+                  </div>
+                )}
                 <Button type="submit" size="lg" className="w-full" disabled={submitting}>
                   {submitting ? "Processing..." : "Place Order"}
                 </Button>
