@@ -9,15 +9,31 @@ export type SafeImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
 export const SafeImage = React.forwardRef<HTMLImageElement, SafeImageProps>(
   ({ src, alt = "", className, fallbackSrc = "/placeholder.svg", ...rest }, ref) => {
     const [error, setError] = React.useState(false);
+    const [resolvedSrc, setResolvedSrc] = React.useState<string | undefined>(undefined);
 
-    // Images saved as "/assets/..." won't resolve at runtime (bundled by Vite)
-    const isInvalidAssetPath = typeof src === "string" && src.startsWith("/assets/");
-    const finalSrc = !src || error || isInvalidAssetPath ? fallbackSrc : src;
+    React.useEffect(() => {
+      if (!src) {
+        setResolvedSrc(undefined);
+        return;
+      }
+      // Resolve DB values like "/assets/file.jpg" to the built asset URL when possible
+      if (typeof src === "string" && src.startsWith("/assets/")) {
+        import("@/assets/image-map").then(({ imageMap }) => {
+          const file = src.split("/").pop() || "";
+          const mapped = imageMap[file];
+          setResolvedSrc(mapped || undefined);
+        }).catch(() => setResolvedSrc(undefined));
+        return;
+      }
+      setResolvedSrc(src);
+    }, [src]);
+
+    const finalSrc = error ? undefined : resolvedSrc;
 
     return (
       <img
         ref={ref}
-        src={finalSrc}
+        src={finalSrc || fallbackSrc}
         alt={alt}
         loading="lazy"
         decoding="async"
