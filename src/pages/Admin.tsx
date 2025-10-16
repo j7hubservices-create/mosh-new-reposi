@@ -10,9 +10,11 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, Upload, X } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload, X, Package } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import SafeImage from "@/components/ui/safe-image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -46,6 +49,7 @@ const Admin = () => {
       setIsAdmin(true);
       fetchProducts();
       fetchCategories();
+      fetchOrders();
     } else {
       navigate('/');
     }
@@ -60,6 +64,36 @@ const Admin = () => {
   const fetchCategories = async () => {
     const { data } = await supabase.from('categories').select('*');
     if (data) setCategories(data);
+  };
+
+  const fetchOrders = async () => {
+    const { data } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          *,
+          products (*)
+        )
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (data) setOrders(data);
+    setLoading(false);
+  };
+
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', orderId);
+    
+    if (error) {
+      toast.error("Failed to update order status");
+    } else {
+      toast.success("Order status updated!");
+      fetchOrders();
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,14 +166,22 @@ const Admin = () => {
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Product Management</h1>
-              <p className="text-muted-foreground">Manage your product catalog</p>
+              <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-muted-foreground">Manage your store</p>
             </div>
             <Button variant="outline" onClick={() => navigate('/admin/sections')}>
               Manage Homepage
             </Button>
           </div>
         </div>
+
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products">
         
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -245,37 +287,132 @@ const Admin = () => {
           </DialogContent>
         </Dialog>
 
-        <div className="grid gap-4">
-          {products.map(product => (
-            <Card key={product.id} className="p-6 flex flex-col md:flex-row gap-4 hover:shadow-lg transition-shadow">
-              <SafeImage src={product.image_url} alt={product.name} className="w-full md:w-32 h-32 rounded-lg" />
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-bold text-xl mb-1">{product.name}</h3>
-                    <span className="inline-block px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">{product.categories?.name}</span>
+            <div className="grid gap-4">
+              {products.map(product => (
+                <Card key={product.id} className="p-6 flex flex-col md:flex-row gap-4 hover:shadow-lg transition-shadow">
+                  <SafeImage src={product.image_url} alt={product.name} className="w-full md:w-32 h-32 rounded-lg" />
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-bold text-xl mb-1">{product.name}</h3>
+                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">{product.categories?.name}</span>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground text-sm mb-2 line-clamp-2">{product.description}</p>
+                    <div className="flex items-center gap-4 text-sm">
+                      <p className="text-2xl font-bold text-primary">₦{product.price.toLocaleString()}</p>
+                      {product.size && <span className="text-muted-foreground">Size: {product.size}</span>}
+                      <span className={`font-medium ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-orange-600' : 'text-red-600'}`}>
+                        Stock: {product.stock}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <p className="text-muted-foreground text-sm mb-2 line-clamp-2">{product.description}</p>
-                <div className="flex items-center gap-4 text-sm">
-                  <p className="text-2xl font-bold text-primary">₦{product.price.toLocaleString()}</p>
-                  {product.size && <span className="text-muted-foreground">Size: {product.size}</span>}
-                  <span className={`font-medium ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-orange-600' : 'text-red-600'}`}>
-                    Stock: {product.stock}
-                  </span>
-                </div>
+                  <div className="flex md:flex-col gap-2">
+                    <Button variant="outline" size="icon" onClick={() => { setEditingProduct(product); setFormData({...product, price: product.price.toString(), stock: product.stock.toString()}); setDialogOpen(true); }}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="destructive" size="icon" onClick={() => handleDelete(product.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="orders">
+            {orders.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Package className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                <p className="text-xl text-muted-foreground">No orders yet</p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <Card key={order.id} className="p-6">
+                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Order Date</p>
+                        <p className="font-semibold">{new Date(order.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Order ID</p>
+                        <p className="font-mono text-sm">#{order.id.substring(0, 8)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Customer</p>
+                        <p className="font-semibold">{order.customer_name}</p>
+                        <p className="text-sm text-muted-foreground">{order.customer_email}</p>
+                        <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Delivery</p>
+                        <p className="text-sm">{order.delivery_method === 'delivery' ? 'Home Delivery' : 'Pickup'}</p>
+                        {order.delivery_method === 'delivery' && (
+                          <p className="text-sm text-muted-foreground mt-1">{order.customer_address}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4 mb-4">
+                      <h3 className="font-semibold mb-3">Order Items</h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Product</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Price</TableHead>
+                            <TableHead>Subtotal</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {order.order_items.map((item: any) => (
+                            <TableRow key={item.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={item.products.image_url}
+                                    alt={item.products.name}
+                                    className="w-12 h-12 object-cover rounded"
+                                  />
+                                  <span className="font-medium">{item.products.name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>{item.quantity}</TableCell>
+                              <TableCell>₦{item.price.toLocaleString()}</TableCell>
+                              <TableCell>₦{(item.quantity * item.price).toLocaleString()}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div className="border-t pt-4 flex justify-between items-center">
+                      <div>
+                        <Label>Order Status</Label>
+                        <Select value={order.status} onValueChange={(value) => updateOrderStatus(order.id, value)}>
+                          <SelectTrigger className="w-48 mt-2">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="processing">Processing</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
+                        <p className="text-3xl font-bold text-primary">₦{order.total.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
-              <div className="flex md:flex-col gap-2">
-                <Button variant="outline" size="icon" onClick={() => { setEditingProduct(product); setFormData({...product, price: product.price.toString(), stock: product.stock.toString()}); setDialogOpen(true); }}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="destructive" size="icon" onClick={() => handleDelete(product.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
       <Footer />
     </div>
