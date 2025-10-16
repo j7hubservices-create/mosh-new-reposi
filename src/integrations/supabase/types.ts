@@ -67,6 +67,77 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_reviews: {
+        Row: {
+          created_at: string | null
+          customer_name: string
+          id: string
+          is_featured: boolean | null
+          product_id: string | null
+          rating: number
+          review_text: string
+        }
+        Insert: {
+          created_at?: string | null
+          customer_name: string
+          id?: string
+          is_featured?: boolean | null
+          product_id?: string | null
+          rating: number
+          review_text: string
+        }
+        Update: {
+          created_at?: string | null
+          customer_name?: string
+          id?: string
+          is_featured?: boolean | null
+          product_id?: string | null
+          rating?: number
+          review_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homepage_sections: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          section_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          section_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          section_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string

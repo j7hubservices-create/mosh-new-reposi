@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ShoppingBag, TrendingUp, Truck, Store, Sparkles, Crown, Tag } from "lucide-react";
+import { ShoppingBag, TrendingUp, Truck, Store, Sparkles, Crown, Tag, Star, Instagram } from "lucide-react";
 import heroBanner from "@/assets/hero-banner.jpg";
+import instagram1 from "@/assets/instagram-1.jpg";
+import instagram2 from "@/assets/instagram-2.jpg";
+import instagram3 from "@/assets/instagram-3.jpg";
+import instagram4 from "@/assets/instagram-4.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -14,29 +18,25 @@ const Index = () => {
   const [newArrivals, setNewArrivals] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]);
   const [saleItems, setSaleItems] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [homepageSection, setHomepageSection] = useState<any>(null);
+  const [dynamicProducts, setDynamicProducts] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     fetchFeaturedProducts();
     fetchNewArrivals();
     fetchBestSellers();
     fetchSaleItems();
-    fetchCategories();
-  }, [selectedCategory]);
+    fetchHomepageSection();
+    fetchReviews();
+  }, []);
 
   const fetchFeaturedProducts = async () => {
-    let query = supabase
+    const { data } = await supabase
       .from('products')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(6);
-    
-    if (selectedCategory) {
-      query = query.eq('category_id', selectedCategory);
-    }
-    
-    const { data } = await query;
     if (data) setFeaturedProducts(data);
   };
 
@@ -66,9 +66,55 @@ const Index = () => {
     if (data) setSaleItems(data);
   };
 
-  const fetchCategories = async () => {
-    const { data } = await supabase.from('categories').select('*');
-    if (data) setCategories(data);
+  const fetchHomepageSection = async () => {
+    const { data } = await supabase
+      .from('homepage_sections')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    
+    if (data) {
+      setHomepageSection(data);
+      fetchDynamicProducts(data.section_type);
+    }
+  };
+
+  const fetchDynamicProducts = async (sectionType: string) => {
+    let query = supabase.from('products').select('*').limit(6);
+    
+    switch (sectionType) {
+      case 'latest':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'best_sellers':
+        query = query.order('stock', { ascending: true });
+        break;
+      case 'random':
+        // For random, we'll just get latest and shuffle client-side
+        query = query.order('created_at', { ascending: false });
+        break;
+    }
+    
+    const { data } = await query;
+    if (data) {
+      if (sectionType === 'random') {
+        setDynamicProducts(data.sort(() => Math.random() - 0.5));
+      } else {
+        setDynamicProducts(data);
+      }
+    }
+  };
+
+  const fetchReviews = async () => {
+    const { data } = await supabase
+      .from('customer_reviews')
+      .select('*')
+      .eq('is_featured', true)
+      .order('created_at', { ascending: false })
+      .limit(4);
+    if (data) setReviews(data);
   };
 
   return (
@@ -150,30 +196,32 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Main Categories Section */}
-      {categories.length > 0 && (
+      {/* Dynamic Admin-Configurable Section */}
+      {homepageSection && dynamicProducts.length > 0 && (
         <section className="py-16 bg-muted/20">
           <div className="container mx-auto px-4 max-w-7xl">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Shop by Category</h2>
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-2">{homepageSection.title}</h2>
+                {homepageSection.description && (
+                  <p className="text-muted-foreground">{homepageSection.description}</p>
+                )}
+              </div>
+              <Button variant="outline" onClick={() => navigate('/products')}>
+                View All
+              </Button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  onClick={() => {
-                    navigate(`/products?category=${category.id}`);
-                  }}
-                  className="group relative h-72 rounded-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
-                  <div className="absolute inset-0 bg-primary/20 z-0" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
-                    <h3 className="text-2xl font-bold text-white mb-2">{category.name}</h3>
-                    <p className="text-white/90 text-sm mb-4">{category.description}</p>
-                    <Button variant="secondary" size="sm" className="group-hover:bg-white group-hover:text-primary transition-colors">
-                      Shop {category.name}
-                    </Button>
-                  </div>
-                </div>
+              {dynamicProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  image_url={product.image_url}
+                  size={product.size}
+                  stock={product.stock}
+                />
               ))}
             </div>
           </div>
@@ -184,9 +232,7 @@ const Index = () => {
       <section className="py-16 bg-gradient-to-b from-background to-muted/30">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              {selectedCategory ? 'Filtered Products' : 'Featured Products'}
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold">Featured Products</h2>
             <Button variant="outline" onClick={() => navigate('/products')}>
               View All
             </Button>
@@ -322,6 +368,119 @@ const Index = () => {
               <p className="text-muted-foreground">Check back for amazing deals!</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Customer Reviews Section */}
+      {reviews.length > 0 && (
+        <section className="py-16 bg-gradient-to-b from-background to-muted/30">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3">
+                <Star className="w-8 h-8 text-primary fill-primary" />
+                What Our Customers Say
+              </h2>
+              <p className="text-muted-foreground">Real feedback from our amazing customers</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {reviews.map((review) => (
+                <div key={review.id} className="bg-card p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                  <div className="flex gap-1 mb-3">
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4 italic">"{review.review_text}"</p>
+                  <p className="font-semibold text-sm">- {review.customer_name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Instagram Community Section */}
+      <section className="py-16 bg-muted/20">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3">
+              <Instagram className="w-8 h-8 text-primary" />
+              Join Our Instagram Community
+            </h2>
+            <p className="text-muted-foreground">Follow us @moshapparels for style inspiration</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a
+              href="https://instagram.com/moshapparels"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative aspect-square overflow-hidden rounded-lg"
+            >
+              <img
+                src={instagram1}
+                alt="Instagram post 1"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </a>
+            <a
+              href="https://instagram.com/moshapparels"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative aspect-square overflow-hidden rounded-lg"
+            >
+              <img
+                src={instagram2}
+                alt="Instagram post 2"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </a>
+            <a
+              href="https://instagram.com/moshapparels"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative aspect-square overflow-hidden rounded-lg"
+            >
+              <img
+                src={instagram3}
+                alt="Instagram post 3"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </a>
+            <a
+              href="https://instagram.com/moshapparels"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative aspect-square overflow-hidden rounded-lg"
+            >
+              <img
+                src={instagram4}
+                alt="Instagram post 4"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </a>
+          </div>
+          <div className="text-center mt-8">
+            <Button
+              size="lg"
+              onClick={() => window.open('https://instagram.com/moshapparels', '_blank')}
+              className="gap-2"
+            >
+              <Instagram className="w-5 h-5" />
+              Follow @moshapparels
+            </Button>
+          </div>
         </div>
       </section>
 

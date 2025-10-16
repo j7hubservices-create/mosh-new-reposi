@@ -11,6 +11,7 @@ import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
+import AdminSections from "./pages/AdminSections";
 import Account from "./pages/Account";
 import About from "./pages/About";
 import Privacy from "./pages/Privacy";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/sections" element={<AdminSections />} />
           <Route path="/account" element={<Account />} />
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />

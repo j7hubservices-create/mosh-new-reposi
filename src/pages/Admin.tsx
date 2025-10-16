@@ -129,8 +129,15 @@ const Admin = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Product Management</h1>
-          <p className="text-muted-foreground">Manage your product catalog</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Product Management</h1>
+              <p className="text-muted-foreground">Manage your product catalog</p>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/admin/sections')}>
+              Manage Homepage
+            </Button>
+          </div>
         </div>
         
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

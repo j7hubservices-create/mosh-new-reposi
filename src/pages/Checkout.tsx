@@ -246,23 +246,37 @@ const Checkout = () => {
                 )}
 
                 <div className="bg-accent/10 p-4 rounded-lg border border-accent/20">
-                  <h3 className="font-semibold mb-3 text-accent-foreground">Payment Details</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Bank:</span>
-                      <span className="font-medium">OPay</span>
+                  <h3 className="font-semibold mb-3 text-accent-foreground">Payment Options</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-2">Bank Transfer</p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Bank:</span>
+                          <span className="font-medium">OPay</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Account Number:</span>
+                          <span className="font-medium">6142257816</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Account Name:</span>
+                          <span className="font-medium">Mosh Apparels Ventures</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Account Number:</span>
-                      <span className="font-medium">6142257816</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Account Name:</span>
-                      <span className="font-medium">Mosh Apparels Ventures</span>
+
+                    <div className="border-t pt-3">
+                      <p className="text-sm font-medium mb-2">Pay with Paystack</p>
+                      <p className="text-xs text-muted-foreground">
+                        Secure online payment with card or bank transfer via Paystack
+                      </p>
                     </div>
                   </div>
+                  
                   <p className="text-xs text-muted-foreground mt-3">
-                    Please transfer the total amount to the account above and we'll confirm your order.
+                    Choose your preferred payment method and complete your order.
                   </p>
                 </div>
 
