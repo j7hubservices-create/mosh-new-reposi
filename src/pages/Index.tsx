@@ -2,6 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,6 @@ import instagram4 from "@/assets/instagram-4.jpg";
 const Index = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [newArrivals, setNewArrivals] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]);
   const [saleItems, setSaleItems] = useState<any[]>([]);
   const [homepageSection, setHomepageSection] = useState<any>(null);
@@ -24,7 +24,6 @@ const Index = () => {
 
   useEffect(() => {
     fetchFeaturedProducts();
-    fetchNewArrivals();
     fetchBestSellers();
     fetchSaleItems();
     fetchHomepageSection();
@@ -40,13 +39,30 @@ const Index = () => {
     if (data) setFeaturedProducts(data);
   };
 
-  const fetchNewArrivals = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(3);
-    if (data) setNewArrivals(data);
+  const fetchDynamicProducts = async (sectionType: string) => {
+    let query = supabase.from('products').select('*').limit(12);
+    
+    switch (sectionType) {
+      case 'latest':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'best_sellers':
+        query = query.order('stock', { ascending: true });
+        break;
+      case 'random':
+        // For random, we'll get all and shuffle client-side
+        query = query.limit(20);
+        break;
+    }
+    
+    const { data } = await query;
+    if (data) {
+      if (sectionType === 'random') {
+        setDynamicProducts(data.sort(() => Math.random() - 0.5).slice(0, 12));
+      } else {
+        setDynamicProducts(data);
+      }
+    }
   };
 
   const fetchBestSellers = async () => {
@@ -78,32 +94,6 @@ const Index = () => {
     if (data) {
       setHomepageSection(data);
       fetchDynamicProducts(data.section_type);
-    }
-  };
-
-  const fetchDynamicProducts = async (sectionType: string) => {
-    let query = supabase.from('products').select('*').limit(6);
-    
-    switch (sectionType) {
-      case 'latest':
-        query = query.order('created_at', { ascending: false });
-        break;
-      case 'best_sellers':
-        query = query.order('stock', { ascending: true });
-        break;
-      case 'random':
-        // For random, we'll just get latest and shuffle client-side
-        query = query.order('created_at', { ascending: false });
-        break;
-    }
-    
-    const { data } = await query;
-    if (data) {
-      if (sectionType === 'random') {
-        setDynamicProducts(data.sort(() => Math.random() - 0.5));
-      } else {
-        setDynamicProducts(data);
-      }
     }
   };
 
@@ -196,7 +186,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Dynamic Admin-Configurable Section */}
+      {/* Dynamic Admin-Configurable Carousel Section */}
       {homepageSection && dynamicProducts.length > 0 && (
         <section className="py-16 bg-muted/20">
           <div className="container mx-auto px-4 max-w-7xl">
@@ -211,19 +201,33 @@ const Index = () => {
                 View All
               </Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dynamicProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price}
-                  image_url={product.image_url}
-                  size={product.size}
-                  stock={product.stock}
-                />
-              ))}
-            </div>
+            
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {dynamicProducts.map((product) => (
+                  <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                    <div className="p-1">
+                      <ProductCard
+                        id={product.id}
+                        name={product.name}
+                        price={product.price}
+                        image_url={product.image_url}
+                        size={product.size}
+                        stock={product.stock}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
           </div>
         </section>
       )}
@@ -255,43 +259,6 @@ const Index = () => {
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">No products found in this category</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* New Arrivals Section */}
-      <section className="py-16 bg-muted/20">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
-                <Sparkles className="w-8 h-8 text-primary" />
-                New Arrivals
-              </h2>
-              <p className="text-muted-foreground">Just in! Fresh styles for your wardrobe</p>
-            </div>
-            <Button variant="outline" onClick={() => navigate('/products')}>
-              See All New
-            </Button>
-          </div>
-          {newArrivals.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {newArrivals.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price}
-                  image_url={product.image_url}
-                  size={product.size}
-                  stock={product.stock}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">New items coming soon!</p>
             </div>
           )}
         </div>
