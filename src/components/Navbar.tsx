@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Menu, ChevronDown } from "lucide-react";
+import { ShoppingCart, User, Menu, ChevronDown, Phone, MapPin } from "lucide-react";
+import { FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,15 +126,60 @@ export const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      {/* Top Bar with Contact Info */}
-      <div className="bg-primary text-primary-foreground py-2">
+      {/* Top Bar with Contact Info and Social Links */}
+      <div className="bg-gradient-to-r from-primary via-primary/95 to-primary text-primary-foreground py-2">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm gap-1 sm:gap-2">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-              <span className="whitespace-nowrap">📞 {storeInfo.phone}</span>
-              <span className="hidden lg:inline text-center">📍 {storeInfo.address}</span>
+          <div className="flex flex-wrap justify-between items-center text-xs sm:text-sm gap-2">
+            {/* Contact Info */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="whitespace-nowrap">{storeInfo.phone}</span>
+              </a>
+              <a 
+                href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden lg:flex items-center gap-1 hover:opacity-80 transition-opacity"
+              >
+                <MapPin className="h-4 w-4" />
+                <span>{storeInfo.address}</span>
+              </a>
             </div>
-            <span className="font-semibold">{storeInfo.name}</span>
+            
+            {/* Social Links */}
+            <div className="flex items-center gap-3 sm:gap-4">
+              <span className="hidden sm:inline font-semibold">{storeInfo.name}</span>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <a 
+                  href="https://wa.me/2348123456789" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:scale-110 transition-transform"
+                  aria-label="WhatsApp"
+                >
+                  <FaWhatsapp className="h-4 w-4 sm:h-5 sm:w-5" />
+                </a>
+                <a 
+                  href="https://instagram.com/moshapparels" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:scale-110 transition-transform"
+                  aria-label="Instagram"
+                >
+                  <FaInstagram className="h-4 w-4 sm:h-5 sm:w-5" />
+                </a>
+                <a 
+                  href="https://tiktok.com/@moshapparels" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:scale-110 transition-transform"
+                  aria-label="TikTok"
+                >
+                  <FaTiktok className="h-4 w-4 sm:h-5 sm:w-5" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
