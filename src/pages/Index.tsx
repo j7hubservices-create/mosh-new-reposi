@@ -55,10 +55,10 @@ const Index = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-2xl text-white">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-              Elevate Your Style
+              Welcome to Mosh Apparels
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-gray-200">
-              Discover premium fashion that speaks to you. Look great, feel great, pay less.
+              Discover premium fashion for Men, Women & Kids. Style that speaks to you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
@@ -118,12 +118,36 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
+      {/* Main Categories Section */}
       {categories.length > 0 && (
-        <section className="py-16">
+        <section className="py-16 bg-muted/20">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Shop by Category</h2>
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Shop by Category</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {categories.filter(cat => ['Men', 'Women', 'Kids'].includes(cat.name)).map((category) => (
+                <div
+                  key={category.id}
+                  onClick={() => {
+                    setSelectedCategory(category.id);
+                    navigate('/products');
+                  }}
+                  className="group relative h-80 rounded-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
+                  <div className="absolute inset-0 bg-primary/20 z-0" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
+                    <h3 className="text-3xl font-bold text-white mb-2">{category.name}</h3>
+                    <p className="text-white/90 mb-4">{category.description}</p>
+                    <Button variant="secondary" className="group-hover:bg-white group-hover:text-primary transition-colors">
+                      Shop {category.name}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap justify-center gap-3 mt-12">
               <Button
                 variant={selectedCategory === null ? "default" : "outline"}
                 onClick={() => setSelectedCategory(null)}
@@ -183,7 +207,7 @@ const Index = () => {
       {/* Why Choose Us Section */}
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Choose Mosh Wearhouse Studio?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Choose Mosh Apparels?</h2>
           <p className="text-lg max-w-2xl mx-auto mb-8 opacity-90">
             We're committed to providing you with the best fashion experience. Quality, style, and affordability - all in one place.
           </p>

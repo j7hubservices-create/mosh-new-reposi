@@ -13,6 +13,12 @@ export const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const storeInfo = {
+    name: "Mosh Apparels",
+    phone: "+234 123 456 7890",
+    address: "123 Fashion Street, Lagos, Nigeria"
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -67,7 +73,7 @@ export const Navbar = () => {
         Home
       </Link>
       <Link to="/products" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
-        Products
+        Shop
       </Link>
       <Link to="/about" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
         About
@@ -85,6 +91,19 @@ export const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      {/* Top Bar with Contact Info */}
+      <div className="bg-primary text-primary-foreground py-2">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center text-sm gap-2">
+            <div className="flex items-center gap-4">
+              <span>📞 {storeInfo.phone}</span>
+              <span className="hidden md:inline">📍 {storeInfo.address}</span>
+            </div>
+            <span className="font-semibold">{storeInfo.name}</span>
+          </div>
+        </div>
+      </div>
+      
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
