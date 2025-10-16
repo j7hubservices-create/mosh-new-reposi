@@ -230,7 +230,7 @@ const Checkout = () => {
                       required
                     />
                   </div>
-                ) : (
+                 ) : (
                   <div className="bg-muted p-4 rounded-lg">
                     <h3 className="font-semibold mb-2 flex items-center gap-2">
                       <Store className="h-5 w-5" />
@@ -244,6 +244,28 @@ const Checkout = () => {
                     </p>
                   </div>
                 )}
+
+                <div className="bg-accent/10 p-4 rounded-lg border border-accent/20">
+                  <h3 className="font-semibold mb-3 text-accent-foreground">Payment Details</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Bank:</span>
+                      <span className="font-medium">OPay</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Account Number:</span>
+                      <span className="font-medium">6142257816</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Account Name:</span>
+                      <span className="font-medium">Mosh Apparels Ventures</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Please transfer the total amount to the account above and we'll confirm your order.
+                  </p>
+                </div>
+
                 <Button type="submit" size="lg" className="w-full" disabled={submitting}>
                   {submitting ? "Processing..." : "Place Order"}
                 </Button>
@@ -266,9 +288,27 @@ const Checkout = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-bold text-xl border-t pt-3">
+              <div className="flex justify-between font-bold text-xl border-t pt-3 mb-4">
                 <span>Total</span>
                 <span className="text-primary">₦{getTotalPrice().toLocaleString()}</span>
+              </div>
+              
+              <div className="bg-muted/50 p-4 rounded-lg text-sm space-y-2">
+                <p className="font-semibold text-center mb-2">Transfer to:</p>
+                <div className="space-y-1">
+                  <p className="flex justify-between">
+                    <span className="text-muted-foreground">Bank:</span>
+                    <span className="font-medium">OPay</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span className="text-muted-foreground">Account:</span>
+                    <span className="font-medium">6142257816</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span className="text-muted-foreground">Name:</span>
+                    <span className="font-medium text-right">Mosh Apparels Ventures</span>
+                  </p>
+                </div>
               </div>
             </Card>
           </div>
