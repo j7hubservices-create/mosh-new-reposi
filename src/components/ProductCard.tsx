@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import SafeImage from "./ui/safe-image";
 
 interface ProductCardProps {
   id: string;
@@ -78,10 +79,10 @@ export const ProductCard = ({ id, name, price, image_url, size, stock }: Product
     >
       <CardContent className="p-0">
         <div className="aspect-square overflow-hidden bg-muted">
-          <img
+          <SafeImage
             src={image_url}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full group-hover:scale-105 transition-transform duration-300"
           />
         </div>
       </CardContent>

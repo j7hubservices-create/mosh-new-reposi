@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, Upload, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import SafeImage from "@/components/ui/safe-image";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -231,7 +232,7 @@ const Admin = () => {
                       placeholder="Or paste image URL here" 
                     />
                     {formData.image_url && (
-                      <img src={formData.image_url} alt="Preview" className="w-32 h-32 object-cover rounded border" />
+                      <SafeImage src={formData.image_url} alt="Preview" className="w-32 h-32 rounded border" />
                     )}
                   </div>
                 </div>
@@ -247,7 +248,7 @@ const Admin = () => {
         <div className="grid gap-4">
           {products.map(product => (
             <Card key={product.id} className="p-6 flex flex-col md:flex-row gap-4 hover:shadow-lg transition-shadow">
-              <img src={product.image_url} alt={product.name} className="w-full md:w-32 h-32 object-cover rounded-lg" />
+              <SafeImage src={product.image_url} alt={product.name} className="w-full md:w-32 h-32 rounded-lg" />
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-2">
                   <div>

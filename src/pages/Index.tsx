@@ -243,19 +243,29 @@ const Index = () => {
           </div>
 
           {featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price}
-                  image_url={product.image_url}
-                  size={product.size}
-                  stock={product.stock}
-                />
-              ))}
-            </div>
+            <Carousel
+              opts={{ align: "start", loop: true }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {featuredProducts.map((product) => (
+                  <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                    <div className="p-1">
+                      <ProductCard
+                        id={product.id}
+                        name={product.name}
+                        price={product.price}
+                        image_url={product.image_url}
+                        size={product.size}
+                        stock={product.stock}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">No products found in this category</p>
