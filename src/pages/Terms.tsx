@@ -19,7 +19,7 @@ const Terms = () => {
             <section className="mt-8">
               <h2 className="text-2xl font-bold mb-4">Agreement to Terms</h2>
               <p className="text-muted-foreground">
-                By accessing and using Mosh Wearhouse Studio's website and services, you agree to be bound by these Terms of Service and all applicable laws and regulations.
+                By accessing and using Mosh Apparels' website and services, you agree to be bound by these Terms of Service and all applicable laws and regulations.
               </p>
             </section>
 
@@ -59,14 +59,14 @@ const Terms = () => {
             <section className="mt-8">
               <h2 className="text-2xl font-bold mb-4">Intellectual Property</h2>
               <p className="text-muted-foreground">
-                All content on this website, including text, graphics, logos, and images, is the property of Mosh Wearhouse Studio and is protected by copyright and trademark laws.
+                All content on this website, including text, graphics, logos, and images, is the property of Mosh Apparels and is protected by copyright and trademark laws.
               </p>
             </section>
 
             <section className="mt-8">
               <h2 className="text-2xl font-bold mb-4">Limitation of Liability</h2>
               <p className="text-muted-foreground">
-                Mosh Wearhouse Studio shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of our services.
+                Mosh Apparels shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of our services.
               </p>
             </section>
 

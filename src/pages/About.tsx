@@ -9,7 +9,7 @@ const About = () => {
       <main className="flex-1">
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 py-16">
           <div className="container mx-auto px-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">About Mosh Wearhouse Studio</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">About Mosh Apparels</h1>
             <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto">Your premier destination for quality fashion and style</p>
           </div>
         </div>
@@ -19,7 +19,7 @@ const About = () => {
             <section>
               <h2 className="text-3xl font-bold mb-4">Our Story</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Mosh Wearhouse Studio was founded with a passion for bringing quality, stylish fashion to everyone. We believe that great clothing should be accessible, affordable, and timeless. Our carefully curated collection features the latest trends alongside classic pieces that never go out of style.
+                Mosh Apparels was founded with a passion for bringing quality, stylish fashion to everyone. We believe that great clothing should be accessible, affordable, and timeless. Our carefully curated collection features the latest trends alongside classic pieces that never go out of style.
               </p>
             </section>
 

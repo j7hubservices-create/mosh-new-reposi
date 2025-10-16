@@ -19,7 +19,7 @@ const Privacy = () => {
             <section className="mt-8">
               <h2 className="text-2xl font-bold mb-4">Introduction</h2>
               <p className="text-muted-foreground mb-4">
-                At Mosh Wearhouse Studio, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information.
+                At Mosh Apparels, we respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information.
               </p>
             </section>
 
