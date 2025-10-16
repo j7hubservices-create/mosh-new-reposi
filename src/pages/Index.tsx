@@ -204,15 +204,15 @@ const Index = () => {
             
             <Carousel
               opts={{
-                align: "start",
+                align: "center",
                 loop: true,
               }}
               className="w-full"
             >
-              <CarouselContent className="-ml-2 md:-ml-4">
+              <CarouselContent>
                 {dynamicProducts.map((product) => (
-                  <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                    <div className="p-1">
+                  <CarouselItem key={product.id}>
+                    <div className="px-4 md:px-12">
                       <ProductCard
                         id={product.id}
                         name={product.name}
@@ -225,8 +225,8 @@ const Index = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
+              <CarouselPrevious />
+              <CarouselNext />
             </Carousel>
           </div>
         </section>
@@ -244,13 +244,13 @@ const Index = () => {
 
           {featuredProducts.length > 0 ? (
             <Carousel
-              opts={{ align: "start", loop: true }}
+              opts={{ align: "center", loop: true }}
               className="w-full"
             >
-              <CarouselContent className="-ml-2 md:-ml-4">
+              <CarouselContent>
                 {featuredProducts.map((product) => (
-                  <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                    <div className="p-1">
+                  <CarouselItem key={product.id}>
+                    <div className="px-4 md:px-12">
                       <ProductCard
                         id={product.id}
                         name={product.name}
@@ -263,8 +263,8 @@ const Index = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
+              <CarouselPrevious />
+              <CarouselNext />
             </Carousel>
           ) : (
             <div className="text-center py-12">
