@@ -5,17 +5,23 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ShoppingBag, TrendingUp, Truck, Store } from "lucide-react";
+import { ShoppingBag, TrendingUp, Truck, Store, Sparkles, Crown, Tag } from "lucide-react";
 import heroBanner from "@/assets/hero-banner.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [newArrivals, setNewArrivals] = useState<any[]>([]);
+  const [bestSellers, setBestSellers] = useState<any[]>([]);
+  const [saleItems, setSaleItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFeaturedProducts();
+    fetchNewArrivals();
+    fetchBestSellers();
+    fetchSaleItems();
     fetchCategories();
   }, [selectedCategory]);
 
@@ -32,6 +38,32 @@ const Index = () => {
     
     const { data } = await query;
     if (data) setFeaturedProducts(data);
+  };
+
+  const fetchNewArrivals = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(3);
+    if (data) setNewArrivals(data);
+  };
+
+  const fetchBestSellers = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .order('stock', { ascending: true })
+      .limit(3);
+    if (data) setBestSellers(data);
+  };
+
+  const fetchSaleItems = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .limit(3);
+    if (data) setSaleItems(data);
   };
 
   const fetchCategories = async () => {
@@ -177,6 +209,117 @@ const Index = () => {
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">No products found in this category</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* New Arrivals Section */}
+      <section className="py-16 bg-muted/20">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
+                <Sparkles className="w-8 h-8 text-primary" />
+                New Arrivals
+              </h2>
+              <p className="text-muted-foreground">Just in! Fresh styles for your wardrobe</p>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/products')}>
+              See All New
+            </Button>
+          </div>
+          {newArrivals.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {newArrivals.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  image_url={product.image_url}
+                  size={product.size}
+                  stock={product.stock}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">New items coming soon!</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Best Sellers Section */}
+      <section className="py-16 bg-gradient-to-b from-background to-muted/30">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
+                <Crown className="w-8 h-8 text-primary" />
+                Best Sellers
+              </h2>
+              <p className="text-muted-foreground">Customer favorites you'll love</p>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/products')}>
+              View All
+            </Button>
+          </div>
+          {bestSellers.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {bestSellers.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  image_url={product.image_url}
+                  size={product.size}
+                  stock={product.stock}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Coming soon!</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Special Offers Section */}
+      <section className="py-16 bg-muted/20">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
+                <Tag className="w-8 h-8 text-primary" />
+                Special Offers
+              </h2>
+              <p className="text-muted-foreground">Limited time deals you don't want to miss</p>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/products')}>
+              Shop Deals
+            </Button>
+          </div>
+          {saleItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {saleItems.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  image_url={product.image_url}
+                  size={product.size}
+                  stock={product.stock}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Check back for amazing deals!</p>
             </div>
           )}
         </div>
