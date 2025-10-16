@@ -142,6 +142,7 @@ export const Navbar = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Mosh Apparels" className="h-12 w-auto" />
+            <span className="font-bold text-lg md:text-xl">Mosh Apparels</span>
           </Link>
 
           {/* Desktop Navigation */}
