@@ -12,6 +12,16 @@ import pRustTop from "@/assets/product-rust-top.jpg";
 import pWhiteDotted from "@/assets/product-white-dotted-shirt.jpg";
 import pWhiteFuzzy from "@/assets/product-white-fuzzy-sweater.jpg";
 
+import pGrayShortsNew from "@/assets/product-gray-shorts-new.jpg";
+import pLightBlueHoodieNew from "@/assets/product-light-blue-hoodie-new.jpg";
+import pGrayHoodie from "@/assets/product-gray-hoodie.jpg";
+import pCyanHoodie from "@/assets/product-cyan-hoodie.jpg";
+import pGrayZipHoodie from "@/assets/product-gray-zip-hoodie.jpg";
+import pNikeGreenHoodie from "@/assets/product-nike-green-hoodie.jpg";
+import pBlueSchippersHoodie from "@/assets/product-blue-schippers-hoodie.jpg";
+import pWhiteGfHoodie from "@/assets/product-white-gf-hoodie.jpg";
+import pGrayVarsityHoodie from "@/assets/product-gray-varsity-hoodie.jpg";
+
 import product1 from "@/assets/product1.jpg";
 import product2 from "@/assets/product2.jpg";
 import product3 from "@/assets/product3.jpg";
@@ -39,6 +49,15 @@ export const imageMap: Record<string, string> = {
   "product-rust-top.jpg": pRustTop,
   "product-white-dotted-shirt.jpg": pWhiteDotted,
   "product-white-fuzzy-sweater.jpg": pWhiteFuzzy,
+  "product-gray-shorts-new.jpg": pGrayShortsNew,
+  "product-light-blue-hoodie-new.jpg": pLightBlueHoodieNew,
+  "product-gray-hoodie.jpg": pGrayHoodie,
+  "product-cyan-hoodie.jpg": pCyanHoodie,
+  "product-gray-zip-hoodie.jpg": pGrayZipHoodie,
+  "product-nike-green-hoodie.jpg": pNikeGreenHoodie,
+  "product-blue-schippers-hoodie.jpg": pBlueSchippersHoodie,
+  "product-white-gf-hoodie.jpg": pWhiteGfHoodie,
+  "product-gray-varsity-hoodie.jpg": pGrayVarsityHoodie,
   "product1.jpg": product1,
   "product2.jpg": product2,
   "product3.jpg": product3,
