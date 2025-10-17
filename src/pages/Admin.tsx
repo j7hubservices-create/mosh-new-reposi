@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import SafeImage from "@/components/ui/safe-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import BulkEditPanel from "@/components/admin/BulkEditPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -31,6 +33,8 @@ const Admin = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -134,14 +138,29 @@ const Admin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const productData = { ...formData, price: parseFloat(formData.price), stock: parseInt(formData.stock) };
+    const productData = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      category_id: formData.category_id || null,
+      image_url: formData.image_url || null,
+      size: formData.size || null,
+      stock: parseInt(formData.stock),
+    } as any;
 
-    if (editingProduct) {
-      await supabase.from('products').update(productData).eq('id', editingProduct.id);
-      toast.success("Product updated!");
-    } else {
-      await supabase.from('products').insert(productData);
-      toast.success("Product added!");
+    try {
+      if (editingProduct) {
+        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
+        if (error) throw error;
+        toast.success("Product updated!");
+      } else {
+        const { error } = await supabase.from('products').insert(productData);
+        if (error) throw error;
+        toast.success("Product added!");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save product");
+      return;
     }
 
     setFormData({ name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: '' });
