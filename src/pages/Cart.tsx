@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import SafeImage from "@/components/ui/safe-image";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -113,11 +114,11 @@ const Cart = () => {
               {cartItems.map((item) => (
                 <Card key={item.id} className="p-4">
                   <div className="flex gap-4">
-                    <div className="w-24 h-24 bg-muted rounded overflow-hidden flex-shrink-0">
-                      <img
+                    <div className="relative w-24 h-24 bg-muted rounded overflow-hidden flex-shrink-0">
+                      <SafeImage
                         src={item.products.image_url}
                         alt={item.products.name}
-                        className="w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                       />
                     </div>
                     <div className="flex-1">
