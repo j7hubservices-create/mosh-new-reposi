@@ -74,35 +74,36 @@ export const ProductCard = ({ id, name, price, image_url, size, stock }: Product
 
   return (
     <Card
-      className="group overflow-hidden cursor-pointer transition-all hover:shadow-elevated"
+      className="group overflow-hidden cursor-pointer transition-all hover:shadow-elevated h-full flex flex-col"
       onClick={() => navigate(`/products/${id}`)}
     >
-      <CardContent className="p-0">
-        <div className="aspect-square overflow-hidden bg-muted">
+      <CardContent className="p-0 flex-shrink-0">
+        <div className="relative w-full aspect-square overflow-hidden bg-muted">
           <SafeImage
             src={image_url}
             alt={name}
-            className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col items-start gap-3 p-4">
-        <div className="w-full">
-          <h3 className="font-semibold text-lg line-clamp-1">{name}</h3>
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-2xl font-bold text-primary">₦{price.toLocaleString()}</p>
-            {size && <span className="text-sm text-muted-foreground">Size {size}</span>}
+      <CardFooter className="flex flex-col items-start gap-2 sm:gap-3 p-3 sm:p-4 flex-1">
+        <div className="w-full flex-1">
+          <h3 className="font-semibold text-sm sm:text-base md:text-lg line-clamp-2">{name}</h3>
+          <div className="flex items-center justify-between mt-1 sm:mt-2 flex-wrap gap-1">
+            <p className="text-lg sm:text-xl md:text-2xl font-bold text-primary">₦{price.toLocaleString()}</p>
+            {size && <span className="text-xs sm:text-sm text-muted-foreground">Size {size}</span>}
           </div>
           {stock === 0 && (
-            <p className="text-sm text-destructive mt-1">Out of Stock</p>
+            <p className="text-xs sm:text-sm text-destructive mt-1">Out of Stock</p>
           )}
         </div>
         <Button
-          className="w-full"
+          className="w-full text-sm sm:text-base"
           onClick={handleAddToCart}
           disabled={stock === 0}
+          size="sm"
         >
-          <ShoppingCart className="mr-2 h-4 w-4" />
+          <ShoppingCart className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           Add to Cart
         </Button>
       </CardFooter>
