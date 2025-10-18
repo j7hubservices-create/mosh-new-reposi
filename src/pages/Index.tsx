@@ -251,49 +251,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Best Sellers / Trending Section - Slider */}
-      <section className="py-8 bg-gradient-to-b from-background to-muted/30">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-1 flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-primary" />
-                Trending Now
-              </h2>
-              <p className="text-muted-foreground text-sm">What's popular today</p>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => navigate('/products')}>
-              View All
-            </Button>
-          </div>
-          {bestSellers.length > 0 ? (
-            <Carousel className="w-full">
-              <CarouselContent className="-ml-4">
-                {bestSellers.map((product) => (
-                  <CarouselItem key={product.id} className="pl-4 basis-full">
-                    <div className="max-w-md mx-auto">
-                      <ProductCard
-                        id={product.id}
-                        name={product.name}
-                        price={product.price}
-                        image_url={product.image_url}
-                        size={product.size}
-                        stock={product.stock}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-0" />
-              <CarouselNext className="right-0" />
-            </Carousel>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Coming soon!</p>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Special Offers Section */}
       <section className="py-8 bg-muted/20">
