@@ -35,7 +35,7 @@ const Index = () => {
       .from('products')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(12);
     if (data) setFeaturedProducts(data);
   };
 
@@ -112,7 +112,7 @@ const Index = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBanner})` }}
@@ -120,27 +120,27 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
         </div>
         
-        <div className="container mx-auto px-4 relative z-10 max-w-7xl">
-          <div className="max-w-2xl text-white">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
+        <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+          <div className="max-w-xl text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
               Welcome to Mosh Apparels
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-200">
-              Discover premium fashion for Men, Women & Kids. Style that speaks to you.
+            <p className="text-lg md:text-xl mb-6 text-gray-200">
+              Discover premium fashion for Men, Women & Kids.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button 
                 size="lg" 
-                className="text-lg px-8 py-6" 
+                className="px-6 py-5" 
                 onClick={() => navigate('/products')}
               >
-                <ShoppingBag className="mr-2 h-5 w-5" />
+                <ShoppingBag className="mr-2 h-4 w-4" />
                 Shop Now
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="text-lg px-8 py-6 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                className="px-6 py-5 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                 onClick={() => navigate('/about')}
               >
                 Learn More
@@ -151,146 +151,123 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <section className="py-10 bg-muted/30">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingBag className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <ShoppingBag className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Quality Products</h3>
-              <p className="text-muted-foreground text-sm">Carefully curated fashion items</p>
+              <h3 className="font-semibold mb-1">Quality Products</h3>
+              <p className="text-muted-foreground text-sm">Carefully curated fashion</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <TrendingUp className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Trending Styles</h3>
+              <h3 className="font-semibold mb-1">Trending Styles</h3>
               <p className="text-muted-foreground text-sm">Latest fashion trends</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Truck className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Fast Delivery</h3>
+              <h3 className="font-semibold mb-1">Fast Delivery</h3>
               <p className="text-muted-foreground text-sm">Quick and reliable shipping</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Store className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Store className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Store Pickup</h3>
+              <h3 className="font-semibold mb-1">Store Pickup</h3>
               <p className="text-muted-foreground text-sm">Collect at your convenience</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Dynamic Admin-Configurable Carousel Section */}
+      {/* Dynamic Admin-Configurable Section */}
       {homepageSection && dynamicProducts.length > 0 && (
-        <section className="py-16 bg-muted/20">
-          <div className="container mx-auto px-4 max-w-7xl">
-            <div className="flex justify-between items-center mb-8">
+        <section className="py-8 bg-muted/20">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-2">{homepageSection.title}</h2>
+                <h2 className="text-2xl md:text-3xl font-bold mb-1">{homepageSection.title}</h2>
                 {homepageSection.description && (
-                  <p className="text-muted-foreground">{homepageSection.description}</p>
+                  <p className="text-muted-foreground text-sm">{homepageSection.description}</p>
                 )}
               </div>
-              <Button variant="outline" onClick={() => navigate('/products')}>
+              <Button variant="outline" size="sm" onClick={() => navigate('/products')}>
                 View All
               </Button>
             </div>
             
-            <Carousel
-              opts={{
-                align: "center",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {dynamicProducts.map((product) => (
-                  <CarouselItem key={product.id}>
-                    <div className="px-4 md:px-12">
-                      <ProductCard
-                        id={product.id}
-                        name={product.name}
-                        price={product.price}
-                        image_url={product.image_url}
-                        size={product.size}
-                        stock={product.stock}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {dynamicProducts.slice(0, 6).map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  image_url={product.image_url}
+                  size={product.size}
+                  stock={product.stock}
+                />
+              ))}
+            </div>
           </div>
         </section>
       )}
 
       {/* Featured Products Section */}
-      <section className="py-16 bg-gradient-to-b from-background to-muted/30">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold">Featured Products</h2>
-            <Button variant="outline" onClick={() => navigate('/products')}>
+      <section className="py-8 bg-gradient-to-b from-background to-muted/30">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">Featured Products</h2>
+            <Button variant="outline" size="sm" onClick={() => navigate('/products')}>
               View All
             </Button>
           </div>
 
           {featuredProducts.length > 0 ? (
-            <Carousel
-              opts={{ align: "center", loop: true }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {featuredProducts.map((product) => (
-                  <CarouselItem key={product.id}>
-                    <div className="px-4 md:px-12">
-                      <ProductCard
-                        id={product.id}
-                        name={product.name}
-                        price={product.price}
-                        image_url={product.image_url}
-                        size={product.size}
-                        stock={product.stock}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
+              {featuredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  image_url={product.image_url}
+                  size={product.size}
+                  stock={product.stock}
+                />
+              ))}
+            </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">No products found in this category</p>
+              <p className="text-muted-foreground text-lg">No products found</p>
             </div>
           )}
         </div>
       </section>
 
       {/* Best Sellers Section */}
-      <section className="py-16 bg-gradient-to-b from-background to-muted/30">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex justify-between items-center mb-8">
+      <section className="py-8 bg-gradient-to-b from-background to-muted/30">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
-                <Crown className="w-8 h-8 text-primary" />
+              <h2 className="text-2xl md:text-3xl font-bold mb-1 flex items-center gap-2">
+                <Crown className="w-6 h-6 text-primary" />
                 Best Sellers
               </h2>
-              <p className="text-muted-foreground">Customer favorites you'll love</p>
+              <p className="text-muted-foreground text-sm">Customer favorites</p>
             </div>
-            <Button variant="outline" onClick={() => navigate('/products')}>
+            <Button variant="outline" size="sm" onClick={() => navigate('/products')}>
               View All
             </Button>
           </div>
           {bestSellers.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-3">
               {bestSellers.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -312,22 +289,22 @@ const Index = () => {
       </section>
 
       {/* Special Offers Section */}
-      <section className="py-16 bg-muted/20">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex justify-between items-center mb-8">
+      <section className="py-8 bg-muted/20">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
-                <Tag className="w-8 h-8 text-primary" />
+              <h2 className="text-2xl md:text-3xl font-bold mb-1 flex items-center gap-2">
+                <Tag className="w-6 h-6 text-primary" />
                 Special Offers
               </h2>
-              <p className="text-muted-foreground">Limited time deals you don't want to miss</p>
+              <p className="text-muted-foreground text-sm">Limited time deals</p>
             </div>
-            <Button variant="outline" onClick={() => navigate('/products')}>
+            <Button variant="outline" size="sm" onClick={() => navigate('/products')}>
               Shop Deals
             </Button>
           </div>
           {saleItems.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-3">
               {saleItems.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -350,24 +327,24 @@ const Index = () => {
 
       {/* Customer Reviews Section */}
       {reviews.length > 0 && (
-        <section className="py-16 bg-gradient-to-b from-background to-muted/30">
-          <div className="container mx-auto px-4 max-w-7xl">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3">
-                <Star className="w-8 h-8 text-primary fill-primary" />
-                What Our Customers Say
+        <section className="py-8 bg-gradient-to-b from-background to-muted/30">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold mb-1 flex items-center justify-center gap-2">
+                <Star className="w-6 h-6 text-primary fill-primary" />
+                Customer Reviews
               </h2>
-              <p className="text-muted-foreground">Real feedback from our amazing customers</p>
+              <p className="text-muted-foreground text-sm">What our customers say</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {reviews.map((review) => (
-                <div key={review.id} className="bg-card p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                  <div className="flex gap-1 mb-3">
+                <div key={review.id} className="bg-card p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                  <div className="flex gap-1 mb-2">
                     {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                      <Star key={i} className="w-3 h-3 fill-primary text-primary" />
                     ))}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 italic">"{review.review_text}"</p>
+                  <p className="text-sm text-muted-foreground mb-3 italic">"{review.review_text}"</p>
                   <p className="font-semibold text-sm">- {review.customer_name}</p>
                 </div>
               ))}
@@ -377,16 +354,16 @@ const Index = () => {
       )}
 
       {/* Instagram Community Section */}
-      <section className="py-16 bg-muted/20">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-3">
-              <Instagram className="w-8 h-8 text-primary" />
-              Join Our Instagram Community
+      <section className="py-8 bg-muted/20">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold mb-1 flex items-center justify-center gap-2">
+              <Instagram className="w-6 h-6 text-primary" />
+              Instagram Community
             </h2>
-            <p className="text-muted-foreground">Follow us @moshapparels for style inspiration</p>
+            <p className="text-muted-foreground text-sm">Follow @moshapparels</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <a
               href="https://instagram.com/moshapparels"
               target="_blank"
@@ -399,7 +376,7 @@ const Index = () => {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Instagram className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </a>
             <a
@@ -414,7 +391,7 @@ const Index = () => {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Instagram className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </a>
             <a
@@ -429,7 +406,7 @@ const Index = () => {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Instagram className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </a>
             <a
@@ -444,19 +421,9 @@ const Index = () => {
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Instagram className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </a>
-          </div>
-          <div className="text-center mt-8">
-            <Button
-              size="lg"
-              onClick={() => window.open('https://instagram.com/moshapparels', '_blank')}
-              className="gap-2"
-            >
-              <Instagram className="w-5 h-5" />
-              Follow @moshapparels
-            </Button>
           </div>
         </div>
       </section>
