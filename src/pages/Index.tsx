@@ -202,30 +202,7 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Mobile: Slider */}
-            <div className="md:hidden">
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-2">
-                  {dynamicProducts.map((product) => (
-                    <CarouselItem key={product.id} className="pl-2 basis-full">
-                      <ProductCard
-                        id={product.id}
-                        name={product.name}
-                        price={product.price}
-                        image_url={product.image_url}
-                        size={product.size}
-                        stock={product.stock}
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
-
-            {/* Desktop: Grid */}
-            <div className="hidden md:grid grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {dynamicProducts.slice(0, 6).map((product) => (
                 <ProductCard
                   key={product.id}
