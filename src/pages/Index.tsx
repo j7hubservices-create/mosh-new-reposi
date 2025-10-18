@@ -111,8 +111,10 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
+      <div className="flex flex-col md:flex-col">
+      
       {/* Hero Section */}
-      <section className="relative h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBanner})` }}
@@ -151,7 +153,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-10 bg-muted/30">
+      <section className="py-10 bg-muted/30 order-3 md:order-1">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
@@ -188,7 +190,7 @@ const Index = () => {
 
       {/* Dynamic Admin-Configurable Section */}
       {homepageSection && dynamicProducts.length > 0 && (
-        <section className="py-8 bg-muted/20">
+        <section className="py-8 bg-muted/20 order-2">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="flex justify-between items-center mb-6">
               <div>
@@ -218,6 +220,8 @@ const Index = () => {
           </div>
         </section>
       )}
+
+      </div>
 
       {/* Featured Products Section */}
       <section className="py-8 bg-gradient-to-b from-background to-muted/30">
