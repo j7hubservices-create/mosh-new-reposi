@@ -35,12 +35,12 @@ export const Navbar = () => {
 
   useEffect(() => {
     fetchCategories();
+    updateCartCount();
     
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         checkAdminStatus(session.user.id);
-        fetchCartCount(session.user.id);
       }
     });
 
@@ -48,14 +48,22 @@ export const Navbar = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         checkAdminStatus(session.user.id);
-        fetchCartCount(session.user.id);
       } else {
         setIsAdmin(false);
-        setCartCount(0);
       }
+      updateCartCount();
     });
 
-    return () => subscription.unsubscribe();
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      updateCartCount();
+    };
+    window.addEventListener('cart-updated', handleCartUpdate);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('cart-updated', handleCartUpdate);
+    };
   }, []);
 
   const fetchCategories = async () => {
@@ -73,14 +81,25 @@ export const Navbar = () => {
     setIsAdmin(!!data);
   };
 
-  const fetchCartCount = async (userId: string) => {
-    const { data } = await supabase
-      .from('cart_items')
-      .select('quantity')
-      .eq('user_id', userId);
-    
-    const total = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-    setCartCount(total);
+  const updateCartCount = async () => {
+    const session = await supabase.auth.getSession();
+    const currentUser = session.data.session?.user;
+
+    if (currentUser) {
+      // Authenticated user - get from database
+      const { data } = await supabase
+        .from('cart_items')
+        .select('quantity')
+        .eq('user_id', currentUser.id);
+      
+      const total = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+      setCartCount(total);
+    } else {
+      // Guest user - get from localStorage
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const total = guestCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+      setCartCount(total);
+    }
   };
 
   const handleLogout = async () => {
@@ -197,21 +216,19 @@ export const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            {user && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={() => navigate('/cart')}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => navigate('/cart')}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Button>
             {user ? (
               <>
                 <Button variant="ghost" size="icon" onClick={() => navigate('/account')}>
@@ -230,21 +247,19 @@ export const Navbar = () => {
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center gap-2">
-            {user && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={() => navigate('/cart')}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => navigate('/cart')}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Button>
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
