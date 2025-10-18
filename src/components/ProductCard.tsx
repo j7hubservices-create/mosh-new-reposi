@@ -35,34 +35,43 @@ export const ProductCard = ({ id, name, price, image_url, size, stock }: Product
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!user) {
-      toast.error("Please login to add items to cart");
-      navigate('/auth');
-      return;
-    }
-
     if (stock === 0) {
       toast.error("This item is out of stock");
       return;
     }
 
     try {
-      const { data: existing } = await supabase
-        .from('cart_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('product_id', id)
-        .maybeSingle();
+      if (user) {
+        // Authenticated user - save to database
+        const { data: existing } = await supabase
+          .from('cart_items')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('product_id', id)
+          .maybeSingle();
 
-      if (existing) {
-        await supabase
-          .from('cart_items')
-          .update({ quantity: existing.quantity + 1 })
-          .eq('id', existing.id);
+        if (existing) {
+          await supabase
+            .from('cart_items')
+            .update({ quantity: existing.quantity + 1 })
+            .eq('id', existing.id);
+        } else {
+          await supabase
+            .from('cart_items')
+            .insert({ user_id: user.id, product_id: id, quantity: 1 });
+        }
       } else {
-        await supabase
-          .from('cart_items')
-          .insert({ user_id: user.id, product_id: id, quantity: 1 });
+        // Guest user - save to localStorage
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+        const existingIndex = guestCart.findIndex((item: any) => item.product_id === id);
+        
+        if (existingIndex > -1) {
+          guestCart[existingIndex].quantity += 1;
+        } else {
+          guestCart.push({ product_id: id, quantity: 1 });
+        }
+        
+        localStorage.setItem('guestCart', JSON.stringify(guestCart));
       }
 
       toast.success("Added to cart!");

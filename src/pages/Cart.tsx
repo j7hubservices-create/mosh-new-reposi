@@ -21,14 +21,16 @@ const Cart = () => {
       if (session?.user) {
         fetchCart(session.user.id);
       } else {
-        navigate('/auth');
+        fetchGuestCart();
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) {
-        navigate('/auth');
+      if (session?.user) {
+        fetchCart(session.user.id);
+      } else {
+        fetchGuestCart();
       }
     });
 
@@ -48,6 +50,35 @@ const Cart = () => {
     setLoading(false);
   };
 
+  const fetchGuestCart = async () => {
+    setLoading(true);
+    const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+    
+    if (guestCart.length === 0) {
+      setCartItems([]);
+      setLoading(false);
+      return;
+    }
+
+    const productIds = guestCart.map((item: any) => item.product_id);
+    const { data: products } = await supabase
+      .from('products')
+      .select('*')
+      .in('id', productIds);
+
+    if (products) {
+      const cartData = guestCart.map((item: any) => ({
+        id: item.product_id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        products: products.find((p) => p.id === item.product_id)
+      })).filter((item: any) => item.products);
+      
+      setCartItems(cartData);
+    }
+    setLoading(false);
+  };
+
   const updateQuantity = async (cartItemId: string, newQuantity: number, maxStock: number) => {
     if (newQuantity < 1) return;
     if (newQuantity > maxStock) {
@@ -55,24 +86,45 @@ const Cart = () => {
       return;
     }
 
-    await supabase
-      .from('cart_items')
-      .update({ quantity: newQuantity })
-      .eq('id', cartItemId);
+    if (user) {
+      await supabase
+        .from('cart_items')
+        .update({ quantity: newQuantity })
+        .eq('id', cartItemId);
 
-    fetchCart(user.id);
-    window.dispatchEvent(new Event('cart-updated'));
+      fetchCart(user.id);
+      window.dispatchEvent(new Event('cart-updated'));
+    } else {
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const itemIndex = guestCart.findIndex((item: any) => item.product_id === cartItemId);
+      
+      if (itemIndex > -1) {
+        guestCart[itemIndex].quantity = newQuantity;
+        localStorage.setItem('guestCart', JSON.stringify(guestCart));
+        fetchGuestCart();
+        window.dispatchEvent(new Event('cart-updated'));
+      }
+    }
   };
 
   const removeItem = async (cartItemId: string) => {
-    await supabase
-      .from('cart_items')
-      .delete()
-      .eq('id', cartItemId);
+    if (user) {
+      await supabase
+        .from('cart_items')
+        .delete()
+        .eq('id', cartItemId);
 
-    toast.success("Item removed from cart");
-    fetchCart(user.id);
-    window.dispatchEvent(new Event('cart-updated'));
+      toast.success("Item removed from cart");
+      fetchCart(user.id);
+      window.dispatchEvent(new Event('cart-updated'));
+    } else {
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const filtered = guestCart.filter((item: any) => item.product_id !== cartItemId);
+      localStorage.setItem('guestCart', JSON.stringify(filtered));
+      toast.success("Item removed from cart");
+      fetchGuestCart();
+      window.dispatchEvent(new Event('cart-updated'));
+    }
   };
 
   const getTotalPrice = () => {
@@ -183,6 +235,21 @@ const Cart = () => {
                 >
                   Proceed to Checkout
                 </Button>
+                
+                {!user && (
+                  <div className="mt-4 p-3 bg-accent/10 rounded-lg border border-accent/20 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Signing up will make your shopping faster and easier!
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/auth')}
+                    >
+                      Sign up now
+                    </Button>
+                  </div>
+                )}
               </Card>
             </div>
           </div>

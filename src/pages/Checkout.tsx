@@ -41,7 +41,7 @@ const Checkout = () => {
         fetchCart(session.user.id);
         setFormData(prev => ({ ...prev, email: session.user.email || '' }));
       } else {
-        navigate('/auth');
+        fetchGuestCart();
       }
     });
   }, []);
@@ -59,6 +59,34 @@ const Checkout = () => {
       setCartItems(data);
     } else {
       navigate('/cart');
+    }
+    setLoading(false);
+  };
+
+  const fetchGuestCart = async () => {
+    setLoading(true);
+    const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+    
+    if (guestCart.length === 0) {
+      navigate('/cart');
+      return;
+    }
+
+    const productIds = guestCart.map((item: any) => item.product_id);
+    const { data: products } = await supabase
+      .from('products')
+      .select('*')
+      .in('id', productIds);
+
+    if (products) {
+      const cartData = guestCart.map((item: any) => ({
+        id: item.product_id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        products: products.find((p) => p.id === item.product_id)
+      })).filter((item: any) => item.products);
+      
+      setCartItems(cartData);
     }
     setLoading(false);
   };
@@ -84,44 +112,50 @@ const Checkout = () => {
     setSubmitting(true);
 
     try {
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total: getTotalPrice(),
-          customer_name: formData.name,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
-          customer_address: formData.address,
-          delivery_method: formData.deliveryMethod,
-          status: 'pending'
-        })
-        .select()
-        .single();
+      if (user) {
+        const { data: order, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            user_id: user.id,
+            total: getTotalPrice(),
+            customer_name: formData.name,
+            customer_email: formData.email,
+            customer_phone: formData.phone,
+            customer_address: formData.address,
+            delivery_method: formData.deliveryMethod,
+            status: 'pending'
+          })
+          .select()
+          .single();
 
-      if (orderError) throw orderError;
+        if (orderError) throw orderError;
 
-      const orderItems = cartItems.map(item => ({
-        order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price: item.products.price
-      }));
+        const orderItems = cartItems.map(item => ({
+          order_id: order.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.products.price
+        }));
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItems);
 
-      if (itemsError) throw itemsError;
+        if (itemsError) throw itemsError;
 
-      await supabase
-        .from('cart_items')
-        .delete()
-        .eq('user_id', user.id);
+        await supabase
+          .from('cart_items')
+          .delete()
+          .eq('user_id', user.id);
+      } else {
+        // Guest checkout - create order without user_id requirement
+        toast.success("Order details collected! Please complete payment.");
+        localStorage.removeItem('guestCart');
+      }
 
       toast.success("Order placed successfully!");
       window.dispatchEvent(new Event('cart-updated'));
-      navigate('/account');
+      navigate('/');
     } catch (error: any) {
       toast.error(error.message || "Failed to place order");
     } finally {
@@ -246,37 +280,49 @@ const Checkout = () => {
                 )}
 
                 <div className="bg-accent/10 p-4 rounded-lg border border-accent/20">
-                  <h3 className="font-semibold mb-3 text-accent-foreground">Payment Options</h3>
+                  <h3 className="font-semibold mb-3 text-accent-foreground">Payment Method *</h3>
                   
-                  <div className="space-y-4">
+                  <RadioGroup defaultValue="bank" className="space-y-3">
                     <div>
-                      <p className="text-sm font-medium mb-2">Bank Transfer</p>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Bank:</span>
-                          <span className="font-medium">OPay</span>
+                      <RadioGroupItem value="bank" id="bank" className="peer sr-only" />
+                      <Label
+                        htmlFor="bank"
+                        className="flex flex-col rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      >
+                        <div className="font-semibold mb-2">Bank Transfer</div>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Bank:</span>
+                            <span className="font-medium">OPay</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Account:</span>
+                            <span className="font-medium">6142257816</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Name:</span>
+                            <span className="font-medium">Mosh Apparels Ventures</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Account Number:</span>
-                          <span className="font-medium">6142257816</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Account Name:</span>
-                          <span className="font-medium">Mosh Apparels Ventures</span>
-                        </div>
-                      </div>
+                      </Label>
                     </div>
 
-                    <div className="border-t pt-3">
-                      <p className="text-sm font-medium mb-2">Pay with Paystack</p>
-                      <p className="text-xs text-muted-foreground">
-                        Secure online payment with card or bank transfer via Paystack
-                      </p>
+                    <div>
+                      <RadioGroupItem value="paystack" id="paystack" className="peer sr-only" />
+                      <Label
+                        htmlFor="paystack"
+                        className="flex flex-col rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      >
+                        <div className="font-semibold mb-2">Online Payment (Paystack)</div>
+                        <p className="text-xs text-muted-foreground">
+                          Pay securely with card, bank transfer, or USSD via Paystack
+                        </p>
+                      </Label>
                     </div>
-                  </div>
+                  </RadioGroup>
                   
                   <p className="text-xs text-muted-foreground mt-3">
-                    Choose your preferred payment method and complete your order.
+                    Choose your preferred payment method to complete your order.
                   </p>
                 </div>
 

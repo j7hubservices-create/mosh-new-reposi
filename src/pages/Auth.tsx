@@ -125,6 +125,11 @@ const Auth = () => {
       
       <div className="container mx-auto px-4 py-16 flex-1 flex items-center justify-center">
         <Card className="w-full max-w-md p-8">
+          <h1 className="text-2xl font-bold text-center mb-2">Admin Login</h1>
+          <p className="text-sm text-muted-foreground text-center mb-8">
+            This portal is for administrators only
+          </p>
+          
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="login">Login</TabsTrigger>
