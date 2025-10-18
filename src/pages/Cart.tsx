@@ -244,7 +244,7 @@ const Cart = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => navigate('/auth')}
+                      onClick={() => navigate('/user-auth')}
                     >
                       Sign up now
                     </Button>

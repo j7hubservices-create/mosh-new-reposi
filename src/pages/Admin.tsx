@@ -25,6 +25,8 @@ const Admin = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -54,6 +56,8 @@ const Admin = () => {
       fetchProducts();
       fetchCategories();
       fetchOrders();
+      fetchUsers();
+      fetchReviews();
     } else {
       navigate('/');
     }
@@ -84,6 +88,24 @@ const Admin = () => {
     
     if (data) setOrders(data);
     setLoading(false);
+  };
+
+  const fetchUsers = async () => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('*')
+      .order('id', { ascending: false });
+    
+    if (data) setUsers(data);
+  };
+
+  const fetchReviews = async () => {
+    const { data } = await supabase
+      .from('customer_reviews')
+      .select('*, products(name)')
+      .order('created_at', { ascending: false });
+    
+    if (data) setReviews(data);
   };
 
   const updateOrderStatus = async (orderId: string, status: string) => {
@@ -198,6 +220,8 @@ const Admin = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
+            <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products">
@@ -425,6 +449,80 @@ const Admin = () => {
                         <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
                         <p className="text-3xl font-bold text-primary">₦{order.total.toLocaleString()}</p>
                       </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="users">
+            {users.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No users yet</p>
+              </Card>
+            ) : (
+              <Card className="p-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User ID</TableHead>
+                      <TableHead>Role</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-mono text-sm">{user.user_id.substring(0, 16)}...</TableCell>
+                        <TableCell>
+                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            {reviews.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No reviews yet</p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <Card key={review.id} className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-semibold text-lg">{review.customer_name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {review.products?.name || 'Product not found'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={i < review.rating ? 'text-yellow-500' : 'text-gray-300'}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground mb-3">{review.review_text}</p>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </span>
+                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                        review.is_featured ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {review.is_featured ? 'Featured' : 'Not Featured'}
+                      </span>
                     </div>
                   </Card>
                 ))}
