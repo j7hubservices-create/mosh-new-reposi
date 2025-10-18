@@ -207,7 +207,7 @@ const Index = () => {
               <Carousel className="w-full">
                 <CarouselContent className="-ml-2">
                   {dynamicProducts.map((product) => (
-                    <CarouselItem key={product.id} className="pl-2 basis-[45%]">
+                    <CarouselItem key={product.id} className="pl-2 basis-full">
                       <ProductCard
                         id={product.id}
                         name={product.name}
