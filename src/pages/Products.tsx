@@ -10,8 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const Products = () => {
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all');
+  const [selectedSize, setSelectedSize] = useState<string>('all');
+  const [priceSort, setPriceSort] = useState<string>('none');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,6 +24,10 @@ const Products = () => {
   useEffect(() => {
     fetchProducts();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [allProducts, selectedSize, priceSort]);
 
   const fetchCategories = async () => {
     const { data } = await supabase
@@ -40,9 +47,32 @@ const Products = () => {
 
     const { data } = await query.order('created_at', { ascending: false });
     
-    if (data) setProducts(data);
+    if (data) {
+      setAllProducts(data);
+      setProducts(data);
+    }
     setLoading(false);
   };
+
+  const applyFilters = () => {
+    let filtered = [...allProducts];
+
+    // Filter by size
+    if (selectedSize !== 'all') {
+      filtered = filtered.filter(p => p.size === selectedSize);
+    }
+
+    // Sort by price
+    if (priceSort === 'low-to-high') {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (priceSort === 'high-to-low') {
+      filtered.sort((a, b) => b.price - a.price);
+    }
+
+    setProducts(filtered);
+  };
+
+  const availableSizes = Array.from(new Set(allProducts.map(p => p.size).filter(Boolean)));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -54,24 +84,57 @@ const Products = () => {
           <p className="text-muted-foreground text-lg">Discover our latest collection</p>
         </div>
 
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm font-medium">Filter by:</span>
-            <Button
-              variant={selectedCategory === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory('all')}
-            >
-              All
-            </Button>
-            {categories.map((category) => (
+        <div className="mb-8 space-y-4">
+          <div>
+            <span className="text-sm font-medium mb-2 block">Category:</span>
+            <div className="flex flex-wrap gap-2">
               <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory(category.id)}
+                variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('all')}
               >
-                {category.name}
+                All
               </Button>
-            ))}
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory(category.id)}
+                >
+                  {category.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <span className="text-sm font-medium mb-2 block">Size:</span>
+              <Select value={selectedSize} onValueChange={setSelectedSize}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Sizes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sizes</SelectItem>
+                  {availableSizes.map((size) => (
+                    <SelectItem key={size} value={size}>{size}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[200px]">
+              <span className="text-sm font-medium mb-2 block">Price:</span>
+              <Select value={priceSort} onValueChange={setPriceSort}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by price" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Default</SelectItem>
+                  <SelectItem value="low-to-high">Price: Low to High</SelectItem>
+                  <SelectItem value="high-to-low">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 

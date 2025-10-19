@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Settings, Star, Plus, Pencil, Trash2 } from "lucide-react";
+import { Settings, Star, Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const AdminSections = () => {
@@ -148,10 +148,19 @@ const AdminSections = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-            <Settings className="w-10 h-10 text-primary" />
-            Homepage Management
-          </h1>
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/admin')}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-4xl font-bold flex items-center gap-3">
+              <Settings className="w-10 h-10 text-primary" />
+              Homepage Management
+            </h1>
+          </div>
           <p className="text-muted-foreground">Manage homepage sections and customer reviews</p>
         </div>
 

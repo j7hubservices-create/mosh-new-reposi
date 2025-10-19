@@ -8,11 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import SafeImage from "@/components/ui/safe-image";
+import { ProductCard } from "@/components/ProductCard";
 
 const Cart = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +48,10 @@ const Cart = () => {
       `)
       .eq('user_id', userId);
     
-    if (data) setCartItems(data);
+    if (data) {
+      setCartItems(data);
+      fetchRelatedProducts(data);
+    }
     setLoading(false);
   };
 
@@ -75,8 +80,25 @@ const Cart = () => {
       })).filter((item: any) => item.products);
       
       setCartItems(cartData);
+      fetchRelatedProducts(cartData);
     }
     setLoading(false);
+  };
+
+  const fetchRelatedProducts = async (items: any[]) => {
+    if (items.length === 0) return;
+    
+    const categoryIds = Array.from(new Set(items.map(item => item.products?.category_id).filter(Boolean)));
+    const currentProductIds = items.map(item => item.product_id);
+    
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .in('category_id', categoryIds)
+      .not('id', 'in', `(${currentProductIds.join(',')})`)
+      .limit(4);
+    
+    if (data) setRelatedProducts(data);
   };
 
   const updateQuantity = async (cartItemId: string, newQuantity: number, maxStock: number) => {
@@ -251,6 +273,17 @@ const Cart = () => {
                   </div>
                 )}
               </Card>
+            </div>
+          </div>
+        )}
+
+        {relatedProducts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Continue Shopping</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              {relatedProducts.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))}
             </div>
           </div>
         )}

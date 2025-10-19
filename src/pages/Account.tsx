@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Package } from "lucide-react";
+import { Package, Truck, CheckCircle, Clock } from "lucide-react";
 
 const Account = () => {
   const navigate = useNavigate();
@@ -80,24 +80,73 @@ const Account = () => {
               <div className="space-y-4">
                 {orders.map((order) => (
                   <Card key={order.id} className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Order placed on {new Date(order.created_at).toLocaleDateString()}
-                        </p>
-                        <p className="font-semibold text-lg">
-                          Order #{order.id.substring(0, 8)}
-                        </p>
+                     <div className="mb-4">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Order placed on {new Date(order.created_at).toLocaleDateString()}
+                          </p>
+                          <p className="font-semibold text-lg">
+                            Order #{order.id.substring(0, 8)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">Status</p>
+                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                            order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Status</p>
-                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                          order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </span>
+
+                      {/* Order Tracking */}
+                      <div className="bg-muted/50 p-4 rounded-lg mb-4">
+                        <h3 className="font-semibold mb-3">Order Tracking</h3>
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col items-center flex-1">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              order.status === 'pending' || order.status === 'processing' || order.status === 'completed' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted'
+                            }`}>
+                              <Clock className="h-5 w-5" />
+                            </div>
+                            <p className="text-xs mt-2 text-center">Pending</p>
+                          </div>
+                          <div className={`flex-1 h-1 ${
+                            order.status === 'processing' || order.status === 'completed' 
+                              ? 'bg-primary' 
+                              : 'bg-muted'
+                          }`} />
+                          <div className="flex flex-col items-center flex-1">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              order.status === 'processing' || order.status === 'completed' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted'
+                            }`}>
+                              <Truck className="h-5 w-5" />
+                            </div>
+                            <p className="text-xs mt-2 text-center">Processing</p>
+                          </div>
+                          <div className={`flex-1 h-1 ${
+                            order.status === 'completed' 
+                              ? 'bg-primary' 
+                              : 'bg-muted'
+                          }`} />
+                          <div className="flex flex-col items-center flex-1">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              order.status === 'completed' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted'
+                            }`}>
+                              <CheckCircle className="h-5 w-5" />
+                            </div>
+                            <p className="text-xs mt-2 text-center">Completed</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
