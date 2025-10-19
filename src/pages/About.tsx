@@ -10,7 +10,7 @@ const About = () => {
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 py-16">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-5xl font-bold text-center mb-4">About Mosh Apparels</h1>
-            <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto">Your premier destination for quality fashion and style</p>
+            <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto">Your Premier Thrift Store for Quality Fashion</p>
           </div>
         </div>
 
@@ -19,7 +19,7 @@ const About = () => {
             <section>
               <h2 className="text-3xl font-bold mb-4">Our Story</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Mosh Apparels was founded with a passion for bringing quality, stylish fashion to everyone. We believe that great clothing should be accessible, affordable, and timeless. Our carefully curated collection features the latest trends alongside classic pieces that never go out of style.
+                Mosh Apparels is your trusted thrift store, founded with a passion for bringing quality, stylish fashion to everyone at affordable prices. We believe that great clothing should be accessible to all. As a thrift store, we specialize in carefully curated pre-loved fashion, bales, and wholesale options that combine sustainability with style. Our collection features timeless pieces and trending fashion finds that prove second-hand doesn't mean second-best.
               </p>
             </section>
 
@@ -31,8 +31,8 @@ const About = () => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2">Quality Products</h3>
-                  <p className="text-sm text-muted-foreground">Every item is carefully selected for quality, comfort, and style.</p>
+                  <h3 className="font-semibold mb-2">Quality Thrift Products</h3>
+                  <p className="text-sm text-muted-foreground">Every pre-loved item is carefully inspected and selected for quality, comfort, and style.</p>
                 </div>
               </div>
 
@@ -76,7 +76,7 @@ const About = () => {
             <section>
               <h2 className="text-3xl font-bold mb-4">Our Mission</h2>
               <p className="text-muted-foreground leading-relaxed">
-                To provide exceptional fashion experiences through quality products, outstanding customer service, and a commitment to making style accessible to everyone. We're here to help you look and feel your best, every day.
+                To provide exceptional thrift fashion experiences through quality pre-loved products, bales, and wholesale options, outstanding customer service, and a commitment to making sustainable style accessible and affordable to everyone. We're here to help you look and feel your best while making conscious fashion choices, every day.
               </p>
             </section>
           </div>
