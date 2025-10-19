@@ -40,8 +40,8 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">Call Us</h3>
-                  <a href="tel:08100510612" className="text-muted-foreground hover:text-primary transition-colors block">
-                    08100510612
+                  <a href="tel:+2348100510612" className="text-muted-foreground hover:text-primary transition-colors block">
+                    +2348100510612
                   </a>
                 </div>
               </div>
@@ -55,7 +55,7 @@ const Contact = () => {
                 <div>
                   <h3 className="font-semibold text-lg mb-2">WhatsApp</h3>
                   <a
-                    href="https://wa.me/2349015375444"
+                    href="https://wa.me/2348100510611"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-primary transition-colors"
