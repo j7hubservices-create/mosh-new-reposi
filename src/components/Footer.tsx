@@ -57,7 +57,7 @@ export const Footer = () => {
                 <FaTiktok className="h-5 w-5" />
               </a>
               <a
-                href="https://wa.me/2349015375444"
+                href="https://wa.me/2348100510611"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
