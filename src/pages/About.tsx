@@ -89,8 +89,8 @@ const About = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Call Us</h3>
-                    <a href="tel:08100510612" className="text-muted-foreground hover:text-primary transition-colors">
-                      08100510612
+                    <a href="tel:08100510611" className="text-muted-foreground hover:text-primary transition-colors">
+                      08100510611
                     </a>
                   </div>
                 </div>
