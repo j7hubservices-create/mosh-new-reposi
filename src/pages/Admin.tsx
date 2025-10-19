@@ -93,7 +93,7 @@ const Admin = () => {
   const fetchUsers = async () => {
     const { data } = await supabase
       .from('user_roles')
-      .select('*')
+      .select('*, user:user_id(email)')
       .order('id', { ascending: false });
     
     if (data) setUsers(data);
@@ -372,69 +372,71 @@ const Admin = () => {
             ) : (
               <div className="space-y-4">
                 {orders.map((order) => (
-                  <Card key={order.id} className="p-6">
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                  <Card key={order.id} className="p-4 md:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Order Date</p>
-                        <p className="font-semibold">{new Date(order.created_at).toLocaleDateString()}</p>
+                        <p className="text-xs text-muted-foreground mb-1">Order Date</p>
+                        <p className="font-semibold text-sm">{new Date(order.created_at).toLocaleDateString()}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Order ID</p>
-                        <p className="font-mono text-sm">#{order.id.substring(0, 8)}</p>
+                        <p className="text-xs text-muted-foreground mb-1">Order ID</p>
+                        <p className="font-mono text-xs">#{order.id.substring(0, 8)}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Customer</p>
-                        <p className="font-semibold">{order.customer_name}</p>
-                        <p className="text-sm text-muted-foreground">{order.customer_email}</p>
-                        <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
+                        <p className="text-xs text-muted-foreground mb-1">Customer</p>
+                        <p className="font-semibold text-sm">{order.customer_name}</p>
+                        <p className="text-xs text-muted-foreground">{order.customer_email}</p>
+                        <p className="text-xs text-muted-foreground">{order.customer_phone}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Delivery</p>
+                        <p className="text-xs text-muted-foreground mb-1">Delivery</p>
                         <p className="text-sm">{order.delivery_method === 'delivery' ? 'Home Delivery' : 'Pickup'}</p>
                         {order.delivery_method === 'delivery' && (
-                          <p className="text-sm text-muted-foreground mt-1">{order.customer_address}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{order.customer_address}</p>
                         )}
                       </div>
                     </div>
 
                     <div className="border-t pt-4 mb-4">
-                      <h3 className="font-semibold mb-3">Order Items</h3>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Product</TableHead>
-                            <TableHead>Quantity</TableHead>
-                            <TableHead>Price</TableHead>
-                            <TableHead>Subtotal</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {order.order_items.map((item: any) => (
-                            <TableRow key={item.id}>
-                              <TableCell>
-                                <div className="flex items-center gap-3">
-                                  <img
-                                    src={item.products.image_url}
-                                    alt={item.products.name}
-                                    className="w-12 h-12 object-cover rounded"
-                                  />
-                                  <span className="font-medium">{item.products.name}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>₦{item.price.toLocaleString()}</TableCell>
-                              <TableCell>₦{(item.quantity * item.price).toLocaleString()}</TableCell>
+                      <h3 className="font-semibold mb-3 text-sm md:text-base">Order Items</h3>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs">Product</TableHead>
+                              <TableHead className="text-xs">Qty</TableHead>
+                              <TableHead className="text-xs">Price</TableHead>
+                              <TableHead className="text-xs">Subtotal</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {order.order_items.map((item: any) => (
+                              <TableRow key={item.id}>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <img
+                                      src={item.products.image_url}
+                                      alt={item.products.name}
+                                      className="w-10 h-10 object-cover rounded"
+                                    />
+                                    <span className="font-medium text-xs md:text-sm">{item.products.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs md:text-sm">{item.quantity}</TableCell>
+                                <TableCell className="text-xs md:text-sm">₦{item.price.toLocaleString()}</TableCell>
+                                <TableCell className="text-xs md:text-sm">₦{(item.quantity * item.price).toLocaleString()}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
 
-                    <div className="border-t pt-4 flex justify-between items-center">
-                      <div>
-                        <Label>Order Status</Label>
+                    <div className="border-t pt-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div className="w-full md:w-auto">
+                        <Label className="text-xs md:text-sm">Order Status</Label>
                         <Select value={order.status} onValueChange={(value) => updateOrderStatus(order.id, value)}>
-                          <SelectTrigger className="w-48 mt-2">
+                          <SelectTrigger className="w-full md:w-48 mt-2">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -445,9 +447,9 @@ const Admin = () => {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
-                        <p className="text-3xl font-bold text-primary">₦{order.total.toLocaleString()}</p>
+                      <div className="text-left md:text-right w-full md:w-auto">
+                        <p className="text-xs text-muted-foreground mb-1">Total Amount</p>
+                        <p className="text-2xl md:text-3xl font-bold text-primary">₦{order.total.toLocaleString()}</p>
                       </div>
                     </div>
                   </Card>
@@ -462,30 +464,34 @@ const Admin = () => {
                 <p className="text-xl text-muted-foreground">No users yet</p>
               </Card>
             ) : (
-              <Card className="p-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User ID</TableHead>
-                      <TableHead>Role</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-mono text-sm">{user.user_id.substring(0, 16)}...</TableCell>
-                        <TableCell>
-                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                          </span>
-                        </TableCell>
+              <div className="overflow-x-auto">
+                <Card className="p-4 md:p-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs md:text-sm">User ID</TableHead>
+                        <TableHead className="text-xs md:text-sm">Email</TableHead>
+                        <TableHead className="text-xs md:text-sm">Role</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user, index) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-mono text-xs md:text-sm">USER-{String(index + 1).padStart(4, '0')}</TableCell>
+                          <TableCell className="text-xs md:text-sm">{user.user?.email || 'N/A'}</TableCell>
+                          <TableCell>
+                            <span className={`inline-block px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${
+                              user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              </div>
             )}
           </TabsContent>
 

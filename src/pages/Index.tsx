@@ -115,38 +115,40 @@ const Index = () => {
       
       {/* Hero Section */}
       <section className="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroBanner})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10 max-w-6xl">
-          <div className="max-w-xl text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
-              Welcome to Mosh Apparels
-            </h1>
-            <p className="text-lg md:text-xl mb-6 text-gray-200">
-              Discover premium fashion for Men, Women & Kids.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                size="lg" 
-                className="px-6 py-5" 
-                onClick={() => navigate('/products')}
-              >
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Shop Now
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="px-6 py-5 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
-                onClick={() => navigate('/about')}
-              >
-                Learn More
-              </Button>
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div 
+            className="relative bg-cover bg-center rounded-2xl overflow-hidden h-[60vh] md:h-[70vh] flex items-center"
+            style={{ backgroundImage: `url(${heroBanner})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+            
+            <div className="relative z-10 px-6 md:px-12 max-w-xl">
+              <div className="text-white">
+                <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
+                  Welcome to Mosh Apparels
+                </h1>
+                <p className="text-lg md:text-xl mb-6 text-gray-200">
+                  Discover premium fashion for Men, Women & Kids.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    size="lg" 
+                    className="px-6 py-5" 
+                    onClick={() => navigate('/products')}
+                  >
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    Shop Now
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="px-6 py-5 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                    onClick={() => navigate('/about')}
+                  >
+                    Learn More
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

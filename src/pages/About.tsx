@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { ShoppingBag, Heart, Users, Award } from "lucide-react";
+import { ShoppingBag, Heart, Users, Award, Phone, MapPin, Instagram } from "lucide-react";
 
 const About = () => {
   return (
@@ -78,6 +78,81 @@ const About = () => {
               <p className="text-muted-foreground leading-relaxed">
                 To provide exceptional thrift fashion experiences through quality pre-loved products, bales, and wholesale options, outstanding customer service, and a commitment to making sustainable style accessible and affordable to everyone. We're here to help you look and feel your best while making conscious fashion choices, every day.
               </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 className="text-3xl font-bold mb-6 text-center">Contact Us</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="flex items-start gap-3 p-4 border rounded-lg">
+                  <div className="bg-primary/10 p-3 rounded-lg">
+                    <Phone className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Call Us</h3>
+                    <a href="tel:08100510612" className="text-muted-foreground hover:text-primary transition-colors">
+                      08100510612
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 border rounded-lg">
+                  <div className="bg-primary/10 p-3 rounded-lg">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Visit Us</h3>
+                    <p className="text-muted-foreground text-sm">
+                      9, Bolanle Awosika street<br />
+                      Coca cola road, Oju Oore<br />
+                      Ota, Ogun state
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 border rounded-lg">
+                  <div className="bg-primary/10 p-3 rounded-lg">
+                    <Instagram className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Follow Us</h3>
+                    <div className="space-y-1">
+                      <a
+                        href="https://www.instagram.com/mosh_apparels"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors text-sm block"
+                      >
+                        @mosh_apparels
+                      </a>
+                      <a
+                        href="https://www.tiktok.com/@mosh_apparels"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors text-sm block"
+                      >
+                        TikTok: @mosh_apparels
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 border rounded-lg">
+                  <div className="bg-primary/10 p-3 rounded-lg">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">WhatsApp</h3>
+                    <a
+                      href="https://wa.me/2349015375444"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                    >
+                      Chat with us
+                    </a>
+                  </div>
+                </div>
+              </div>
             </section>
           </div>
         </div>
