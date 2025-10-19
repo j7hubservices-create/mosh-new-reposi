@@ -29,7 +29,7 @@ export const Navbar = () => {
 
   const storeInfo = {
     name: "Mosh Apparels",
-    phone: "+234 812 345 6789",
+    phone: "+234 8100510611",
     address: "9, Bolanle Awosika street, Coca cola road, Oju Oore, Ota, Ogun state"
   };
 
