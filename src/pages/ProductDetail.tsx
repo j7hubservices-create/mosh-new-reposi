@@ -161,8 +161,20 @@ const ProductDetail = () => {
               )}
             </div>
 
-            <div className="text-4xl font-bold text-primary">
-              ₦{product.price.toLocaleString()}
+            <div className="space-y-2">
+              {product.original_price && (
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl line-through text-muted-foreground">
+                    ₦{product.original_price.toLocaleString()}
+                  </span>
+                  <span className="text-lg text-green-600 font-semibold">
+                    {Math.round(((product.original_price - product.price) / product.original_price) * 100)}% OFF
+                  </span>
+                </div>
+              )}
+              <div className="text-4xl font-bold text-primary">
+                ₦{product.price.toLocaleString()}
+              </div>
             </div>
 
             {product.size && (

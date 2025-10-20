@@ -11,12 +11,13 @@ interface ProductCardProps {
   id: string;
   name: string;
   price: number;
+  original_price?: number;
   image_url: string;
   size?: string;
   stock: number;
 }
 
-export const ProductCard = ({ id, name, price, image_url, size, stock }: ProductCardProps) => {
+export const ProductCard = ({ id, name, price, original_price, image_url, size, stock }: ProductCardProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
 
@@ -98,13 +99,23 @@ export const ProductCard = ({ id, name, price, image_url, size, stock }: Product
       <CardFooter className="flex flex-col items-start gap-2 sm:gap-3 p-3 sm:p-4 flex-1">
         <div className="w-full flex-1">
           <h3 className="font-semibold text-sm sm:text-base md:text-lg line-clamp-2">{name}</h3>
-          <div className="flex items-center justify-between mt-1 sm:mt-2 flex-wrap gap-1">
+          <div className="flex items-center gap-2 mt-1 sm:mt-2 flex-wrap">
+            {original_price && (
+              <span className="text-sm sm:text-base line-through text-muted-foreground">₦{original_price.toLocaleString()}</span>
+            )}
             <p className="text-lg sm:text-xl md:text-2xl font-bold text-primary">₦{price.toLocaleString()}</p>
-            {size && <span className="text-xs sm:text-sm text-muted-foreground">Size {size}</span>}
+            {original_price && (
+              <span className="text-xs sm:text-sm text-green-600 font-semibold">
+                {Math.round(((original_price - price) / original_price) * 100)}% OFF
+              </span>
+            )}
           </div>
-          {stock === 0 && (
-            <p className="text-xs sm:text-sm text-destructive mt-1">Out of Stock</p>
-          )}
+          <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
+            {size && <span className="text-xs sm:text-sm text-muted-foreground">Size {size}</span>}
+            {stock === 0 && (
+              <p className="text-xs sm:text-sm text-destructive">Out of Stock</p>
+            )}
+          </div>
         </div>
         <Button
           className="w-full text-sm sm:text-base"

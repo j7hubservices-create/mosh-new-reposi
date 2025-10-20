@@ -31,7 +31,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: ''
+    name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: '', slug: '', original_price: ''
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -165,10 +165,12 @@ const Admin = () => {
       name: formData.name,
       description: formData.description,
       price: parseFloat(formData.price),
+      original_price: formData.original_price ? parseFloat(formData.original_price) : null,
       category_id: formData.category_id || null,
       image_url: formData.image_url || null,
       size: formData.size || null,
       stock: parseInt(formData.stock),
+      slug: formData.slug || null,
     } as any;
 
     try {
@@ -186,7 +188,7 @@ const Admin = () => {
       return;
     }
 
-    setFormData({ name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: '' });
+    setFormData({ name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: '', slug: '', original_price: '' });
     setEditingProduct(null);
     setImageFiles([]);
     setDialogOpen(false);
@@ -250,7 +252,12 @@ const Admin = () => {
                 </div>
 
                 <div>
-                  <Label>Price (₦)</Label>
+                  <Label>Original Price (₦)</Label>
+                  <Input type="number" step="0.01" value={formData.original_price} onChange={(e) => setFormData({...formData, original_price: e.target.value})} placeholder="0.00" />
+                </div>
+
+                <div>
+                  <Label>Sale Price (₦)</Label>
                   <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="0.00" required />
                 </div>
 
@@ -274,6 +281,12 @@ const Admin = () => {
                 <div>
                   <Label>Size</Label>
                   <Input value={formData.size} onChange={(e) => setFormData({...formData, size: e.target.value})} placeholder="e.g., S, M, L, XL" />
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label>SEO Slug (URL)</Label>
+                  <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="Auto-generated from name" />
+                  <p className="text-xs text-muted-foreground mt-1">Leave empty to auto-generate from product name</p>
                 </div>
 
                 <div className="md:col-span-2">
@@ -340,11 +353,20 @@ const Admin = () => {
                       <div>
                         <h3 className="font-bold text-xl mb-1">{product.name}</h3>
                         <span className="inline-block px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">{product.categories?.name}</span>
+                        {product.slug && <p className="text-xs text-muted-foreground mt-1">/{product.slug}</p>}
                       </div>
                     </div>
                     <p className="text-muted-foreground text-sm mb-2 line-clamp-2">{product.description}</p>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-4 text-sm flex-wrap">
+                      {product.original_price && (
+                        <span className="text-lg line-through text-muted-foreground">₦{product.original_price.toLocaleString()}</span>
+                      )}
                       <p className="text-2xl font-bold text-primary">₦{product.price.toLocaleString()}</p>
+                      {product.original_price && (
+                        <span className="text-sm text-green-600 font-semibold">
+                          {Math.round(((product.original_price - product.price) / product.original_price) * 100)}% OFF
+                        </span>
+                      )}
                       {product.size && <span className="text-muted-foreground">Size: {product.size}</span>}
                       <span className={`font-medium ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-orange-600' : 'text-red-600'}`}>
                         Stock: {product.stock}
@@ -352,7 +374,7 @@ const Admin = () => {
                     </div>
                   </div>
                   <div className="flex md:flex-col gap-2">
-                    <Button variant="outline" size="icon" onClick={() => { setEditingProduct(product); setFormData({...product, price: product.price.toString(), stock: product.stock.toString()}); setDialogOpen(true); }}>
+                    <Button variant="outline" size="icon" onClick={() => { setEditingProduct(product); setFormData({...product, price: product.price.toString(), stock: product.stock.toString(), original_price: product.original_price?.toString() || '', slug: product.slug || ''}); setDialogOpen(true); }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button variant="destructive" size="icon" onClick={() => handleDelete(product.id)}>
