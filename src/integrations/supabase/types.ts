@@ -227,8 +227,10 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          original_price: number | null
           price: number
           size: string | null
+          slug: string | null
           stock: number
           updated_at: string
         }
@@ -239,8 +241,10 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          original_price?: number | null
           price: number
           size?: string | null
+          slug?: string | null
           stock?: number
           updated_at?: string
         }
@@ -251,8 +255,10 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          original_price?: number | null
           price?: number
           size?: string | null
+          slug?: string | null
           stock?: number
           updated_at?: string
         }
@@ -289,6 +295,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_slug: {
+        Args: { text_input: string }
+        Returns: string
+      }
       is_admin: {
         Args: { _user_id: string }
         Returns: boolean
