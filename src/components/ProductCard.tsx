@@ -15,9 +15,10 @@ interface ProductCardProps {
   image_url: string;
   size?: string;
   stock: number;
+  slug?: string;
 }
 
-export const ProductCard = ({ id, name, price, original_price, image_url, size, stock }: ProductCardProps) => {
+export const ProductCard = ({ id, name, price, original_price, image_url, size, stock, slug }: ProductCardProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
 
@@ -85,7 +86,7 @@ export const ProductCard = ({ id, name, price, original_price, image_url, size, 
   return (
     <Card
       className="group overflow-hidden cursor-pointer transition-all hover:shadow-elevated h-full flex flex-col"
-      onClick={() => navigate(`/products/${id}`)}
+      onClick={() => navigate(`/products/${slug || id}`)}
     >
       <CardContent className="p-0 flex-shrink-0">
         <div className="relative w-full aspect-square overflow-hidden bg-muted">

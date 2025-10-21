@@ -8,7 +8,7 @@ import { ShoppingCart, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
   const [category, setCategory] = useState<any>(null);
@@ -29,17 +29,17 @@ const ProductDetail = () => {
   }, []);
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchProduct();
     }
-  }, [id]);
+  }, [slug]);
 
   const fetchProduct = async () => {
     const { data: productData } = await supabase
       .from('products')
       .select('*')
-      .eq('id', id)
-      .single();
+      .eq('slug', slug)
+      .maybeSingle();
 
     if (productData) {
       setProduct(productData);
@@ -79,7 +79,7 @@ const ProductDetail = () => {
         .from('cart_items')
         .select('*')
         .eq('user_id', user.id)
-        .eq('product_id', id)
+        .eq('product_id', product.id)
         .maybeSingle();
 
       if (existing) {
@@ -90,7 +90,7 @@ const ProductDetail = () => {
       } else {
         await supabase
           .from('cart_items')
-          .insert({ user_id: user.id, product_id: id, quantity });
+          .insert({ user_id: user.id, product_id: product.id, quantity });
       }
 
       toast.success("Added to cart!");
