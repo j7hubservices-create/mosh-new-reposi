@@ -32,10 +32,19 @@ const Products = () => {
   const fetchCategories = async () => {
     const { data } = await supabase
       .from('categories')
-      .select('*');
+      .select('*')
+      .order('name', { ascending: true });
     
     if (data) setCategories(data);
   };
+
+  // Group categories by main category (Ladies, Men, Kids)
+  const groupedCategories = categories.reduce((acc, cat) => {
+    const [mainCat, subCat] = cat.name.split(' - ');
+    if (!acc[mainCat]) acc[mainCat] = [];
+    acc[mainCat].push({ ...cat, subName: subCat || cat.name });
+    return acc;
+  }, {} as Record<string, any[]>);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -94,14 +103,20 @@ const Products = () => {
               >
                 All
               </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? 'default' : 'outline'}
-                  onClick={() => setSelectedCategory(category.id)}
-                >
-                  {category.name}
-                </Button>
+              {Object.entries(groupedCategories).map(([mainCat, subCats]) => (
+                <div key={mainCat} className="flex flex-wrap gap-2 items-center">
+                  <span className="text-sm font-semibold text-muted-foreground">{mainCat}:</span>
+                  {(subCats as any[]).map((cat) => (
+                    <Button
+                      key={cat.id}
+                      variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedCategory(cat.id)}
+                    >
+                      {cat.subName}
+                    </Button>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
