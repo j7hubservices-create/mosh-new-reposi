@@ -84,7 +84,7 @@ export const Navbar = () => {
     navigate("/");
   };
 
-  // 🛍️ Updated Shop Sections (Added Unisex and Bales)
+  // 🛍️ Shop Sections
   const shopSections = [
     {
       title: "Ladies",
@@ -111,19 +111,11 @@ export const Navbar = () => {
       ],
     },
     {
-      title: "Unisex",
-      items: [
-        { name: "Tops", path: "/products?category=unisex-tops" },
-        { name: "Jackets", path: "/products?category=unisex-jackets" },
-        { name: "Jeans", path: "/products?category=unisex-jeans" },
-      ],
-    },
-    {
       title: "Bales",
       items: [
-        { name: "Ladies Bale", path: "/products?category=ladies-bales" },
-        { name: "Men Bale", path: "/products?category=men-bales" },
-        { name: "Mixed Bale", path: "/products?category=mixed-bales" },
+        { name: "Ladies Bale", path: "/products?category=ladies-bale" },
+        { name: "Men Bale", path: "/products?category=men-bale" },
+        { name: "Kids Bale", path: "/products?category=kids-bale" }, // ✅ Newly added
       ],
     },
   ];
@@ -156,6 +148,13 @@ export const Navbar = () => {
           </ul>
         </li>
       ))}
+
+      {/* Unisex as single menu link */}
+      <li>
+        <Link to="/products?category=unisex" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
+          Unisex
+        </Link>
+      </li>
 
       <li>
         <Link to="/about" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
@@ -284,7 +283,9 @@ export const Navbar = () => {
                   {shopSections.map((section) => (
                     <Accordion key={section.title} type="single" collapsible className="w-full">
                       <AccordionItem value={section.title} className="border-b-0">
-                        <AccordionTrigger className="py-2 font-medium hover:text-primary">{section.title}</AccordionTrigger>
+                        <AccordionTrigger className="py-2 font-medium hover:text-primary">
+                          {section.title}
+                        </AccordionTrigger>
                         <AccordionContent>
                           <div className="flex flex-col gap-2 pl-4">
                             {section.items.map((item) => (
@@ -302,6 +303,15 @@ export const Navbar = () => {
                       </AccordionItem>
                     </Accordion>
                   ))}
+
+                  {/* Unisex single item */}
+                  <Link
+                    to="/products?category=unisex"
+                    className="hover:text-primary font-medium"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Unisex
+                  </Link>
 
                   <Link to="/about" className="hover:text-primary font-medium" onClick={() => setMobileOpen(false)}>
                     About
