@@ -201,7 +201,6 @@ export const Navbar = () => {
               <FaTiktok className="hover:text-gray-200" />
             </a>
           </div>
-
         </div>
       </div>
 
@@ -241,6 +240,56 @@ export const Navbar = () => {
           ) : (
             <Button onClick={() => navigate("/auth")}>Login</Button>
           )}
+        </div>
+
+        {/* ✅ Mobile Menu (Slides from Right) */}
+        <div className="md:hidden flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
+            <ShoppingCart className="h-5 w-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </Button>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+
+            {/* 🟢 Slides from the right */}
+            <SheetContent side="right" className="w-64 bg-white p-4">
+              <Accordion type="single" collapsible>
+                {shopSections.map((section) => (
+                  <AccordionItem key={section.title} value={section.title}>
+                    <AccordionTrigger>{section.title}</AccordionTrigger>
+                    <AccordionContent>
+                      <ul className="flex flex-col gap-1">
+                        {section.items.map((item) => (
+                          <li key={item.path}>
+                            <Link to={item.path} className="block py-1 px-2 hover:bg-primary/10 rounded-md">
+                              {item.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+
+              <div className="mt-4 flex flex-col gap-2">
+                <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
+                <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
+                <Link to="/about" className="hover:text-primary">About</Link>
+                <Link to="/contact" className="hover:text-primary">Contact</Link>
+                {isAdmin && <Link to="/admin" className="hover:text-primary">Admin</Link>}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>
