@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer"; // ✅ Make sure you have this component
-import sizeChartImage from "@/assets/sizechart.jpg"; // optional: add your image file here
+import sizeChartImage from "src/assets/WhatsApp Image 2025-10-22 at 11.07.07_fa8365fc.jpg"; // optional: add your image file here
 
 const SizeChart = () => {
   const sizeData = [
