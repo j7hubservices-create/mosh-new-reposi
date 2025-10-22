@@ -13,9 +13,16 @@ const Products = () => {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all');
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string>('all');
   const [selectedSize, setSelectedSize] = useState<string>('all');
   const [priceSort, setPriceSort] = useState<string>('none');
   const [loading, setLoading] = useState(true);
+
+  const shopCategories = {
+    Ladies: ['Ladies - Tops', 'Ladies - Skirts', 'Ladies - Pants', 'Ladies - Gowns'],
+    Men: ['Men - Tops', 'Men - Pants', 'Men - Shorts'],
+    Kids: ['Kids - Boy', 'Kids - Girl']
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -23,7 +30,7 @@ const Products = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedMainCategory, categories]);
 
   useEffect(() => {
     applyFilters();
@@ -48,10 +55,18 @@ const Products = () => {
 
   const fetchProducts = async () => {
     setLoading(true);
-    let query = supabase.from('products').select('*');
+    let query = supabase.from('products').select('*, categories(name)');
 
     if (selectedCategory !== 'all') {
       query = query.eq('category_id', selectedCategory);
+    } else if (selectedMainCategory !== 'all') {
+      // Filter by main category prefix
+      const subCategories = categories.filter(cat => 
+        shopCategories[selectedMainCategory as keyof typeof shopCategories]?.includes(cat.name)
+      );
+      if (subCategories.length > 0) {
+        query = query.in('category_id', subCategories.map(c => c.id));
+      }
     }
 
     const { data } = await query.order('created_at', { ascending: false });
@@ -95,31 +110,56 @@ const Products = () => {
 
         <div className="mb-8 space-y-4">
           <div>
-            <span className="text-sm font-medium mb-2 block">Category:</span>
+            <span className="text-sm font-medium mb-2 block">Main Category:</span>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory('all')}
+                variant={selectedMainCategory === 'all' ? 'default' : 'outline'}
+                onClick={() => {
+                  setSelectedMainCategory('all');
+                  setSelectedCategory('all');
+                }}
               >
                 All
               </Button>
-              {Object.entries(groupedCategories).map(([mainCat, subCats]) => (
-                <div key={mainCat} className="flex flex-wrap gap-2 items-center">
-                  <span className="text-sm font-semibold text-muted-foreground">{mainCat}:</span>
-                  {(subCats as any[]).map((cat) => (
-                    <Button
-                      key={cat.id}
-                      variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedCategory(cat.id)}
-                    >
-                      {cat.subName}
-                    </Button>
-                  ))}
-                </div>
+              {Object.keys(groupedCategories).map((mainCat) => (
+                <Button
+                  key={mainCat}
+                  variant={selectedMainCategory === mainCat ? 'default' : 'outline'}
+                  onClick={() => {
+                    setSelectedMainCategory(mainCat);
+                    setSelectedCategory('all');
+                  }}
+                >
+                  {mainCat}
+                </Button>
               ))}
             </div>
           </div>
+
+          {selectedMainCategory !== 'all' && (
+            <div>
+              <span className="text-sm font-medium mb-2 block">Subcategory:</span>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory('all')}
+                  size="sm"
+                >
+                  All {selectedMainCategory}
+                </Button>
+                {(groupedCategories[selectedMainCategory] || []).map((cat: any) => (
+                  <Button
+                    key={cat.id}
+                    variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat.id)}
+                  >
+                    {cat.subName}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
