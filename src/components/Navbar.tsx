@@ -242,7 +242,7 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* ✅ Mobile Menu (Slides from Right) */}
+        {/* ✅ Mobile Menu (Optimized for visibility) */}
         <div className="md:hidden flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
             <ShoppingCart className="h-5 w-5" />
@@ -260,28 +260,40 @@ export const Navbar = () => {
               </Button>
             </SheetTrigger>
 
-            {/* 🟢 Slides from the right */}
-            <SheetContent side="right" className="w-64 bg-white p-4">
-              <Accordion type="single" collapsible>
-                {shopSections.map((section) => (
-                  <AccordionItem key={section.title} value={section.title}>
-                    <AccordionTrigger>{section.title}</AccordionTrigger>
-                    <AccordionContent>
-                      <ul className="flex flex-col gap-1">
-                        {section.items.map((item) => (
-                          <li key={item.path}>
-                            <Link to={item.path} className="block py-1 px-2 hover:bg-primary/10 rounded-md">
-                              {item.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+            <SheetContent
+              side="right"
+              className="w-72 bg-white p-5 overflow-y-auto shadow-lg"
+            >
+              <div className="flex flex-col gap-4 text-lg font-medium text-gray-800">
 
-              <div className="mt-4 flex flex-col gap-2">
+                {/* Home */}
+                <Link to="/" className="hover:text-primary">Home</Link>
+
+                {/* Accordion for Shop Sections */}
+                <Accordion type="single" collapsible>
+                  {shopSections.map((section) => (
+                    <AccordionItem key={section.title} value={section.title}>
+                      <AccordionTrigger className="text-base font-semibold">
+                        {section.title}
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <ul className="flex flex-col gap-2 pl-2">
+                          {section.items.map((item) => (
+                            <li key={item.path}>
+                              <Link
+                                to={item.path}
+                                className="block py-1 px-2 hover:bg-primary/10 rounded-md text-sm"
+                              >
+                                {item.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+
                 <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
                 <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
                 <Link to="/about" className="hover:text-primary">About</Link>
