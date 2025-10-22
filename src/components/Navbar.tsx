@@ -25,18 +25,16 @@ export const Navbar = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
 
   const storeInfo = {
     name: "Mosh Apparels",
     phone: "+234 8100510611",
-    address: "9, Bolanle Awosika street, Coca cola road, Oju Oore, Ota, Ogun state"
+    address: "9, Bolanle Awosika street, Coca cola road, Oju Oore, Ota, Ogun state",
   };
 
   useEffect(() => {
-    fetchCategories();
     updateCartCount();
-    
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -54,29 +52,21 @@ export const Navbar = () => {
       updateCartCount();
     });
 
-    // Listen for cart updates
-    const handleCartUpdate = () => {
-      updateCartCount();
-    };
-    window.addEventListener('cart-updated', handleCartUpdate);
+    const handleCartUpdate = () => updateCartCount();
+    window.addEventListener("cart-updated", handleCartUpdate);
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener('cart-updated', handleCartUpdate);
+      window.removeEventListener("cart-updated", handleCartUpdate);
     };
   }, []);
 
-  const fetchCategories = async () => {
-    const { data } = await supabase.from('categories').select('*');
-    if (data) setCategories(data);
-  };
-
   const checkAdminStatus = async (userId: string) => {
     const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
       .maybeSingle();
     setIsAdmin(!!data);
   };
@@ -86,17 +76,15 @@ export const Navbar = () => {
     const currentUser = session.data.session?.user;
 
     if (currentUser) {
-      // Authenticated user - get from database
       const { data } = await supabase
-        .from('cart_items')
-        .select('quantity')
-        .eq('user_id', currentUser.id);
-      
+        .from("cart_items")
+        .select("quantity")
+        .eq("user_id", currentUser.id);
+
       const total = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
       setCartCount(total);
     } else {
-      // Guest user - get from localStorage
-      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
       const total = guestCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
       setCartCount(total);
     }
@@ -104,25 +92,25 @@ export const Navbar = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/');
+    navigate("/");
   };
 
   const shopCategories = {
     Ladies: [
-      { name: 'Tops', path: '/products?category=ladies-tops' },
-      { name: 'Skirts', path: '/products?category=ladies-skirts' },
-      { name: 'Pants', path: '/products?category=ladies-pants' },
-      { name: 'Gowns', path: '/products?category=ladies-gowns' }
+      { name: "Tops", path: "/products?category=ladies-tops" },
+      { name: "Skirts", path: "/products?category=ladies-skirts" },
+      { name: "Pants", path: "/products?category=ladies-pants" },
+      { name: "Gowns", path: "/products?category=ladies-gowns" },
     ],
     Men: [
-      { name: 'Tops', path: '/products?category=men-tops' },
-      { name: 'Pants', path: '/products?category=men-pants' },
-      { name: 'Shorts', path: '/products?category=men-shorts' }
+      { name: "Tops", path: "/products?category=men-tops" },
+      { name: "Pants", path: "/products?category=men-pants" },
+      { name: "Shorts", path: "/products?category=men-shorts" },
     ],
     Kids: [
-      { name: 'Boy', path: '/products?category=kids-boy' },
-      { name: 'Girl', path: '/products?category=kids-girl' }
-    ]
+      { name: "Boy", path: "/products?category=kids-boy" },
+      { name: "Girl", path: "/products?category=kids-girl" },
+    ],
   };
 
   const NavLinks = () => (
@@ -130,29 +118,55 @@ export const Navbar = () => {
       <Link to="/" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
         Home
       </Link>
+
+      {/* Ladies Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
-          Shop <ChevronDown className="h-4 w-4" />
+          Ladies <ChevronDown className="h-4 w-4" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-popover z-50 w-56">
-          <DropdownMenuItem asChild>
-            <Link to="/products" className="w-full cursor-pointer font-semibold">All Products</Link>
-          </DropdownMenuItem>
-          <div className="my-1 border-t"></div>
-          {Object.entries(shopCategories).map(([section, items]) => (
-            <div key={section} className="py-1">
-              <div className="px-2 py-1.5 text-sm font-semibold text-foreground">{section}</div>
-              {items.map((item) => (
-                <DropdownMenuItem key={item.path} asChild>
-                  <Link to={item.path} className="w-full cursor-pointer pl-4">
-                    {item.name}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </div>
+        <DropdownMenuContent className="bg-popover z-50 w-48">
+          {shopCategories.Ladies.map((item) => (
+            <DropdownMenuItem key={item.path} asChild>
+              <Link to={item.path} className="w-full cursor-pointer">
+                {item.name}
+              </Link>
+            </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Men Menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
+          Men <ChevronDown className="h-4 w-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="bg-popover z-50 w-48">
+          {shopCategories.Men.map((item) => (
+            <DropdownMenuItem key={item.path} asChild>
+              <Link to={item.path} className="w-full cursor-pointer">
+                {item.name}
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Kids Menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
+          Kids <ChevronDown className="h-4 w-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="bg-popover z-50 w-48">
+          {shopCategories.Kids.map((item) => (
+            <DropdownMenuItem key={item.path} asChild>
+              <Link to={item.path} className="w-full cursor-pointer">
+                {item.name}
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <Link to="/about" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
         About
       </Link>
@@ -169,17 +183,16 @@ export const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      {/* Top Bar with Contact Info and Social Links */}
+      {/* Top Bar */}
       <div className="bg-gradient-to-r from-primary via-primary/95 to-primary text-primary-foreground py-2">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex flex-wrap justify-between items-center text-xs sm:text-sm gap-2">
-            {/* Contact Info */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:opacity-80 transition-opacity">
                 <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="whitespace-nowrap">{storeInfo.phone}</span>
+                <span>{storeInfo.phone}</span>
               </a>
-              <a 
+              <a
                 href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -189,36 +202,17 @@ export const Navbar = () => {
                 <span>{storeInfo.address}</span>
               </a>
             </div>
-            
-            {/* Social Links */}
+
             <div className="flex items-center gap-3 sm:gap-4">
               <span className="hidden sm:inline font-semibold">{storeInfo.name}</span>
               <div className="flex items-center gap-2 sm:gap-3">
-                <a 
-                  href="https://wa.me/2348123456789" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:scale-110 transition-transform"
-                  aria-label="WhatsApp"
-                >
+                <a href="https://wa.me/2348123456789" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
                   <FaWhatsapp className="h-4 w-4 sm:h-5 sm:w-5" />
                 </a>
-                <a 
-                  href="https://instagram.com/moshapparels" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:scale-110 transition-transform"
-                  aria-label="Instagram"
-                >
+                <a href="https://instagram.com/moshapparels" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
                   <FaInstagram className="h-4 w-4 sm:h-5 sm:w-5" />
                 </a>
-                <a 
-                  href="https://tiktok.com/@moshapparels" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:scale-110 transition-transform"
-                  aria-label="TikTok"
-                >
+                <a href="https://tiktok.com/@moshapparels" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
                   <FaTiktok className="h-4 w-4 sm:h-5 sm:w-5" />
                 </a>
               </div>
@@ -226,7 +220,8 @@ export const Navbar = () => {
           </div>
         </div>
       </div>
-      
+
+      {/* Main Navbar */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -237,18 +232,14 @@ export const Navbar = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             <NavLinks />
           </div>
 
+          {/* Right Icons */}
           <div className="hidden md:flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              onClick={() => navigate('/cart')}
-            >
+            <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/cart")}>
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -256,9 +247,10 @@ export const Navbar = () => {
                 </span>
               )}
             </Button>
+
             {user ? (
               <>
-                <Button variant="ghost" size="icon" onClick={() => navigate('/account')}>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/account")}>
                   <User className="h-5 w-5" />
                 </Button>
                 <Button variant="outline" onClick={handleLogout}>
@@ -266,20 +258,13 @@ export const Navbar = () => {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => navigate('/auth')}>
-                Login
-              </Button>
+              <Button onClick={() => navigate("/auth")}>Login</Button>
             )}
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Menu */}
           <div className="md:hidden flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              onClick={() => navigate('/cart')}
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -287,6 +272,7 @@ export const Navbar = () => {
                 </span>
               )}
             </Button>
+
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -295,59 +281,64 @@ export const Navbar = () => {
               </SheetTrigger>
               <SheetContent className="overflow-y-auto">
                 <div className="flex flex-col gap-6 mt-8">
-                  <Link to="/" className="hover:text-primary transition-colors font-medium" onClick={() => setMobileOpen(false)}>
+                  <Link to="/" className="hover:text-primary font-medium" onClick={() => setMobileOpen(false)}>
                     Home
                   </Link>
-                  
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="shop" className="border-b-0">
-                      <AccordionTrigger className="py-2 hover:text-primary font-medium">Shop</AccordionTrigger>
+
+                  {/* Ladies Accordion */}
+                  <Accordion type="single" collapsible>
+                    <AccordionItem value="ladies">
+                      <AccordionTrigger>Ladies</AccordionTrigger>
                       <AccordionContent>
-                        <div className="flex flex-col gap-3 pl-4">
-                          <Link 
-                            to="/products" 
-                            className="py-2 hover:text-primary transition-colors text-sm font-semibold"
-                            onClick={() => setMobileOpen(false)}
-                          >
-                            All Products
+                        {shopCategories.Ladies.map((item) => (
+                          <Link key={item.path} to={item.path} className="block py-1.5 pl-4 hover:text-primary" onClick={() => setMobileOpen(false)}>
+                            {item.name}
                           </Link>
-                          
-                          {Object.entries(shopCategories).map(([section, items]) => (
-                            <div key={section} className="flex flex-col gap-1">
-                              <div className="font-semibold text-foreground py-1">{section}</div>
-                              {items.map((item) => (
-                                <Link
-                                  key={item.path}
-                                  to={item.path}
-                                  className="py-1.5 pl-3 hover:text-primary transition-colors text-sm"
-                                  onClick={() => setMobileOpen(false)}
-                                >
-                                  {item.name}
-                                </Link>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Men */}
+                    <AccordionItem value="men">
+                      <AccordionTrigger>Men</AccordionTrigger>
+                      <AccordionContent>
+                        {shopCategories.Men.map((item) => (
+                          <Link key={item.path} to={item.path} className="block py-1.5 pl-4 hover:text-primary" onClick={() => setMobileOpen(false)}>
+                            {item.name}
+                          </Link>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Kids */}
+                    <AccordionItem value="kids">
+                      <AccordionTrigger>Kids</AccordionTrigger>
+                      <AccordionContent>
+                        {shopCategories.Kids.map((item) => (
+                          <Link key={item.path} to={item.path} className="block py-1.5 pl-4 hover:text-primary" onClick={() => setMobileOpen(false)}>
+                            {item.name}
+                          </Link>
+                        ))}
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
 
-                  <Link to="/about" className="hover:text-primary transition-colors font-medium" onClick={() => setMobileOpen(false)}>
+                  <Link to="/about" className="hover:text-primary font-medium" onClick={() => setMobileOpen(false)}>
                     About
                   </Link>
-                  <Link to="/contact" className="hover:text-primary transition-colors font-medium" onClick={() => setMobileOpen(false)}>
+                  <Link to="/contact" className="hover:text-primary font-medium" onClick={() => setMobileOpen(false)}>
                     Contact
                   </Link>
                   {isAdmin && (
-                    <Link to="/admin" className="hover:text-primary transition-colors font-semibold" onClick={() => setMobileOpen(false)}>
+                    <Link to="/admin" className="hover:text-primary font-semibold" onClick={() => setMobileOpen(false)}>
                       Admin
                     </Link>
                   )}
-                  
+
                   <div className="flex flex-col gap-2 pt-4 border-t">
                     {user ? (
                       <>
-                        <Button variant="outline" onClick={() => { navigate('/account'); setMobileOpen(false); }}>
+                        <Button variant="outline" onClick={() => { navigate("/account"); setMobileOpen(false); }}>
                           My Account
                         </Button>
                         <Button variant="outline" onClick={() => { handleLogout(); setMobileOpen(false); }}>
@@ -355,7 +346,7 @@ export const Navbar = () => {
                         </Button>
                       </>
                     ) : (
-                      <Button onClick={() => { navigate('/auth'); setMobileOpen(false); }}>
+                      <Button onClick={() => { navigate("/auth"); setMobileOpen(false); }}>
                         Login
                       </Button>
                     )}
