@@ -22,8 +22,7 @@ export const Navbar = () => {
   const storeInfo = {
     name: "Mosh Apparels",
     phone: "+2348100510611",
-    address:
-      "9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota, Ogun State",
+    address: "9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota, Ogun State",
     whatsapp: "https://wa.me/2348100510611",
     instagram: "https://www.instagram.com/moshapparels",
     tiktok: "https://www.tiktok.com/@moshapparels",
@@ -37,9 +36,7 @@ export const Navbar = () => {
       if (session?.user) checkAdminStatus(session.user.id);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) checkAdminStatus(session.user.id);
       else setIsAdmin(false);
@@ -88,6 +85,7 @@ export const Navbar = () => {
     navigate("/");
   };
 
+  // ✅ No subcategories for Bales
   const shopSections = [
     {
       title: "Ladies",
@@ -113,16 +111,11 @@ export const Navbar = () => {
         { name: "Girl", path: "/products?category=kids-girl" },
       ],
     },
-    // ✅ Bales now has NO subcategories — just one link
   ];
 
   const NavLinks = () => (
     <ul className="flex items-center gap-8 list-none">
-      <li>
-        <Link to="/" className="hover:text-primary">
-          Home
-        </Link>
-      </li>
+      <li><Link to="/" className="hover:text-primary">Home</Link></li>
 
       {shopSections.map((section) => (
         <li key={section.title} className="relative group">
@@ -144,49 +137,26 @@ export const Navbar = () => {
         </li>
       ))}
 
-      {/* ✅ Single Bales link */}
-      <li>
-        <Link to="/products?category=bales" className="hover:text-primary">
-          Bales
-        </Link>
-      </li>
-
-      <li>
-        <Link to="/products?category=unisex" className="hover:text-primary">
-          Unisex
-        </Link>
-      </li>
-      <li>
-        <Link to="/size-chart" className="hover:text-primary">
-          Size Chart
-        </Link>
-      </li>
-      <li>
-        <Link to="/about" className="hover:text-primary">
-          About
-        </Link>
-      </li>
-      <li>
-        <Link to="/contact" className="hover:text-primary">
-          Contact
-        </Link>
-      </li>
+      {/* ✅ Bales is now a single category */}
+      <li><Link to="/products?category=bales" className="hover:text-primary">Bales</Link></li>
+      <li><Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link></li>
+      <li><Link to="/size-chart" className="hover:text-primary">Size Chart</Link></li>
+      <li><Link to="/about" className="hover:text-primary">About</Link></li>
+      <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
 
       {isAdmin && (
-        <li>
-          <Link to="/admin" className="hover:text-primary font-semibold">
-            Admin
-          </Link>
-        </li>
+        <li><Link to="/admin" className="hover:text-primary font-semibold">Admin</Link></li>
       )}
     </ul>
   );
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+
       {/* ✅ Top Bar */}
       <div className="bg-primary text-white py-2">
         <div className="container mx-auto flex justify-between items-center text-xs sm:text-sm px-4">
+
           {/* Desktop: Full info */}
           <div className="hidden md:flex items-center gap-4">
             <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:underline">
@@ -285,11 +255,14 @@ export const Navbar = () => {
               </Button>
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-72 bg-white p-5 overflow-y-auto shadow-lg">
+            <SheetContent
+              side="right"
+              className="w-72 bg-white p-5 overflow-y-auto shadow-lg"
+            >
               <div className="flex flex-col gap-4 text-lg font-medium text-gray-800">
                 <Link to="/" className="hover:text-primary">Home</Link>
 
-                {/* Accordion for other sections */}
+                {/* Accordion for shop sections */}
                 <Accordion type="single" collapsible>
                   {shopSections.map((section) => (
                     <AccordionItem key={section.title} value={section.title}>
@@ -314,9 +287,8 @@ export const Navbar = () => {
                   ))}
                 </Accordion>
 
-                {/* ✅ Bales single link */}
+                {/* ✅ Single Bales Link */}
                 <Link to="/products?category=bales" className="hover:text-primary">Bales</Link>
-
                 <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
                 <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
                 <Link to="/about" className="hover:text-primary">About</Link>
