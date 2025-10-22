@@ -18,11 +18,9 @@ export const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const storeInfo = {
-    name: "Mosh Apparels",
-    phone: "+234 8100510611",
+    phone: "+2348100510611",
     address: "9, Bolanle Awosika street, Coca cola road, Oju Oore, Ota, Ogun state",
   };
 
@@ -133,7 +131,6 @@ export const Navbar = () => {
                 <Link
                   to={item.path}
                   className="block px-3 py-2 text-sm hover:bg-primary/10 rounded-md"
-                  onClick={() => setMobileOpen(false)}
                 >
                   {item.name}
                 </Link>
@@ -143,15 +140,10 @@ export const Navbar = () => {
         </li>
       ))}
 
-      {/* Unisex */}
       <li><Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link></li>
-
-      {/* ✅ New Size Chart */}
       <li><Link to="/size-chart" className="hover:text-primary">Size Chart</Link></li>
-
       <li><Link to="/about" className="hover:text-primary">About</Link></li>
       <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
-
       {isAdmin && (
         <li><Link to="/admin" className="hover:text-primary font-semibold">Admin</Link></li>
       )}
@@ -167,7 +159,12 @@ export const Navbar = () => {
             <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1">
               <Phone className="h-3 w-3" /> {storeInfo.phone}
             </a>
-            <a href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1">
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1"
+            >
               <MapPin className="h-3 w-3" /> {storeInfo.address}
             </a>
           </div>
@@ -187,12 +184,12 @@ export const Navbar = () => {
           </div>
         </Link>
 
-        {/* Desktop Nav */}
+        {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
           <NavLinks />
         </div>
 
-        {/* Cart & Auth */}
+        {/* Right Icons */}
         <div className="hidden md:flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
             <ShoppingCart className="h-5 w-5" />
@@ -213,6 +210,48 @@ export const Navbar = () => {
           ) : (
             <Button onClick={() => navigate("/auth")}>Login</Button>
           )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[260px] sm:w-[300px] bg-white">
+              <div className="flex flex-col space-y-4 mt-6">
+                <Accordion type="single" collapsible>
+                  {shopSections.map((section) => (
+                    <AccordionItem key={section.title} value={section.title}>
+                      <AccordionTrigger>{section.title}</AccordionTrigger>
+                      <AccordionContent>
+                        {section.items.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            className="block px-2 py-1 hover:bg-primary/10 rounded"
+                          >
+                            {item.name}
+                          </Link>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+
+                <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
+                <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
+                <Link to="/about" className="hover:text-primary">About</Link>
+                <Link to="/contact" className="hover:text-primary">Contact</Link>
+
+                {isAdmin && (
+                  <Link to="/admin" className="hover:text-primary font-semibold">Admin</Link>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>
