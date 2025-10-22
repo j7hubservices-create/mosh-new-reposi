@@ -1,16 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Menu, ChevronDown, Phone, MapPin } from "lucide-react";
+import { ShoppingCart, User, Menu, Phone, MapPin } from "lucide-react";
 import { FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import {
   Accordion,
   AccordionContent,
@@ -37,18 +31,13 @@ export const Navbar = () => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdminStatus(session.user.id);
-      }
+      if (session?.user) checkAdminStatus(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdminStatus(session.user.id);
-      } else {
-        setIsAdmin(false);
-      }
+      if (session?.user) checkAdminStatus(session.user.id);
+      else setIsAdmin(false);
       updateCartCount();
     });
 
@@ -95,90 +84,97 @@ export const Navbar = () => {
     navigate("/");
   };
 
-  const shopCategories = {
-    Ladies: [
-      { name: "Tops", path: "/products?category=ladies-tops" },
-      { name: "Skirts", path: "/products?category=ladies-skirts" },
-      { name: "Pants", path: "/products?category=ladies-pants" },
-      { name: "Gowns", path: "/products?category=ladies-gowns" },
-    ],
-    Men: [
-      { name: "Tops", path: "/products?category=men-tops" },
-      { name: "Pants", path: "/products?category=men-pants" },
-      { name: "Shorts", path: "/products?category=men-shorts" },
-    ],
-    Kids: [
-      { name: "Boy", path: "/products?category=kids-boy" },
-      { name: "Girl", path: "/products?category=kids-girl" },
-    ],
-  };
+  // 🛍️ Updated Shop Sections (Added Unisex and Bales)
+  const shopSections = [
+    {
+      title: "Ladies",
+      items: [
+        { name: "Tops", path: "/products?category=ladies-tops" },
+        { name: "Skirts", path: "/products?category=ladies-skirts" },
+        { name: "Pants", path: "/products?category=ladies-pants" },
+        { name: "Gowns", path: "/products?category=ladies-gowns" },
+      ],
+    },
+    {
+      title: "Men",
+      items: [
+        { name: "Tops", path: "/products?category=men-tops" },
+        { name: "Pants", path: "/products?category=men-pants" },
+        { name: "Shorts", path: "/products?category=men-shorts" },
+      ],
+    },
+    {
+      title: "Kids",
+      items: [
+        { name: "Boy", path: "/products?category=kids-boy" },
+        { name: "Girl", path: "/products?category=kids-girl" },
+      ],
+    },
+    {
+      title: "Unisex",
+      items: [
+        { name: "Tops", path: "/products?category=unisex-tops" },
+        { name: "Jackets", path: "/products?category=unisex-jackets" },
+        { name: "Jeans", path: "/products?category=unisex-jeans" },
+      ],
+    },
+    {
+      title: "Bales",
+      items: [
+        { name: "Ladies Bale", path: "/products?category=ladies-bales" },
+        { name: "Men Bale", path: "/products?category=men-bales" },
+        { name: "Mixed Bale", path: "/products?category=mixed-bales" },
+      ],
+    },
+  ];
 
   const NavLinks = () => (
-    <>
-      <Link to="/" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
-        Home
-      </Link>
-
-      {/* Ladies Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
-          Ladies <ChevronDown className="h-4 w-4" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-popover z-50 w-48">
-          {shopCategories.Ladies.map((item) => (
-            <DropdownMenuItem key={item.path} asChild>
-              <Link to={item.path} className="w-full cursor-pointer">
-                {item.name}
-              </Link>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Men Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
-          Men <ChevronDown className="h-4 w-4" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-popover z-50 w-48">
-          {shopCategories.Men.map((item) => (
-            <DropdownMenuItem key={item.path} asChild>
-              <Link to={item.path} className="w-full cursor-pointer">
-                {item.name}
-              </Link>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Kids Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
-          Kids <ChevronDown className="h-4 w-4" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-popover z-50 w-48">
-          {shopCategories.Kids.map((item) => (
-            <DropdownMenuItem key={item.path} asChild>
-              <Link to={item.path} className="w-full cursor-pointer">
-                {item.name}
-              </Link>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <Link to="/about" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
-        About
-      </Link>
-      <Link to="/contact" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
-        Contact
-      </Link>
-      {isAdmin && (
-        <Link to="/admin" className="hover:text-primary transition-colors font-semibold" onClick={() => setMobileOpen(false)}>
-          Admin
+    <ul className="flex items-center gap-8 list-none">
+      <li>
+        <Link to="/" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
+          Home
         </Link>
+      </li>
+
+      {shopSections.map((section) => (
+        <li key={section.title} className="relative group">
+          <button className="flex items-center gap-1 font-medium hover:text-primary transition-colors">
+            {section.title}
+          </button>
+          <ul className="absolute hidden group-hover:flex flex-col bg-white shadow-lg rounded-md p-2 top-full left-0 w-48 z-50">
+            {section.items.map((item) => (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
+                  className="block px-3 py-2 text-sm hover:bg-primary/10 rounded-md"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+
+      <li>
+        <Link to="/about" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
+          About
+        </Link>
+      </li>
+      <li>
+        <Link to="/contact" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
+          Contact
+        </Link>
+      </li>
+      {isAdmin && (
+        <li>
+          <Link to="/admin" className="hover:text-primary font-semibold transition-colors" onClick={() => setMobileOpen(false)}>
+            Admin
+          </Link>
+        </li>
       )}
-    </>
+    </ul>
   );
 
   return (
@@ -188,7 +184,7 @@ export const Navbar = () => {
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex flex-wrap justify-between items-center text-xs sm:text-sm gap-2">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-              <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:opacity-80 transition-opacity">
+              <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:opacity-80">
                 <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>{storeInfo.phone}</span>
               </a>
@@ -196,7 +192,7 @@ export const Navbar = () => {
                 href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden lg:flex items-center gap-1 hover:opacity-80 transition-opacity"
+                className="hidden lg:flex items-center gap-1 hover:opacity-80"
               >
                 <MapPin className="h-4 w-4" />
                 <span>{storeInfo.address}</span>
@@ -206,13 +202,13 @@ export const Navbar = () => {
             <div className="flex items-center gap-3 sm:gap-4">
               <span className="hidden sm:inline font-semibold">{storeInfo.name}</span>
               <div className="flex items-center gap-2 sm:gap-3">
-                <a href="https://wa.me/2348123456789" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
+                <a href="https://wa.me/2348123456789" target="_blank" rel="noopener noreferrer" className="hover:scale-110">
                   <FaWhatsapp className="h-4 w-4 sm:h-5 sm:w-5" />
                 </a>
-                <a href="https://instagram.com/moshapparels" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
+                <a href="https://instagram.com/moshapparels" target="_blank" rel="noopener noreferrer" className="hover:scale-110">
                   <FaInstagram className="h-4 w-4 sm:h-5 sm:w-5" />
                 </a>
-                <a href="https://tiktok.com/@moshapparels" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform">
+                <a href="https://tiktok.com/@moshapparels" target="_blank" rel="noopener noreferrer" className="hover:scale-110">
                   <FaTiktok className="h-4 w-4 sm:h-5 sm:w-5" />
                 </a>
               </div>
@@ -232,12 +228,12 @@ export const Navbar = () => {
             </div>
           </Link>
 
-          {/* Desktop Menu */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             <NavLinks />
           </div>
 
-          {/* Right Icons */}
+          {/* Actions */}
           <div className="hidden md:flex items-center gap-4">
             <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/cart")}>
               <ShoppingCart className="h-5 w-5" />
@@ -262,9 +258,9 @@ export const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu */}
+          {/* Mobile */}
           <div className="md:hidden flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
+            <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/cart")}>
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -285,43 +281,27 @@ export const Navbar = () => {
                     Home
                   </Link>
 
-                  {/* Ladies Accordion */}
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="ladies">
-                      <AccordionTrigger>Ladies</AccordionTrigger>
-                      <AccordionContent>
-                        {shopCategories.Ladies.map((item) => (
-                          <Link key={item.path} to={item.path} className="block py-1.5 pl-4 hover:text-primary" onClick={() => setMobileOpen(false)}>
-                            {item.name}
-                          </Link>
-                        ))}
-                      </AccordionContent>
-                    </AccordionItem>
-
-                    {/* Men */}
-                    <AccordionItem value="men">
-                      <AccordionTrigger>Men</AccordionTrigger>
-                      <AccordionContent>
-                        {shopCategories.Men.map((item) => (
-                          <Link key={item.path} to={item.path} className="block py-1.5 pl-4 hover:text-primary" onClick={() => setMobileOpen(false)}>
-                            {item.name}
-                          </Link>
-                        ))}
-                      </AccordionContent>
-                    </AccordionItem>
-
-                    {/* Kids */}
-                    <AccordionItem value="kids">
-                      <AccordionTrigger>Kids</AccordionTrigger>
-                      <AccordionContent>
-                        {shopCategories.Kids.map((item) => (
-                          <Link key={item.path} to={item.path} className="block py-1.5 pl-4 hover:text-primary" onClick={() => setMobileOpen(false)}>
-                            {item.name}
-                          </Link>
-                        ))}
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                  {shopSections.map((section) => (
+                    <Accordion key={section.title} type="single" collapsible className="w-full">
+                      <AccordionItem value={section.title} className="border-b-0">
+                        <AccordionTrigger className="py-2 font-medium hover:text-primary">{section.title}</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="flex flex-col gap-2 pl-4">
+                            {section.items.map((item) => (
+                              <Link
+                                key={item.path}
+                                to={item.path}
+                                className="py-1.5 text-sm hover:text-primary"
+                                onClick={() => setMobileOpen(false)}
+                              >
+                                {item.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  ))}
 
                   <Link to="/about" className="hover:text-primary font-medium" onClick={() => setMobileOpen(false)}>
                     About
@@ -329,6 +309,7 @@ export const Navbar = () => {
                   <Link to="/contact" className="hover:text-primary font-medium" onClick={() => setMobileOpen(false)}>
                     Contact
                   </Link>
+
                   {isAdmin && (
                     <Link to="/admin" className="hover:text-primary font-semibold" onClick={() => setMobileOpen(false)}>
                       Admin
@@ -346,9 +327,7 @@ export const Navbar = () => {
                         </Button>
                       </>
                     ) : (
-                      <Button onClick={() => { navigate("/auth"); setMobileOpen(false); }}>
-                        Login
-                      </Button>
+                      <Button onClick={() => { navigate("/auth"); setMobileOpen(false); }}>Login</Button>
                     )}
                   </div>
                 </div>
