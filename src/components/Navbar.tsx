@@ -20,11 +20,12 @@ export const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
 
   const storeInfo = {
+    name: "Mosh Apparels",
     phone: "+2348100510611",
-    address: "9, Bolanle Awosika street, Coca cola road, Oju Oore, Ota, Ogun state",
+    address: "9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota, Ogun State",
     whatsapp: "https://wa.me/2348100510611",
-    instagram: "https://www.instagram.com/mosh_apparels",
-    tiktok: "https://www.tiktok.com/@mosh_apparels",
+    instagram: "https://www.instagram.com/moshapparels",
+    tiktok: "https://www.tiktok.com/@moshapparels",
   };
 
   useEffect(() => {
@@ -156,10 +157,13 @@ export const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
-      {/* Top Bar */}
+
+      {/* ✅ Top Bar */}
       <div className="bg-primary text-white py-2">
         <div className="container mx-auto flex justify-between items-center text-xs sm:text-sm px-4">
-          <div className="flex items-center gap-3">
+
+          {/* Desktop: Full info */}
+          <div className="hidden md:flex items-center gap-4">
             <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:underline">
               <Phone className="h-3 w-3" /> {storeInfo.phone}
             </a>
@@ -167,30 +171,42 @@ export const Navbar = () => {
               href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1 hover:text-white/80"
+              className="flex items-center gap-1 hover:underline"
             >
-              <MapPin className="h-3 w-3" />
+              <MapPin className="h-3 w-3" /> {storeInfo.address}
             </a>
           </div>
 
-          {/* Socials */}
-          <div className="flex items-center gap-3">
-            <a href={storeInfo.whatsapp} target="_blank" rel="noopener noreferrer" className="hover:text-white/80">
-              <FaWhatsapp />
-            </a>
-            <a href={storeInfo.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white/80">
-              <FaInstagram />
-            </a>
-            <a href={storeInfo.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-white/80">
-              <FaTiktok />
+          {/* Mobile: Icons only */}
+          <div className="flex md:hidden items-center gap-3">
+            <a href={`tel:${storeInfo.phone}`}><Phone className="h-4 w-4" /></a>
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MapPin className="h-4 w-4" />
             </a>
           </div>
+
+          {/* Social icons */}
+          <div className="flex items-center gap-3">
+            <a href={storeInfo.whatsapp} target="_blank" rel="noreferrer">
+              <FaWhatsapp className="hover:text-green-400" />
+            </a>
+            <a href={storeInfo.instagram} target="_blank" rel="noreferrer">
+              <FaInstagram className="hover:text-pink-400" />
+            </a>
+            <a href={storeInfo.tiktok} target="_blank" rel="noreferrer">
+              <FaTiktok className="hover:text-gray-200" />
+            </a>
+          </div>
+
         </div>
       </div>
 
-      {/* Main Navbar */}
+      {/* ✅ Main Navbar */}
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="Mosh Apparels" className="h-12 w-auto" />
           <div className="flex flex-col">
@@ -199,12 +215,12 @@ export const Navbar = () => {
           </div>
         </Link>
 
-        {/* Desktop Menu */}
+        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           <NavLinks />
         </div>
 
-        {/* Right Icons */}
+        {/* Cart & Auth */}
         <div className="hidden md:flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
             <ShoppingCart className="h-5 w-5" />
@@ -225,48 +241,6 @@ export const Navbar = () => {
           ) : (
             <Button onClick={() => navigate("/auth")}>Login</Button>
           )}
-        </div>
-
-        {/* Mobile Menu */}
-        <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[260px] sm:w-[300px] bg-white">
-              <div className="flex flex-col space-y-4 mt-6">
-                <Accordion type="single" collapsible>
-                  {shopSections.map((section) => (
-                    <AccordionItem key={section.title} value={section.title}>
-                      <AccordionTrigger>{section.title}</AccordionTrigger>
-                      <AccordionContent>
-                        {section.items.map((item) => (
-                          <Link
-                            key={item.path}
-                            to={item.path}
-                            className="block px-2 py-1 hover:bg-primary/10 rounded"
-                          >
-                            {item.name}
-                          </Link>
-                        ))}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-
-                <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
-                <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
-                <Link to="/about" className="hover:text-primary">About</Link>
-                <Link to="/contact" className="hover:text-primary">Contact</Link>
-
-                {isAdmin && (
-                  <Link to="/admin" className="hover:text-primary font-semibold">Admin</Link>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
     </nav>
