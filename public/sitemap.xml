@@ -1,61 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://yourstore.lovable.app/</loc>
+    <loc>https://moshapparels.com/</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/products</loc>
+    <loc>https://moshapparels.com</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/about</loc>
+    <loc>https://moshapparels.com/about</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/contact</loc>
+    <loc>https://moshapparels.com/contact</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/cart</loc>
+    <loc>https://moshapparels.com/cart</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/account</loc>
+    <loc>https://moshapparels.com/account</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/auth</loc>
+    <loc>https://moshapparels.com/auth</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/terms</loc>
+    <loc>https://moshapparels.com/terms</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/privacy</loc>
+    <loc>https://moshapparels.com/privacy</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://yourstore.lovable.app/returns</loc>
+    <loc>https://moshapparels.com/returns</loc>
     <lastmod>2025-10-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
