@@ -107,6 +107,24 @@ export const Navbar = () => {
     navigate('/');
   };
 
+  const shopCategories = {
+    Ladies: [
+      { name: 'Tops', path: '/products?category=ladies-tops' },
+      { name: 'Skirts', path: '/products?category=ladies-skirts' },
+      { name: 'Pants', path: '/products?category=ladies-pants' },
+      { name: 'Gowns', path: '/products?category=ladies-gowns' }
+    ],
+    Men: [
+      { name: 'Tops', path: '/products?category=men-tops' },
+      { name: 'Pants', path: '/products?category=men-pants' },
+      { name: 'Shorts', path: '/products?category=men-shorts' }
+    ],
+    Kids: [
+      { name: 'Boy', path: '/products?category=kids-boy' },
+      { name: 'Girl', path: '/products?category=kids-girl' }
+    ]
+  };
+
   const NavLinks = () => (
     <>
       <Link to="/" className="hover:text-primary transition-colors" onClick={() => setMobileOpen(false)}>
@@ -116,16 +134,22 @@ export const Navbar = () => {
         <DropdownMenuTrigger className="flex items-center gap-1 hover:text-primary transition-colors outline-none">
           Shop <ChevronDown className="h-4 w-4" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-popover z-50">
+        <DropdownMenuContent className="bg-popover z-50 w-56">
           <DropdownMenuItem asChild>
-            <Link to="/products" className="w-full cursor-pointer">All Products</Link>
+            <Link to="/products" className="w-full cursor-pointer font-semibold">All Products</Link>
           </DropdownMenuItem>
-          {categories.map((category) => (
-            <DropdownMenuItem key={category.id} asChild>
-              <Link to={`/products?category=${category.id}`} className="w-full cursor-pointer">
-                {category.name}
-              </Link>
-            </DropdownMenuItem>
+          <div className="my-1 border-t"></div>
+          {Object.entries(shopCategories).map(([section, items]) => (
+            <div key={section} className="py-1">
+              <div className="px-2 py-1.5 text-sm font-semibold text-foreground">{section}</div>
+              {items.map((item) => (
+                <DropdownMenuItem key={item.path} asChild>
+                  <Link to={item.path} className="w-full cursor-pointer pl-4">
+                    {item.name}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </div>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
@@ -279,23 +303,29 @@ export const Navbar = () => {
                     <AccordionItem value="shop" className="border-b-0">
                       <AccordionTrigger className="py-2 hover:text-primary font-medium">Shop</AccordionTrigger>
                       <AccordionContent>
-                        <div className="flex flex-col gap-2 pl-4">
+                        <div className="flex flex-col gap-3 pl-4">
                           <Link 
                             to="/products" 
-                            className="py-2 hover:text-primary transition-colors text-sm"
+                            className="py-2 hover:text-primary transition-colors text-sm font-semibold"
                             onClick={() => setMobileOpen(false)}
                           >
                             All Products
                           </Link>
-                          {categories.map((category) => (
-                            <Link
-                              key={category.id}
-                              to={`/products?category=${category.id}`}
-                              className="py-2 hover:text-primary transition-colors text-sm"
-                              onClick={() => setMobileOpen(false)}
-                            >
-                              {category.name}
-                            </Link>
+                          
+                          {Object.entries(shopCategories).map(([section, items]) => (
+                            <div key={section} className="flex flex-col gap-1">
+                              <div className="font-semibold text-foreground py-1">{section}</div>
+                              {items.map((item) => (
+                                <Link
+                                  key={item.path}
+                                  to={item.path}
+                                  className="py-1.5 pl-3 hover:text-primary transition-colors text-sm"
+                                  onClick={() => setMobileOpen(false)}
+                                >
+                                  {item.name}
+                                </Link>
+                              ))}
+                            </div>
                           ))}
                         </div>
                       </AccordionContent>
