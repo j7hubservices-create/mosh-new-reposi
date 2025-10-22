@@ -22,6 +22,9 @@ export const Navbar = () => {
   const storeInfo = {
     phone: "+2348100510611",
     address: "9, Bolanle Awosika street, Coca cola road, Oju Oore, Ota, Ogun state",
+    whatsapp: "https://wa.me/2348100510611",
+    instagram: "https://www.instagram.com/mosh_apparels",
+    tiktok: "https://www.tiktok.com/@mosh_apparels",
   };
 
   useEffect(() => {
@@ -144,6 +147,7 @@ export const Navbar = () => {
       <li><Link to="/size-chart" className="hover:text-primary">Size Chart</Link></li>
       <li><Link to="/about" className="hover:text-primary">About</Link></li>
       <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
+
       {isAdmin && (
         <li><Link to="/admin" className="hover:text-primary font-semibold">Admin</Link></li>
       )}
@@ -156,26 +160,37 @@ export const Navbar = () => {
       <div className="bg-primary text-white py-2">
         <div className="container mx-auto flex justify-between items-center text-xs sm:text-sm px-4">
           <div className="flex items-center gap-3">
-            <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1">
+            <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:underline">
               <Phone className="h-3 w-3" /> {storeInfo.phone}
             </a>
             <a
               href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 hover:text-white/80"
             >
-              <MapPin className="h-3 w-3" /> {storeInfo.address}
+              <MapPin className="h-3 w-3" />
             </a>
           </div>
-          <div className="flex items-center gap-2">
-            <FaWhatsapp /><FaInstagram /><FaTiktok />
+
+          {/* Socials */}
+          <div className="flex items-center gap-3">
+            <a href={storeInfo.whatsapp} target="_blank" rel="noopener noreferrer" className="hover:text-white/80">
+              <FaWhatsapp />
+            </a>
+            <a href={storeInfo.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white/80">
+              <FaInstagram />
+            </a>
+            <a href={storeInfo.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-white/80">
+              <FaTiktok />
+            </a>
           </div>
         </div>
       </div>
 
       {/* Main Navbar */}
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="Mosh Apparels" className="h-12 w-auto" />
           <div className="flex flex-col">
@@ -212,7 +227,7 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
