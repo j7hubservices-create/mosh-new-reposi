@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer"; // ✅ Make sure you have this component
-import sizeChartImage from "@/assets/sizechart.jpg"; // optional: add your image file here
+import { Footer } from "@/components/Footer";
 
 const SizeChart = () => {
   const sizeData = [
@@ -25,15 +24,6 @@ const SizeChart = () => {
         <p className="text-center text-muted-foreground mb-8">
           Use the chart below to find your perfect fit before making a purchase.
         </p>
-
-        {/* Optional image section */}
-        <div className="flex justify-center mb-10">
-          <img
-            src={sizeChartImage}
-            alt="Size chart guide"
-            className="max-w-md rounded-xl shadow-md"
-          />
-        </div>
 
         <div className="overflow-x-auto">
           <Card className="max-w-5xl mx-auto shadow-lg border rounded-2xl">
