@@ -1,309 +1,118 @@
-import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Menu, Phone, MapPin } from "lucide-react";
-import { FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
-import { Button } from "./ui/button";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "./ui/accordion";
-import logo from "@/assets/logo.png";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Menu, X, MapPin, Phone, Mail } from "lucide-react";
+import logo from "@/assets/salem-logo-new.jpg";
 
 export const Navbar = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const storeInfo = {
-    name: "Mosh Apparels",
-    phone: "+2348100510611",
-    address: "9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota, Ogun State",
-    whatsapp: "https://wa.me/2348100510611",
-    instagram: "https://www.instagram.com/moshapparels",
-    tiktok: "https://www.tiktok.com/@moshapparels",
-  };
-
-  useEffect(() => {
-    updateCartCount();
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) checkAdminStatus(session.user.id);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) checkAdminStatus(session.user.id);
-      else setIsAdmin(false);
-      updateCartCount();
-    });
-
-    const handleCartUpdate = () => updateCartCount();
-    window.addEventListener("cart-updated", handleCartUpdate);
-
-    return () => {
-      subscription.unsubscribe();
-      window.removeEventListener("cart-updated", handleCartUpdate);
-    };
-  }, []);
-
-  const checkAdminStatus = async (userId) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
-  };
-
-  const updateCartCount = async () => {
-    const session = await supabase.auth.getSession();
-    const currentUser = session.data.session?.user;
-
-    if (currentUser) {
-      const { data } = await supabase
-        .from("cart_items")
-        .select("quantity")
-        .eq("user_id", currentUser.id);
-      const total = data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-      setCartCount(total);
-    } else {
-      const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
-      const total = guestCart.reduce((sum, item) => sum + item.quantity, 0);
-      setCartCount(total);
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
-  const shopSections = [
-    {
-      title: "Ladies",
-      items: [
-        { name: "Tops", path: "/products?category=ladies-tops" },
-        { name: "Skirts", path: "/products?category=ladies-skirts" },
-        { name: "Pants", path: "/products?category=ladies-pants" },
-        { name: "Gowns", path: "/products?category=ladies-gowns" },
-      ],
-    },
-    {
-      title: "Men",
-      items: [
-        { name: "Tops", path: "/products?category=men-tops" },
-        { name: "Pants", path: "/products?category=men-pants" },
-        { name: "Shorts", path: "/products?category=men-shorts" },
-      ],
-    },
-    {
-      title: "Kids",
-      items: [
-        { name: "Boy", path: "/products?category=kids-boy" },
-        { name: "Girl", path: "/products?category=kids-girl" },
-      ],
-    },
-    {
-      title: "Bales",
-      items: [
-        { name: "Ladies Bale", path: "/products?category=ladies-bale" },
-        { name: "Men Bale", path: "/products?category=men-bale" },
-        { name: "Kids Bale", path: "/products?category=kids-bale" },
-      ],
-    },
-  ];
-
-  const NavLinks = () => (
-    <ul className="flex items-center gap-8 list-none">
-      <li><Link to="/" className="hover:text-primary">Home</Link></li>
-
-      {shopSections.map((section) => (
-        <li key={section.title} className="relative group">
-          <button className="flex items-center gap-1 font-medium hover:text-primary">
-            {section.title}
-          </button>
-          <ul className="absolute hidden group-hover:flex flex-col bg-white shadow-lg rounded-md p-2 top-full left-0 w-48 z-50">
-            {section.items.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className="block px-3 py-2 text-sm hover:bg-primary/10 rounded-md"
-                >
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
-
-      <li><Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link></li>
-      <li><Link to="/size-chart" className="hover:text-primary">Size Chart</Link></li>
-      <li><Link to="/about" className="hover:text-primary">About</Link></li>
-      <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
-
-      {isAdmin && (
-        <li><Link to="/admin" className="hover:text-primary font-semibold">Admin</Link></li>
-      )}
-    </ul>
-  );
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
-
-      {/* ✅ Top Bar */}
-      <div className="bg-primary text-white py-2">
-        <div className="container mx-auto flex justify-between items-center text-xs sm:text-sm px-4">
-
-          {/* Desktop: Full info */}
-          <div className="hidden md:flex items-center gap-4">
-            <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:underline">
-              <Phone className="h-3 w-3" /> {storeInfo.phone}
+    <header className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
+      {/* Top bar (desktop only) */}
+      <div className="hidden md:flex justify-between items-center px-8 py-2 bg-primary text-white text-sm">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          <span>No. 23, Oshodi Road, Lagos, Nigeria</span>
+        </div>
+        <div className="flex items-center gap-6">
+          <a href="mailto:info@salemfashion.com" className="flex items-center gap-2 hover:underline">
+            <Mail className="w-4 h-4" /> info@salemfashion.com
+          </a>
+          <a href="tel:+2348134813380" className="flex items-center gap-2 hover:underline">
+            <Phone className="w-4 h-4" /> +234 813 481 3380
+          </a>
+          {/* Socials */}
+          <div className="flex gap-4">
+            <a href="https://facebook.com/salemfashion" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-facebook text-white text-lg hover:text-gray-200"></i>
             </a>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 hover:underline"
-            >
-              <MapPin className="h-3 w-3" /> {storeInfo.address}
+            <a href="https://instagram.com/salemfashion" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-instagram text-white text-lg hover:text-gray-200"></i>
             </a>
-          </div>
-
-          {/* Mobile: Icons only */}
-          <div className="flex md:hidden items-center gap-3">
-            <a href={`tel:${storeInfo.phone}`}><Phone className="h-4 w-4" /></a>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(storeInfo.address)}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <MapPin className="h-4 w-4" />
-            </a>
-          </div>
-
-          {/* Social icons */}
-          <div className="flex items-center gap-3">
-            <a href={storeInfo.whatsapp} target="_blank" rel="noreferrer">
-              <FaWhatsapp className="hover:text-green-400" />
-            </a>
-            <a href={storeInfo.instagram} target="_blank" rel="noreferrer">
-              <FaInstagram className="hover:text-pink-400" />
-            </a>
-            <a href={storeInfo.tiktok} target="_blank" rel="noreferrer">
-              <FaTiktok className="hover:text-gray-200" />
+            <a href="https://tiktok.com/@salemfashion" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-tiktok text-white text-lg hover:text-gray-200"></i>
             </a>
           </div>
         </div>
       </div>
 
-      {/* ✅ Main Navbar */}
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+      {/* Main navbar */}
+      <nav className="flex justify-between items-center px-6 md:px-10 py-3 bg-white">
+        {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Mosh Apparels" className="h-12 w-auto" />
-          <div className="flex flex-col">
-            <span className="font-bold text-lg md:text-xl">Mosh Apparels</span>
-            <span className="text-xs text-muted-foreground">Quality Thrift Store</span>
-          </div>
+          <img src={logo} alt="Salem Logo" className="h-10 w-auto rounded-md" />
+          <span className="text-lg font-bold text-primary hidden md:inline">Salem Fashion</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
-          <NavLinks />
+        {/* Desktop menu */}
+        <ul className="hidden md:flex gap-8 text-gray-700 font-medium">
+          <li>
+            <Link to="/" className="hover:text-primary">Home</Link>
+          </li>
+          <li>
+            <Link to="/bales" className="hover:text-primary">Bales</Link>
+          </li>
+          <li>
+            <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
+          </li>
+          <li>
+            <Link to="/contact" className="hover:text-primary">Contact</Link>
+          </li>
+        </ul>
+
+        {/* Desktop address right side */}
+        <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
+          <MapPin className="w-4 h-4 text-primary" />
+          <span>Lagos, Nigeria</span>
         </div>
 
-        {/* Cart & Auth */}
-        <div className="hidden md:flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-          </Button>
+        {/* Mobile menu button */}
+        <button onClick={toggleMenu} className="md:hidden text-gray-800 focus:outline-none">
+          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </nav>
 
-          {user ? (
-            <>
-              <Button variant="ghost" size="icon" onClick={() => navigate("/account")}>
-                <User className="h-5 w-5" />
-              </Button>
-              <Button variant="outline" onClick={handleLogout}>Logout</Button>
-            </>
-          ) : (
-            <Button onClick={() => navigate("/auth")}>Login</Button>
-          )}
-        </div>
+      {/* Mobile menu dropdown */}
+      {menuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 py-4 px-6 shadow-lg">
+          <ul className="flex flex-col gap-4 text-gray-700 font-medium">
+            <li>
+              <Link to="/" onClick={toggleMenu} className="hover:text-primary">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link to="/bales" onClick={toggleMenu} className="hover:text-primary">
+                Bales
+              </Link>
+            </li>
+            <li>
+              <Link to="/size-chart" onClick={toggleMenu} className="hover:text-primary">
+                Size Chart
+              </Link>
+            </li>
+            <li>
+              <Link to="/contact" onClick={toggleMenu} className="hover:text-primary">
+                Contact
+              </Link>
+            </li>
+          </ul>
 
-        {/* ✅ Mobile Menu (Optimized for visibility) */}
-        <div className="md:hidden flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-          </Button>
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-
-            <SheetContent
-              side="right"
-              className="w-72 bg-white p-5 overflow-y-auto shadow-lg"
+          {/* Mobile map icon only */}
+          <div className="flex justify-center mt-6">
+            <a
+              href="https://goo.gl/maps/XXXXX" // optional map link
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center bg-primary text-white rounded-full w-10 h-10"
             >
-              <div className="flex flex-col gap-4 text-lg font-medium text-gray-800">
-
-                {/* Home */}
-                <Link to="/" className="hover:text-primary">Home</Link>
-
-                {/* Accordion for Shop Sections */}
-                <Accordion type="single" collapsible>
-                  {shopSections.map((section) => (
-                    <AccordionItem key={section.title} value={section.title}>
-                      <AccordionTrigger className="text-base font-semibold">
-                        {section.title}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="flex flex-col gap-2 pl-2">
-                          {section.items.map((item) => (
-                            <li key={item.path}>
-                              <Link
-                                to={item.path}
-                                className="block py-1 px-2 hover:bg-primary/10 rounded-md text-sm"
-                              >
-                                {item.name}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-
-                <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
-                <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
-                <Link to="/about" className="hover:text-primary">About</Link>
-                <Link to="/contact" className="hover:text-primary">Contact</Link>
-                {isAdmin && <Link to="/admin" className="hover:text-primary">Admin</Link>}
-              </div>
-            </SheetContent>
-          </Sheet>
+              <MapPin className="w-5 h-5" />
+            </a>
+          </div>
         </div>
-      </div>
-    </nav>
+      )}
+    </header>
   );
 };
