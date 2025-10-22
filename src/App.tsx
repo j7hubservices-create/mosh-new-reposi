@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -21,6 +22,9 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Returns from "./pages/Returns";
 import NotFound from "./pages/NotFound";
+
+// ✅ New import for Size Chart page
+import SizeChart from "./pages/SizeChart";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +58,10 @@ const App = () => (
           <Route path="/admin/sections" element={<AdminSections />} />
           <Route path="/account" element={<Account />} />
           <Route path="/about" element={<About />} />
+          
+          {/* ✅ Added Size Chart Route */}
+          <Route path="/size-chart" element={<SizeChart />} />
+          
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/returns" element={<Returns />} />
