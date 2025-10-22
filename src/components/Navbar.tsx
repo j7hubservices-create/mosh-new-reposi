@@ -85,6 +85,7 @@ export const Navbar = () => {
     navigate("/");
   };
 
+  // ✅ Shop Sections (no subcategories under Bales)
   const shopSections = [
     {
       title: "Ladies",
@@ -108,14 +109,6 @@ export const Navbar = () => {
       items: [
         { name: "Boy", path: "/products?category=kids-boy" },
         { name: "Girl", path: "/products?category=kids-girl" },
-      ],
-    },
-    {
-      title: "Bales",
-      items: [
-        { name: "Ladies Bale", path: "/products?category=ladies-bale" },
-        { name: "Men Bale", path: "/products?category=men-bale" },
-        { name: "Kids Bale", path: "/products?category=kids-bale" },
       ],
     },
   ];
@@ -144,6 +137,8 @@ export const Navbar = () => {
         </li>
       ))}
 
+      {/* ✅ Bales as single link */}
+      <li><Link to="/products?category=bales" className="hover:text-primary">Bales</Link></li>
       <li><Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link></li>
       <li><Link to="/size-chart" className="hover:text-primary">Size Chart</Link></li>
       <li><Link to="/about" className="hover:text-primary">About</Link></li>
@@ -242,7 +237,7 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* ✅ Mobile Menu (Optimized for visibility) */}
+        {/* ✅ Mobile Menu */}
         <div className="md:hidden flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} className="relative">
             <ShoppingCart className="h-5 w-5" />
@@ -265,11 +260,9 @@ export const Navbar = () => {
               className="w-72 bg-white p-5 overflow-y-auto shadow-lg"
             >
               <div className="flex flex-col gap-4 text-lg font-medium text-gray-800">
-
-                {/* Home */}
                 <Link to="/" className="hover:text-primary">Home</Link>
 
-                {/* Accordion for Shop Sections */}
+                {/* Accordion for shop sections */}
                 <Accordion type="single" collapsible>
                   {shopSections.map((section) => (
                     <AccordionItem key={section.title} value={section.title}>
@@ -294,6 +287,8 @@ export const Navbar = () => {
                   ))}
                 </Accordion>
 
+                {/* ✅ Single Bales Link */}
+                <Link to="/products?category=bales" className="hover:text-primary">Bales</Link>
                 <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
                 <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
                 <Link to="/about" className="hover:text-primary">About</Link>
