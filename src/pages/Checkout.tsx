@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Truck, Store, MapPin, Package, CreditCard, Banknote } from "lucide-react";
+import {
+  Truck,
+  Store,
+  MapPin,
+  Package,
+  CreditCard,
+  Banknote,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -28,6 +37,9 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showDelivery, setShowDelivery] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -54,12 +66,8 @@ const Checkout = () => {
       .from("cart_items")
       .select("*, products (*)")
       .eq("user_id", userId);
-
-    if (!data?.length) {
-      navigate("/cart");
-    } else {
-      setCartItems(data);
-    }
+    if (!data?.length) navigate("/cart");
+    else setCartItems(data);
     setLoading(false);
   };
 
@@ -99,7 +107,6 @@ const Checkout = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       checkoutSchema.parse(formData);
     } catch (error) {
@@ -145,7 +152,6 @@ const Checkout = () => {
         const { error: itemsError } = await supabase
           .from("order_items")
           .insert(orderItems);
-
         if (itemsError) throw itemsError;
 
         await supabase.from("cart_items").delete().eq("user_id", user.id);
@@ -164,7 +170,7 @@ const Checkout = () => {
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -174,220 +180,212 @@ const Checkout = () => {
         <Footer />
       </div>
     );
-  }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-purple-50">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 flex-1">
-        {/* Info Message */}
-        <div className="bg-yellow-100 text-yellow-800 text-sm font-medium py-3 px-4 rounded-lg mb-6 text-center shadow-sm">
-          ⚠️ Please make sure you <b>screenshot your order confirmation</b> or save your order number for reference.
+
+      <div className="container mx-auto px-4 py-8 flex-1">
+        <div className="bg-purple-100 text-purple-900 text-sm font-medium py-3 px-4 rounded-lg mb-6 text-center shadow">
+          ⚠️ Please make sure you <b>screenshot your order confirmation</b> or
+          save your order number for reference.
         </div>
 
-        <h1 className="text-3xl font-bold mb-6 text-center">Checkout</h1>
+        <h1 className="text-3xl font-bold text-center mb-8 text-purple-700">
+          Checkout
+        </h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* LEFT SIDE - FORM */}
-          <div className="lg:col-span-2 space-y-8">
-            <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Delivery Method</h2>
-              <RadioGroup
-                value={formData.deliveryMethod}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, deliveryMethod: value })
-                }
-                className="grid sm:grid-cols-3 gap-4"
-              >
-                <Label
-                  htmlFor="doorstep"
-                  className={`cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center ${
-                    formData.deliveryMethod === "doorstep"
-                      ? "border-primary bg-primary/10"
-                      : "border-muted"
-                  }`}
-                >
-                  <Truck className="h-5 w-5 mb-2" />
-                  Doorstep
-                </Label>
-                <Label
-                  htmlFor="park"
-                  className={`cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center ${
-                    formData.deliveryMethod === "park"
-                      ? "border-primary bg-primary/10"
-                      : "border-muted"
-                  }`}
-                >
-                  <Package className="h-5 w-5 mb-2" />
-                  Park
-                </Label>
-                <Label
-                  htmlFor="pickup"
-                  className={`cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center ${
-                    formData.deliveryMethod === "pickup"
-                      ? "border-primary bg-primary/10"
-                      : "border-muted"
-                  }`}
-                >
-                  <Store className="h-5 w-5 mb-2" />
-                  Pickup
-                </Label>
-              </RadioGroup>
-            </Card>
-
-            <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                {formData.deliveryMethod === "doorstep" && (
-                  <div>
-                    <Label htmlFor="address">Delivery Address *</Label>
-                    <Textarea
-                      id="address"
-                      rows={3}
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
+          {/* LEFT SIDE */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Delivery Section */}
+            <Card
+              className="p-6 border-purple-200 cursor-pointer"
+              onClick={() => setShowDelivery(!showDelivery)}
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-purple-700">
+                  Delivery Method
+                </h2>
+                {showDelivery ? (
+                  <ChevronUp className="h-5 w-5 text-purple-700" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-purple-700" />
                 )}
+              </div>
 
-                {formData.deliveryMethod === "park" && (
-                  <div>
-                    <Label htmlFor="address">Nearest Park *</Label>
-                    <Input
-                      id="address"
-                      placeholder="E.g. Jibowu Park, Lagos"
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                )}
-
-                {formData.deliveryMethod === "pickup" && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <MapPin className="h-5 w-5 inline mr-2" />
-                    <span className="font-medium">Pickup at:</span>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota, Ogun State.
-                    </p>
-                  </div>
-                )}
-
-                {/* PAYMENT METHODS */}
-                <div className="mt-6">
-                  <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
+              {showDelivery && (
+                <div className="mt-4">
                   <RadioGroup
-                    value={formData.paymentMethod}
+                    value={formData.deliveryMethod}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, paymentMethod: value })
+                      setFormData({ ...formData, deliveryMethod: value })
                     }
-                    className="space-y-3"
+                    className="grid sm:grid-cols-3 gap-3"
                   >
-                    {/* BANK TRANSFER */}
-                    <div className="border rounded-xl p-4 hover:bg-accent cursor-pointer">
-                      <Label className="flex items-center gap-2 font-semibold">
-                        <Banknote className="h-5 w-5" /> Bank Transfer
+                    {[
+                      { id: "doorstep", label: "Doorstep", icon: Truck },
+                      { id: "park", label: "Park", icon: Package },
+                      { id: "pickup", label: "Pickup", icon: Store },
+                    ].map(({ id, label, icon: Icon }) => (
+                      <Label
+                        key={id}
+                        className={`border-2 rounded-xl p-4 flex flex-col items-center justify-center transition ${
+                          formData.deliveryMethod === id
+                            ? "border-purple-500 bg-purple-50"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }`}
+                        onClick={() =>
+                          setFormData({ ...formData, deliveryMethod: id })
+                        }
+                      >
+                        <Icon className="h-5 w-5 mb-1 text-purple-600" />
+                        {label}
                       </Label>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Account Number: <b>6142257816</b> <br />
-                        Bank: <b>OPay</b> <br />
-                        Account Name: <b>Mosh Apparels Ventures</b>
-                      </p>
-                    </div>
-
-                    {/* CARD PAYMENT */}
-                    <div className="border rounded-xl p-4 hover:bg-accent cursor-pointer">
-                      <Label className="flex items-center gap-2 font-semibold">
-                        <CreditCard className="h-5 w-5" /> Card Payment
-                      </Label>
-                      <div className="flex items-center gap-3 mt-2">
-                        <img src="/visa.png" alt="Visa" className="h-6" />
-                        <img src="/mastercard.png" alt="Mastercard" className="h-6" />
-                        <img src="/verve.png" alt="Verve" className="h-6" />
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                        <Input placeholder="Card Number" />
-                        <Input placeholder="Cardholder Name" />
-                        <Input placeholder="MM/YY" />
-                        <Input placeholder="CVV" />
-                      </div>
-                    </div>
+                    ))}
                   </RadioGroup>
                 </div>
+              )}
+            </Card>
 
-                <Button type="submit" size="lg" className="w-full mt-6" disabled={submitting}>
-                  {submitting ? "Processing..." : "Complete Order"}
-                </Button>
-              </form>
+            {/* Contact Section */}
+            <Card
+              className="p-6 border-purple-200 cursor-pointer"
+              onClick={() => setShowContact(!showContact)}
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-purple-700">
+                  Contact Information
+                </h2>
+                {showContact ? (
+                  <ChevronUp className="h-5 w-5 text-purple-700" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-purple-700" />
+                )}
+              </div>
+
+              {showContact && (
+                <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                  <div>
+                    <Label>Full Name *</Label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Email *</Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Phone *</Label>
+                    <Input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  {formData.deliveryMethod === "doorstep" && (
+                    <div>
+                      <Label>Delivery Address *</Label>
+                      <Textarea
+                        rows={3}
+                        value={formData.address}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            address: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+                  )}
+                </form>
+              )}
             </Card>
           </div>
 
-          {/* RIGHT SIDE - ORDER SUMMARY */}
-          <div className="lg:col-span-1">
+          {/* RIGHT SIDE */}
+          <div className="lg:col-span-1 space-y-6">
             <Card className="p-6 sticky top-24">
-              <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-              <div className="space-y-2 mb-4">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span>
-                      {item.products.name} × {item.quantity}
-                    </span>
-                    <span className="font-semibold">
-                      ₦{(item.products.price * item.quantity).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <h2 className="text-xl font-bold mb-4 text-purple-700">
+                Order Summary
+              </h2>
+              {cartItems.map((item) => (
+                <div key={item.id} className="flex justify-between text-sm mb-2">
+                  <span>
+                    {item.products.name} × {item.quantity}
+                  </span>
+                  <span className="font-semibold text-purple-700">
+                    ₦{(item.products.price * item.quantity).toLocaleString()}
+                  </span>
+                </div>
+              ))}
 
-              <div className="flex justify-between font-bold text-lg border-t pt-3">
+              <div className="flex justify-between font-bold border-t pt-3 mt-3 text-lg">
                 <span>Total</span>
-                <span className="text-primary">
+                <span className="text-purple-700">
                   ₦{getTotalPrice().toLocaleString()}
                 </span>
+              </div>
+            </Card>
+
+            {/* PAYMENT METHOD */}
+            <Card className="p-6 border-purple-300 shadow-sm">
+              <h2 className="text-xl font-semibold text-purple-700 mb-3">
+                Payment Method
+              </h2>
+
+              {/* Bank Transfer */}
+              <div className="border rounded-lg p-4 mb-4 bg-purple-50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Banknote className="text-purple-700 h-5 w-5" />
+                  <span className="font-medium">Bank Transfer</span>
+                </div>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Account Number: <b>6142257816</b> <br />
+                  Bank: <b>OPay</b> <br />
+                  Account Name: <b>Mosh Apparels Ventures</b>
+                </p>
+              </div>
+
+              {/* Card Payment */}
+              <div className="border rounded-lg p-4 bg-white shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <CreditCard className="text-purple-700 h-5 w-5" />
+                  <span className="font-medium">Card Payment</span>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <img src="/visa.png" alt="Visa" className="h-6" />
+                  <img src="/mastercard.png" alt="MasterCard" className="h-6" />
+                  <img src="/verve.png" alt="Verve" className="h-6" />
+                </div>
+
+                {/* Hidden Paystack button (for live use later) */}
+                <Button
+                  size="lg"
+                  className="w-full bg-purple-600 text-white mt-2"
+                  disabled
+                >
+                  Pay with Card (Coming Soon)
+                </Button>
               </div>
             </Card>
           </div>
