@@ -85,7 +85,7 @@ export const Navbar = () => {
     navigate("/");
   };
 
-  // ✅ Shop Sections (no subcategories under Bales)
+  // ✅ Shop Sections
   const shopSections = [
     {
       title: "Ladies",
@@ -110,6 +110,14 @@ export const Navbar = () => {
         { name: "Boy", path: "/products?category=kids-boy" },
         { name: "Girl", path: "/products?category=kids-girl" },
       ],
+    },
+    {
+      title: "Bales",
+      items: [{ name: "All Bales", path: "/products?category=bales" }],
+    },
+    {
+      title: "Unisex",
+      items: [{ name: "All Unisex", path: "/products?category=unisex" }],
     },
   ];
 
@@ -137,9 +145,6 @@ export const Navbar = () => {
         </li>
       ))}
 
-      {/* ✅ Bales as single link */}
-      <li><Link to="/products?category=bales" className="hover:text-primary">Bales</Link></li>
-      <li><Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link></li>
       <li><Link to="/size-chart" className="hover:text-primary">Size Chart</Link></li>
       <li><Link to="/about" className="hover:text-primary">About</Link></li>
       <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
@@ -287,9 +292,6 @@ export const Navbar = () => {
                   ))}
                 </Accordion>
 
-                {/* ✅ Single Bales Link */}
-                <Link to="/products?category=bales" className="hover:text-primary">Bales</Link>
-                <Link to="/products?category=unisex" className="hover:text-primary">Unisex</Link>
                 <Link to="/size-chart" className="hover:text-primary">Size Chart</Link>
                 <Link to="/about" className="hover:text-primary">About</Link>
                 <Link to="/contact" className="hover:text-primary">Contact</Link>

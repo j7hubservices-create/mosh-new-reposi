@@ -21,7 +21,9 @@ const Products = () => {
   const shopCategories = {
     Ladies: ['Ladies - Tops', 'Ladies - Skirts', 'Ladies - Pants', 'Ladies - Gowns'],
     Men: ['Men - Tops', 'Men - Pants', 'Men - Shorts'],
-    Kids: ['Kids - Boy', 'Kids - Girl']
+    Kids: ['Kids - Boy', 'Kids - Girl'],
+    Bales: ['Bales'],
+    Unisex: ['Unisex']
   };
 
   useEffect(() => {
