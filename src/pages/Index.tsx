@@ -214,6 +214,7 @@ const Index = () => {
                   image_url={product.image_url}
                   size={product.size}
                   stock={product.stock}
+                  slug={product.slug}
                 />
               ))}
             </div>
@@ -244,6 +245,7 @@ const Index = () => {
                   image_url={product.image_url}
                   size={product.size}
                   stock={product.stock}
+                  slug={product.slug}
                 />
               ))}
             </div>
@@ -282,6 +284,7 @@ const Index = () => {
                   image_url={product.image_url}
                   size={product.size}
                   stock={product.stock}
+                  slug={product.slug}
                 />
               ))}
             </div>

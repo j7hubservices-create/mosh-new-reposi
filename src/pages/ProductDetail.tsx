@@ -34,6 +34,29 @@ const ProductDetail = () => {
     }
   }, [slug]);
 
+  // SEO for product detail
+  useEffect(() => {
+    if (!product) return;
+    document.title = `${product.name} | Mosh Apparels`;
+
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    const desc = product.description ? String(product.description).slice(0, 150) : `${product.name} available now at Mosh Apparels.`;
+    meta.setAttribute('content', desc);
+
+    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', window.location.href);
+  }, [product]);
+
   const fetchProduct = async () => {
     const { data: productData } = await supabase
       .from('products')

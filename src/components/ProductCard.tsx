@@ -86,7 +86,7 @@ export const ProductCard = ({ id, name, price, original_price, image_url, size, 
   return (
     <Card
       className="group overflow-hidden cursor-pointer transition-all hover:shadow-elevated h-full flex flex-col"
-      onClick={() => navigate(`/products/${slug}`)}
+      onClick={() => (slug ? navigate(`/products/${slug}`) : undefined)}
     >
       <CardContent className="p-0 flex-shrink-0">
         <div className="relative w-full aspect-square overflow-hidden bg-muted">
