@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Truck, Store, MapPin, Package, CreditCard, Banknote } from "lucide-react";
+import { Truck, Store, MapPin, Package } from "lucide-react";
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -19,7 +19,6 @@ const checkoutSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   address: z.string().optional(),
   deliveryMethod: z.string(),
-  paymentMethod: z.string(),
 });
 
 const Checkout = () => {
@@ -34,7 +33,6 @@ const Checkout = () => {
     phone: "",
     address: "",
     deliveryMethod: "doorstep" as "doorstep" | "park" | "pickup",
-    paymentMethod: "transfer" as "transfer" | "card",
   });
 
   useEffect(() => {
@@ -127,7 +125,6 @@ const Checkout = () => {
                 ? "Park Delivery"
                 : "Pickup",
             delivery_method: formData.deliveryMethod,
-            payment_method: formData.paymentMethod,
             status: "pending",
           })
           .select()
@@ -179,66 +176,90 @@ const Checkout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 flex-1">
-        {/* Info Message */}
-        <div className="bg-yellow-100 text-yellow-800 text-sm font-medium py-3 px-4 rounded-lg mb-6 text-center shadow-sm">
-          ⚠️ Please make sure you <b>screenshot your order confirmation</b> or save your order number for reference.
-        </div>
 
-        <h1 className="text-3xl font-bold mb-6 text-center">Checkout</h1>
+      <div className="container mx-auto px-4 py-8 flex-1">
+        <h1 className="text-4xl font-bold mb-8">Checkout</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* LEFT SIDE - FORM */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Delivery Method</h2>
-              <RadioGroup
-                value={formData.deliveryMethod}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, deliveryMethod: value })
-                }
-                className="grid sm:grid-cols-3 gap-4"
-              >
-                <Label
-                  htmlFor="doorstep"
-                  className={`cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center ${
-                    formData.deliveryMethod === "doorstep"
-                      ? "border-primary bg-primary/10"
-                      : "border-muted"
-                  }`}
-                >
-                  <Truck className="h-5 w-5 mb-2" />
-                  Doorstep
-                </Label>
-                <Label
-                  htmlFor="park"
-                  className={`cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center ${
-                    formData.deliveryMethod === "park"
-                      ? "border-primary bg-primary/10"
-                      : "border-muted"
-                  }`}
-                >
-                  <Package className="h-5 w-5 mb-2" />
-                  Park
-                </Label>
-                <Label
-                  htmlFor="pickup"
-                  className={`cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center ${
-                    formData.deliveryMethod === "pickup"
-                      ? "border-primary bg-primary/10"
-                      : "border-muted"
-                  }`}
-                >
-                  <Store className="h-5 w-5 mb-2" />
-                  Pickup
-                </Label>
-              </RadioGroup>
-            </Card>
+              <h2 className="text-2xl font-semibold mb-6">Order Information</h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Delivery Method Selection */}
+                <div>
+                  <Label className="text-base font-semibold mb-3 block">
+                    Fulfillment Method *
+                  </Label>
+                  <RadioGroup
+                    value={formData.deliveryMethod}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, deliveryMethod: value })
+                    }
+                    className="grid grid-cols-3 gap-4"
+                  >
+                    <div>
+                      <RadioGroupItem
+                        value="doorstep"
+                        id="doorstep"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="doorstep"
+                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+                      >
+                        <Truck className="mb-3 h-6 w-6" />
+                        <div className="text-center">
+                          <div className="font-semibold">Doorstep</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Delivered to your home
+                          </div>
+                        </div>
+                      </Label>
+                    </div>
 
-            <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
+                    <div>
+                      <RadioGroupItem
+                        value="park"
+                        id="park"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="park"
+                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+                      >
+                        <Package className="mb-3 h-6 w-6" />
+                        <div className="text-center">
+                          <div className="font-semibold">Park</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Pick up at nearest park
+                          </div>
+                        </div>
+                      </Label>
+                    </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <RadioGroupItem
+                        value="pickup"
+                        id="pickup"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="pickup"
+                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+                      >
+                        <Store className="mb-3 h-6 w-6" />
+                        <div className="text-center">
+                          <div className="font-semibold">Pickup</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Collect in store
+                          </div>
+                        </div>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Contact Information */}
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
@@ -277,16 +298,18 @@ const Checkout = () => {
                   />
                 </div>
 
+                {/* Conditional Address Field */}
                 {formData.deliveryMethod === "doorstep" && (
                   <div>
                     <Label htmlFor="address">Delivery Address *</Label>
                     <Textarea
                       id="address"
-                      rows={3}
                       value={formData.address}
                       onChange={(e) =>
                         setFormData({ ...formData, address: e.target.value })
                       }
+                      rows={3}
+                      placeholder="Enter your complete delivery address"
                       required
                     />
                   </div>
@@ -294,7 +317,7 @@ const Checkout = () => {
 
                 {formData.deliveryMethod === "park" && (
                   <div>
-                    <Label htmlFor="address">Nearest Park *</Label>
+                    <Label htmlFor="address">Nearest Park/Bus Terminal *</Label>
                     <Input
                       id="address"
                       placeholder="E.g. Jibowu Park, Lagos"
@@ -309,72 +332,40 @@ const Checkout = () => {
 
                 {formData.deliveryMethod === "pickup" && (
                   <div className="bg-muted p-4 rounded-lg">
-                    <MapPin className="h-5 w-5 inline mr-2" />
-                    <span className="font-medium">Pickup at:</span>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota, Ogun State.
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <MapPin className="h-5 w-5" /> Pickup Location
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota,
+                      Ogun State
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      You'll receive an SMS when your order is ready for pickup.
                     </p>
                   </div>
                 )}
 
-                {/* PAYMENT METHODS */}
-                <div className="mt-6">
-                  <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
-                  <RadioGroup
-                    value={formData.paymentMethod}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, paymentMethod: value })
-                    }
-                    className="space-y-3"
-                  >
-                    {/* BANK TRANSFER */}
-                    <div className="border rounded-xl p-4 hover:bg-accent cursor-pointer">
-                      <Label className="flex items-center gap-2 font-semibold">
-                        <Banknote className="h-5 w-5" /> Bank Transfer
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Account Number: <b>6142257816</b> <br />
-                        Bank: <b>OPay</b> <br />
-                        Account Name: <b>Mosh Apparels Ventures</b>
-                      </p>
-                    </div>
-
-                    {/* CARD PAYMENT */}
-                    <div className="border rounded-xl p-4 hover:bg-accent cursor-pointer">
-                      <Label className="flex items-center gap-2 font-semibold">
-                        <CreditCard className="h-5 w-5" /> Card Payment
-                      </Label>
-                      <div className="flex items-center gap-3 mt-2">
-                        <img src="/visa.png" alt="Visa" className="h-6" />
-                        <img src="/mastercard.png" alt="Mastercard" className="h-6" />
-                        <img src="/verve.png" alt="Verve" className="h-6" />
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                        <Input placeholder="Card Number" />
-                        <Input placeholder="Cardholder Name" />
-                        <Input placeholder="MM/YY" />
-                        <Input placeholder="CVV" />
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <Button type="submit" size="lg" className="w-full mt-6" disabled={submitting}>
-                  {submitting ? "Processing..." : "Complete Order"}
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  disabled={submitting}
+                >
+                  {submitting ? "Processing..." : "Place Order"}
                 </Button>
               </form>
             </Card>
           </div>
 
-          {/* RIGHT SIDE - ORDER SUMMARY */}
+          {/* ORDER SUMMARY */}
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-24">
-              <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-              <div className="space-y-2 mb-4">
+              <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
+              <div className="space-y-3 mb-4">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span>
-                      {item.products.name} × {item.quantity}
+                      {item.products.name} x {item.quantity}
                     </span>
                     <span className="font-semibold">
                       ₦{(item.products.price * item.quantity).toLocaleString()}
@@ -383,7 +374,7 @@ const Checkout = () => {
                 ))}
               </div>
 
-              <div className="flex justify-between font-bold text-lg border-t pt-3">
+              <div className="flex justify-between font-bold text-xl border-t pt-3 mb-4">
                 <span>Total</span>
                 <span className="text-primary">
                   ₦{getTotalPrice().toLocaleString()}
