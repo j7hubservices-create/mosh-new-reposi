@@ -21,18 +21,29 @@ const checkoutSchema = z.object({
   deliveryMethod: z.string(),
 });
 
+const statesInNigeria = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
+  "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT - Abuja", "Gombe",
+  "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara", "Lagos",
+  "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau", "Rivers", "Sokoto",
+  "Taraba", "Yobe", "Zamfara",
+];
+
 const Checkout = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<string>("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     address: "",
     deliveryMethod: "doorstep" as "doorstep" | "park" | "pickup",
+    state: "",
   });
 
   useEffect(() => {
@@ -95,8 +106,8 @@ const Checkout = () => {
       0
     );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
     try {
       checkoutSchema.parse(formData);
@@ -109,51 +120,8 @@ const Checkout = () => {
 
     setSubmitting(true);
     try {
-      if (user) {
-        const { data: order, error: orderError } = await supabase
-          .from("orders")
-          .insert({
-            user_id: user.id,
-            total: getTotalPrice(),
-            customer_name: formData.name,
-            customer_email: formData.email,
-            customer_phone: formData.phone,
-            customer_address:
-              formData.deliveryMethod === "doorstep"
-                ? formData.address
-                : formData.deliveryMethod === "park"
-                ? "Park Delivery"
-                : "Pickup",
-            delivery_method: formData.deliveryMethod,
-            status: "pending",
-          })
-          .select()
-          .single();
-
-        if (orderError) throw orderError;
-
-        const orderItems = cartItems.map((item) => ({
-          order_id: order.id,
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price: item.products.price,
-        }));
-
-        const { error: itemsError } = await supabase
-          .from("order_items")
-          .insert(orderItems);
-
-        if (itemsError) throw itemsError;
-
-        await supabase.from("cart_items").delete().eq("user_id", user.id);
-      } else {
-        toast.success("Order details collected! Please complete payment.");
-        localStorage.removeItem("guestCart");
-      }
-
       toast.success("Order placed successfully!");
-      window.dispatchEvent(new Event("cart-updated"));
-      navigate("/");
+      navigate("/thank-you");
     } catch (error: any) {
       toast.error(error.message || "Failed to place order");
     } finally {
@@ -178,14 +146,19 @@ const Checkout = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-8 flex-1">
+        <div className="bg-purple-100 text-purple-800 text-sm p-3 rounded-lg mb-6 font-medium text-center">
+          ⚠️ Please make sure you screenshot your order.
+        </div>
+
         <h1 className="text-4xl font-bold mb-8">Checkout</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
+          {/* LEFT SECTION */}
           <div className="lg:col-span-2">
             <Card className="p-6">
               <h2 className="text-2xl font-semibold mb-6">Order Information</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Delivery Method Selection */}
+                {/* Delivery Method */}
                 <div>
                   <Label className="text-base font-semibold mb-3 block">
                     Fulfillment Method *
@@ -197,69 +170,30 @@ const Checkout = () => {
                     }
                     className="grid grid-cols-3 gap-4"
                   >
-                    <div>
-                      <RadioGroupItem
-                        value="doorstep"
-                        id="doorstep"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="doorstep"
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                      >
-                        <Truck className="mb-3 h-6 w-6" />
-                        <div className="text-center">
-                          <div className="font-semibold">Doorstep</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Delivered to your home
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
-
-                    <div>
-                      <RadioGroupItem
-                        value="park"
-                        id="park"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="park"
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                      >
-                        <Package className="mb-3 h-6 w-6" />
-                        <div className="text-center">
-                          <div className="font-semibold">Park</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Pick up at nearest park
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
-
-                    <div>
-                      <RadioGroupItem
-                        value="pickup"
-                        id="pickup"
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor="pickup"
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                      >
-                        <Store className="mb-3 h-6 w-6" />
-                        <div className="text-center">
-                          <div className="font-semibold">Pickup</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Collect in store
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
+                    {[
+                      { id: "doorstep", label: "Doorstep", icon: <Truck className="h-6 w-6 mb-2" /> },
+                      { id: "park", label: "Park", icon: <Package className="h-6 w-6 mb-2" /> },
+                      { id: "pickup", label: "Pickup", icon: <Store className="h-6 w-6 mb-2" /> },
+                    ].map((m) => (
+                      <div key={m.id}>
+                        <RadioGroupItem
+                          value={m.id}
+                          id={m.id}
+                          className="peer sr-only"
+                        />
+                        <Label
+                          htmlFor={m.id}
+                          className="flex flex-col items-center justify-between rounded-lg border-2 border-purple-200 bg-white p-4 hover:bg-purple-50 peer-data-[state=checked]:border-purple-500 cursor-pointer transition"
+                        >
+                          {m.icon}
+                          <span className="font-semibold">{m.label}</span>
+                        </Label>
+                      </div>
+                    ))}
                   </RadioGroup>
                 </div>
 
-                {/* Contact Information */}
+                {/* Basic Info */}
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
@@ -298,75 +232,54 @@ const Checkout = () => {
                   />
                 </div>
 
-                {/* Conditional Address Field */}
+                {/* Address / Park / Pickup */}
                 {formData.deliveryMethod === "doorstep" && (
-                  <div>
-                    <Label htmlFor="address">Delivery Address *</Label>
-                    <Textarea
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      rows={3}
-                      placeholder="Enter your complete delivery address"
-                      required
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <Label htmlFor="state">State *</Label>
+                      <Input
+                        list="nigerian-states"
+                        id="state"
+                        placeholder="Select your state"
+                        value={formData.state}
+                        onChange={(e) =>
+                          setFormData({ ...formData, state: e.target.value })
+                        }
+                        required
+                      />
+                      <datalist id="nigerian-states">
+                        {statesInNigeria.map((s) => (
+                          <option key={s} value={s} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div>
+                      <Label htmlFor="address">Delivery Address *</Label>
+                      <Textarea
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) =>
+                          setFormData({ ...formData, address: e.target.value })
+                        }
+                        rows={3}
+                        placeholder="Enter your complete delivery address"
+                        required
+                      />
+                    </div>
+                  </>
                 )}
-
-                {formData.deliveryMethod === "park" && (
-                  <div>
-                    <Label htmlFor="address">Nearest Park/Bus Terminal *</Label>
-                    <Input
-                      id="address"
-                      placeholder="E.g. Jibowu Park, Lagos"
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                )}
-
-                {formData.deliveryMethod === "pickup" && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <MapPin className="h-5 w-5" /> Pickup Location
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota,
-                      Ogun State
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      You'll receive an SMS when your order is ready for pickup.
-                    </p>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={submitting}
-                >
-                  {submitting ? "Processing..." : "Place Order"}
-                </Button>
               </form>
             </Card>
           </div>
 
-          {/* ORDER SUMMARY */}
+          {/* RIGHT SECTION - ORDER SUMMARY */}
           <div className="lg:col-span-1">
-            <Card className="p-6 sticky top-24">
+            <Card className="p-6 sticky top-24 space-y-4">
               <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
               <div className="space-y-3 mb-4">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span>
-                      {item.products.name} x {item.quantity}
-                    </span>
+                    <span>{item.products.name} x {item.quantity}</span>
                     <span className="font-semibold">
                       ₦{(item.products.price * item.quantity).toLocaleString()}
                     </span>
@@ -376,14 +289,81 @@ const Checkout = () => {
 
               <div className="flex justify-between font-bold text-xl border-t pt-3 mb-4">
                 <span>Total</span>
-                <span className="text-primary">
+                <span className="text-purple-600">
                   ₦{getTotalPrice().toLocaleString()}
                 </span>
+              </div>
+
+              {/* PAYMENT METHODS */}
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Payment Method</h3>
+                <RadioGroup
+                  value={selectedPayment}
+                  onValueChange={(v) => setSelectedPayment(v)}
+                  className="space-y-3"
+                >
+                  <div>
+                    <Label className="flex items-center gap-2 cursor-pointer">
+                      <RadioGroupItem value="card" id="card" />
+                      Card Payment
+                    </Label>
+                    {selectedPayment === "card" && (
+                      <div className="mt-3 p-3 rounded-lg bg-purple-50 border border-purple-200">
+                        <Button
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                          onClick={() => setShowConfirm(true)}
+                        >
+                          Pay Now
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label className="flex items-center gap-2 cursor-pointer">
+                      <RadioGroupItem value="bank" id="bank" />
+                      Bank Transfer
+                    </Label>
+                    {selectedPayment === "bank" && (
+                      <div className="mt-3 p-3 rounded-lg bg-purple-50 border border-purple-200 text-sm">
+                        <p><strong>Account Number:</strong> 6142257816</p>
+                        <p><strong>Bank:</strong> OPay</p>
+                        <p><strong>Account Name:</strong> Mosh Apparels Ventures</p>
+                      </div>
+                    )}
+                  </div>
+                </RadioGroup>
               </div>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 shadow-lg text-center max-w-sm w-full">
+            <h3 className="text-xl font-semibold mb-3">Proceed to secure payment?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              You’ll be redirected to complete payment securely.
+            </p>
+            <div className="flex justify-center gap-3">
+              <Button variant="outline" onClick={() => setShowConfirm(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                onClick={() => {
+                  setShowConfirm(false);
+                  handleSubmit();
+                }}
+              >
+                Confirm
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
