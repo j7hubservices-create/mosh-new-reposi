@@ -31,7 +31,29 @@ const Products = () => {
   }, []);
 
   useEffect(() => {
-    fetchProducts();
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && categories.length > 0) {
+      // Find the category by name from URL param
+      const matchedCategory = categories.find(cat => 
+        cat.name.toLowerCase().replace(/\s+/g, '-') === categoryParam.toLowerCase() ||
+        cat.name.toLowerCase() === categoryParam.toLowerCase().replace(/-/g, ' ')
+      );
+      
+      if (matchedCategory) {
+        setSelectedCategory(matchedCategory.id);
+        // Set main category if it matches
+        const [mainCat] = matchedCategory.name.split(' - ');
+        if (shopCategories[mainCat as keyof typeof shopCategories]) {
+          setSelectedMainCategory(mainCat);
+        }
+      }
+    }
+  }, [categories, searchParams]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      fetchProducts();
+    }
   }, [selectedCategory, selectedMainCategory, categories]);
 
   useEffect(() => {
