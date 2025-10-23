@@ -156,12 +156,12 @@ const Checkout = () => {
           {/* LEFT SECTION */}
           <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-6">Order Information</h2>
+              <h2 className="text-2xl font-semibold mb-6">Delivery Information</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Delivery Method */}
                 <div>
                   <Label className="text-base font-semibold mb-3 block">
-                    Fulfillment Method *
+                    Choose Delivery Method *
                   </Label>
                   <RadioGroup
                     value={formData.deliveryMethod}
@@ -171,9 +171,24 @@ const Checkout = () => {
                     className="grid grid-cols-3 gap-4"
                   >
                     {[
-                      { id: "doorstep", label: "Doorstep", icon: <Truck className="h-6 w-6 mb-2" /> },
-                      { id: "park", label: "Park", icon: <Package className="h-6 w-6 mb-2" /> },
-                      { id: "pickup", label: "Pickup", icon: <Store className="h-6 w-6 mb-2" /> },
+                      {
+                        id: "doorstep",
+                        label: "Doorstep",
+                        desc: "Delivered directly to your home or office.",
+                        icon: <Truck className="h-6 w-6 mb-2 text-purple-600" />,
+                      },
+                      {
+                        id: "park",
+                        label: "Park",
+                        desc: "Delivered to a nearby park or bus terminal for pickup.",
+                        icon: <Package className="h-6 w-6 mb-2 text-purple-600" />,
+                      },
+                      {
+                        id: "pickup",
+                        label: "Pickup",
+                        desc: "Collect your order from our store location.",
+                        icon: <Store className="h-6 w-6 mb-2 text-purple-600" />,
+                      },
                     ].map((m) => (
                       <div key={m.id}>
                         <RadioGroupItem
@@ -187,6 +202,9 @@ const Checkout = () => {
                         >
                           {m.icon}
                           <span className="font-semibold">{m.label}</span>
+                          <span className="text-xs text-gray-500 mt-1 text-center">
+                            {m.desc}
+                          </span>
                         </Label>
                       </div>
                     ))}
@@ -232,7 +250,7 @@ const Checkout = () => {
                   />
                 </div>
 
-                {/* Address / Park / Pickup */}
+                {/* Address Section */}
                 {formData.deliveryMethod === "doorstep" && (
                   <>
                     <div>
@@ -268,18 +286,26 @@ const Checkout = () => {
                     </div>
                   </>
                 )}
+
+                {formData.deliveryMethod === "pickup" && (
+                  <div className="bg-gray-50 border border-purple-200 p-4 rounded-md text-sm text-gray-700">
+                    📍 Pickup Location: Sango Ota Market, Ota, Ogun State.
+                  </div>
+                )}
               </form>
             </Card>
           </div>
 
-          {/* RIGHT SECTION - ORDER SUMMARY */}
+          {/* RIGHT SECTION */}
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-24 space-y-4">
               <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
               <div className="space-y-3 mb-4">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span>{item.products.name} x {item.quantity}</span>
+                    <span>
+                      {item.products.name} x {item.quantity}
+                    </span>
                     <span className="font-semibold">
                       ₦{(item.products.price * item.quantity).toLocaleString()}
                     </span>
