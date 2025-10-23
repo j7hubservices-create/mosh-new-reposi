@@ -304,7 +304,7 @@ export const Navbar = () => {
                       className="w-full bg-primary text-white"
                       onClick={() => navigate("/auth")}
                     >
-                      Account/Login
+                      Login
                     </Button>
                   )}
                 </div>
