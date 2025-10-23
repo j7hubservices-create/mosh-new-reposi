@@ -12,7 +12,7 @@ const Products = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMainCategory, setSelectedMainCategory] = useState<string>('all');
   const [selectedSize, setSelectedSize] = useState<string>('all');
   const [priceSort, setPriceSort] = useState<string>('none');
@@ -30,22 +30,33 @@ const Products = () => {
     fetchCategories();
   }, []);
 
+  // Parse URL query (?category=ladies-skirts, men-tops, kids-boy, bales, unisex)
   useEffect(() => {
+    const toSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
     const categoryParam = searchParams.get('category');
     if (categoryParam && categories.length > 0) {
-      // Find the category by name from URL param
-      const matchedCategory = categories.find(cat => 
-        cat.name.toLowerCase().replace(/\s+/g, '-') === categoryParam.toLowerCase() ||
-        cat.name.toLowerCase() === categoryParam.toLowerCase().replace(/-/g, ' ')
-      );
-      
+      const paramSlug = categoryParam.toLowerCase();
+
+      // Try match a specific subcategory by name
+      const matchedCategory = categories.find(cat => toSlug(cat.name) === paramSlug);
       if (matchedCategory) {
         setSelectedCategory(matchedCategory.id);
-        // Set main category if it matches
         const [mainCat] = matchedCategory.name.split(' - ');
         if (shopCategories[mainCat as keyof typeof shopCategories]) {
           setSelectedMainCategory(mainCat);
+        } else {
+          setSelectedMainCategory('all');
         }
+        return;
+      }
+
+      // Fallback: treat it as a main category
+      const matchedMain = Object.keys(shopCategories).find(main => toSlug(main) === paramSlug);
+      if (matchedMain) {
+        setSelectedMainCategory(matchedMain);
+        setSelectedCategory('all');
+        return;
       }
     }
   }, [categories, searchParams]);
