@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Truck, Store, MapPin, Package } from "lucide-react";
 
+// ✅ Form validation schema
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -27,6 +28,8 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,6 +38,14 @@ const Checkout = () => {
     deliveryMethod: "doorstep" as "doorstep" | "park" | "pickup",
   });
 
+  const [paymentData, setPaymentData] = useState({
+    name: "",
+    cardNumber: "",
+    expiry: "",
+    cvv: "",
+  });
+
+  // ✅ Fetch session & cart
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -53,16 +64,12 @@ const Checkout = () => {
       .select("*, products (*)")
       .eq("user_id", userId);
 
-    if (!data?.length) {
-      navigate("/cart");
-    } else {
-      setCartItems(data);
-    }
+    if (!data?.length) navigate("/cart");
+    else setCartItems(data);
     setLoading(false);
   };
 
   const fetchGuestCart = async () => {
-    setLoading(true);
     const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
     if (!guestCart.length) {
       navigate("/cart");
@@ -95,16 +102,27 @@ const Checkout = () => {
       0
     );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // ✅ Handle checkout form submit (before payment)
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       checkoutSchema.parse(formData);
+      setShowPayment(true); // show card form after details are valid
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
-        return;
       }
+    }
+  };
+
+  // ✅ Simulated Payment Handler
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (paymentData.cardNumber.length < 16) {
+      toast.error("Please enter a valid 16-digit card number");
+      return;
     }
 
     setSubmitting(true);
@@ -125,7 +143,7 @@ const Checkout = () => {
                 ? "Park Delivery"
                 : "Pickup",
             delivery_method: formData.deliveryMethod,
-            status: "pending",
+            status: "paid",
           })
           .select()
           .single();
@@ -147,15 +165,14 @@ const Checkout = () => {
 
         await supabase.from("cart_items").delete().eq("user_id", user.id);
       } else {
-        toast.success("Order details collected! Please complete payment.");
         localStorage.removeItem("guestCart");
       }
 
-      toast.success("Order placed successfully!");
+      toast.success("Payment successful! Order confirmed 🎉");
       window.dispatchEvent(new Event("cart-updated"));
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Failed to place order");
+      toast.error(error.message || "Failed to process payment");
     } finally {
       setSubmitting(false);
     }
@@ -176,188 +193,159 @@ const Checkout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-
       <div className="container mx-auto px-4 py-8 flex-1">
         <h1 className="text-4xl font-bold mb-8">Checkout</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
+          {/* LEFT SIDE */}
           <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-6">Order Information</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Delivery Method Selection */}
-                <div>
-                  <Label className="text-base font-semibold mb-3 block">
-                    Fulfillment Method *
-                  </Label>
-                  <RadioGroup
-                    value={formData.deliveryMethod}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, deliveryMethod: value })
-                    }
-                    className="grid grid-cols-3 gap-4"
-                  >
-                    <div>
-                      <RadioGroupItem
+              <h2 className="text-2xl font-semibold mb-6">
+                {showPayment ? "Card Payment" : "Order Information"}
+              </h2>
+
+              {!showPayment ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Delivery Options */}
+                  <div>
+                    <Label className="font-semibold mb-3 block">
+                      Fulfillment Method *
+                    </Label>
+                    <RadioGroup
+                      value={formData.deliveryMethod}
+                      onValueChange={(v) =>
+                        setFormData({ ...formData, deliveryMethod: v })
+                      }
+                      className="grid grid-cols-3 gap-4"
+                    >
+                      <DeliveryOption
                         value="doorstep"
-                        id="doorstep"
-                        className="peer sr-only"
+                        icon={<Truck className="h-6 w-6 mb-3" />}
+                        title="Doorstep"
+                        desc="Delivered to your home"
                       />
-                      <Label
-                        htmlFor="doorstep"
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                      >
-                        <Truck className="mb-3 h-6 w-6" />
-                        <div className="text-center">
-                          <div className="font-semibold">Doorstep</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Delivered to your home
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
-
-                    <div>
-                      <RadioGroupItem
+                      <DeliveryOption
                         value="park"
-                        id="park"
-                        className="peer sr-only"
+                        icon={<Package className="h-6 w-6 mb-3" />}
+                        title="Park"
+                        desc="Pick up at nearest park"
                       />
-                      <Label
-                        htmlFor="park"
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                      >
-                        <Package className="mb-3 h-6 w-6" />
-                        <div className="text-center">
-                          <div className="font-semibold">Park</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Pick up at nearest park
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
-
-                    <div>
-                      <RadioGroupItem
+                      <DeliveryOption
                         value="pickup"
-                        id="pickup"
-                        className="peer sr-only"
+                        icon={<Store className="h-6 w-6 mb-3" />}
+                        title="Pickup"
+                        desc="Collect in store"
                       />
-                      <Label
-                        htmlFor="pickup"
-                        className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                      >
-                        <Store className="mb-3 h-6 w-6" />
-                        <div className="text-center">
-                          <div className="font-semibold">Pickup</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Collect in store
-                          </div>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+                    </RadioGroup>
+                  </div>
 
-                {/* Contact Information */}
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
+                  <InputField
+                    label="Full Name *"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    required
                   />
-                </div>
 
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
+                  <InputField
+                    label="Email *"
                     type="email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    required
                   />
-                </div>
 
-                <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
+                  <InputField
+                    label="Phone Number *"
                     type="tel"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    required
                   />
-                </div>
 
-                {/* Conditional Address Field */}
-                {formData.deliveryMethod === "doorstep" && (
-                  <div>
-                    <Label htmlFor="address">Delivery Address *</Label>
+                  {formData.deliveryMethod !== "pickup" && (
                     <Textarea
-                      id="address"
+                      placeholder={
+                        formData.deliveryMethod === "doorstep"
+                          ? "Enter your complete delivery address"
+                          : "Enter nearest park or terminal"
+                      }
                       value={formData.address}
                       onChange={(e) =>
                         setFormData({ ...formData, address: e.target.value })
                       }
                       rows={3}
-                      placeholder="Enter your complete delivery address"
                       required
                     />
-                  </div>
-                )}
+                  )}
 
-                {formData.deliveryMethod === "park" && (
-                  <div>
-                    <Label htmlFor="address">Nearest Park/Bus Terminal *</Label>
-                    <Input
-                      id="address"
-                      placeholder="E.g. Jibowu Park, Lagos"
-                      value={formData.address}
+                  <Button type="submit" size="lg" className="w-full">
+                    Proceed to Payment
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handlePayment} className="space-y-5">
+                  <InputField
+                    label="Cardholder Name"
+                    value={paymentData.name}
+                    onChange={(e) =>
+                      setPaymentData({ ...paymentData, name: e.target.value })
+                    }
+                  />
+                  <InputField
+                    label="Card Number"
+                    value={paymentData.cardNumber}
+                    onChange={(e) =>
+                      setPaymentData({
+                        ...paymentData,
+                        cardNumber: e.target.value,
+                      })
+                    }
+                    placeholder="1234 5678 9012 3456"
+                    maxLength={16}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <InputField
+                      label="Expiry Date"
+                      placeholder="MM/YY"
+                      value={paymentData.expiry}
                       onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
+                        setPaymentData({
+                          ...paymentData,
+                          expiry: e.target.value,
+                        })
                       }
-                      required
+                    />
+                    <InputField
+                      label="CVV"
+                      placeholder="123"
+                      maxLength={3}
+                      value={paymentData.cvv}
+                      onChange={(e) =>
+                        setPaymentData({
+                          ...paymentData,
+                          cvv: e.target.value,
+                        })
+                      }
                     />
                   </div>
-                )}
 
-                {formData.deliveryMethod === "pickup" && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <MapPin className="h-5 w-5" /> Pickup Location
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      9, Bolanle Awosika Street, Coca Cola Road, Oju Oore, Ota,
-                      Ogun State
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      You'll receive an SMS when your order is ready for pickup.
-                    </p>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={submitting}
-                >
-                  {submitting ? "Processing..." : "Place Order"}
-                </Button>
-              </form>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Processing..." : "Pay Now"}
+                  </Button>
+                </form>
+              )}
             </Card>
           </div>
 
-          {/* ORDER SUMMARY */}
+          {/* RIGHT SIDE */}
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-24">
               <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
@@ -373,7 +361,6 @@ const Checkout = () => {
                   </div>
                 ))}
               </div>
-
               <div className="flex justify-between font-bold text-xl border-t pt-3 mb-4">
                 <span>Total</span>
                 <span className="text-primary">
@@ -384,10 +371,46 @@ const Checkout = () => {
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
 };
+
+// ✅ Reusable subcomponents
+const InputField = ({
+  label,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
+  <div>
+    <Label>{label}</Label>
+    <Input {...props} />
+  </div>
+);
+
+const DeliveryOption = ({
+  value,
+  icon,
+  title,
+  desc,
+}: {
+  value: string;
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) => (
+  <div>
+    <RadioGroupItem value={value} id={value} className="peer sr-only" />
+    <Label
+      htmlFor={value}
+      className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+    >
+      {icon}
+      <div className="text-center">
+        <div className="font-semibold">{title}</div>
+        <div className="text-xs text-muted-foreground mt-1">{desc}</div>
+      </div>
+    </Label>
+  </div>
+);
 
 export default Checkout;
