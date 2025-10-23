@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,16 +180,15 @@ const Checkout = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <div className="container mx-auto px-4 py-6 flex-1">
-        {/* Info Message */}
         <div className="bg-yellow-100 text-yellow-800 text-sm font-medium py-3 px-4 rounded-lg mb-6 text-center shadow-sm">
           ⚠️ Please make sure you <b>screenshot your order confirmation</b> or save your order number for reference.
         </div>
 
         <h1 className="text-3xl font-bold mb-6 text-center">Checkout</h1>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* LEFT SIDE - FORM */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
+          {/* LEFT SIDE */}
+          <div className="space-y-8">
             <Card className="p-6">
               <h2 className="text-2xl font-semibold mb-4">Delivery Method</h2>
               <RadioGroup
@@ -317,48 +316,6 @@ const Checkout = () => {
                   </div>
                 )}
 
-                {/* PAYMENT METHODS */}
-                <div className="mt-6">
-                  <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
-                  <RadioGroup
-                    value={formData.paymentMethod}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, paymentMethod: value })
-                    }
-                    className="space-y-3"
-                  >
-                    {/* BANK TRANSFER */}
-                    <div className="border rounded-xl p-4 hover:bg-accent cursor-pointer">
-                      <Label className="flex items-center gap-2 font-semibold">
-                        <Banknote className="h-5 w-5" /> Bank Transfer
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Account Number: <b>6142257816</b> <br />
-                        Bank: <b>OPay</b> <br />
-                        Account Name: <b>Mosh Apparels Ventures</b>
-                      </p>
-                    </div>
-
-                    {/* CARD PAYMENT */}
-                    <div className="border rounded-xl p-4 hover:bg-accent cursor-pointer">
-                      <Label className="flex items-center gap-2 font-semibold">
-                        <CreditCard className="h-5 w-5" /> Card Payment
-                      </Label>
-                      <div className="flex items-center gap-3 mt-2">
-                        <img src="/visa.png" alt="Visa" className="h-6" />
-                        <img src="/mastercard.png" alt="Mastercard" className="h-6" />
-                        <img src="/verve.png" alt="Verve" className="h-6" />
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                        <Input placeholder="Card Number" />
-                        <Input placeholder="Cardholder Name" />
-                        <Input placeholder="MM/YY" />
-                        <Input placeholder="CVV" />
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
                 <Button type="submit" size="lg" className="w-full mt-6" disabled={submitting}>
                   {submitting ? "Processing..." : "Complete Order"}
                 </Button>
@@ -366,8 +323,8 @@ const Checkout = () => {
             </Card>
           </div>
 
-          {/* RIGHT SIDE - ORDER SUMMARY */}
-          <div className="lg:col-span-1">
+          {/* RIGHT SIDE */}
+          <div className="space-y-6">
             <Card className="p-6 sticky top-24">
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>
               <div className="space-y-2 mb-4">
@@ -383,11 +340,46 @@ const Checkout = () => {
                 ))}
               </div>
 
-              <div className="flex justify-between font-bold text-lg border-t pt-3">
+              <div className="flex justify-between font-bold text-lg border-t pt-3 mb-4">
                 <span>Total</span>
                 <span className="text-primary">
                   ₦{getTotalPrice().toLocaleString()}
                 </span>
+              </div>
+
+              {/* PAYMENT METHOD MOVED HERE */}
+              <div className="border-t pt-4">
+                <h2 className="text-xl font-semibold mb-3">Payment Method</h2>
+
+                {/* BANK TRANSFER */}
+                <div className="border rounded-xl p-4 mb-4 hover:bg-accent cursor-pointer">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Banknote className="h-5 w-5" /> Bank Transfer
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Account Number: <b>6142257816</b> <br />
+                    Bank: <b>OPay</b> <br />
+                    Account Name: <b>Mosh Apparels Ventures</b>
+                  </p>
+                </div>
+
+                {/* CARD PAYMENT */}
+                <div className="border rounded-xl p-4 hover:bg-accent cursor-pointer">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <CreditCard className="h-5 w-5" /> Card Payment
+                  </Label>
+                  <div className="flex items-center gap-3 mt-2">
+                    <img src="/visa.png" alt="Visa" className="h-6" />
+                    <img src="/mastercard.png" alt="Mastercard" className="h-6" />
+                    <img src="/verve.png" alt="Verve" className="h-6" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    <Input placeholder="Card Number" />
+                    <Input placeholder="Cardholder Name" />
+                    <Input placeholder="MM/YY" />
+                    <Input placeholder="CVV" />
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
