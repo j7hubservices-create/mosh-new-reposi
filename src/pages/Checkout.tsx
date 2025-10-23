@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Truck, Store, MapPin, Package } from "lucide-react";
 
+// ✅ Form validation schema
 const checkoutSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -21,31 +22,30 @@ const checkoutSchema = z.object({
   deliveryMethod: z.string(),
 });
 
-const statesInNigeria = [
-  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
-  "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT - Abuja", "Gombe",
-  "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara", "Lagos",
-  "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau", "Rivers", "Sokoto",
-  "Taraba", "Yobe", "Zamfara",
-];
-
 const Checkout = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<string>("");
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     address: "",
     deliveryMethod: "doorstep" as "doorstep" | "park" | "pickup",
-    state: "",
   });
 
+  const [paymentData, setPaymentData] = useState({
+    name: "",
+    cardNumber: "",
+    expiry: "",
+    cvv: "",
+  });
+
+  // ✅ Fetch session & cart
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -64,16 +64,12 @@ const Checkout = () => {
       .select("*, products (*)")
       .eq("user_id", userId);
 
-    if (!data?.length) {
-      navigate("/cart");
-    } else {
-      setCartItems(data);
-    }
+    if (!data?.length) navigate("/cart");
+    else setCartItems(data);
     setLoading(false);
   };
 
   const fetchGuestCart = async () => {
-    setLoading(true);
     const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
     if (!guestCart.length) {
       navigate("/cart");
@@ -106,24 +102,77 @@ const Checkout = () => {
       0
     );
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // ✅ Handle checkout form submit (before payment)
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
     try {
       checkoutSchema.parse(formData);
+      setShowPayment(true); // show card form after details are valid
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
-        return;
       }
+    }
+  };
+
+  // ✅ Simulated Payment Handler
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (paymentData.cardNumber.length < 16) {
+      toast.error("Please enter a valid 16-digit card number");
+      return;
     }
 
     setSubmitting(true);
     try {
-      toast.success("Order placed successfully!");
-      navigate("/thank-you");
+      if (user) {
+        const { data: order, error: orderError } = await supabase
+          .from("orders")
+          .insert({
+            user_id: user.id,
+            total: getTotalPrice(),
+            customer_name: formData.name,
+            customer_email: formData.email,
+            customer_phone: formData.phone,
+            customer_address:
+              formData.deliveryMethod === "doorstep"
+                ? formData.address
+                : formData.deliveryMethod === "park"
+                ? "Park Delivery"
+                : "Pickup",
+            delivery_method: formData.deliveryMethod,
+            status: "paid",
+          })
+          .select()
+          .single();
+
+        if (orderError) throw orderError;
+
+        const orderItems = cartItems.map((item) => ({
+          order_id: order.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.products.price,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from("order_items")
+          .insert(orderItems);
+
+        if (itemsError) throw itemsError;
+
+        await supabase.from("cart_items").delete().eq("user_id", user.id);
+      } else {
+        localStorage.removeItem("guestCart");
+      }
+
+      toast.success("Payment successful! Order confirmed 🎉");
+      window.dispatchEvent(new Event("cart-updated"));
+      navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Failed to place order");
+      toast.error(error.message || "Failed to process payment");
     } finally {
       setSubmitting(false);
     }
@@ -144,161 +193,161 @@ const Checkout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-
       <div className="container mx-auto px-4 py-8 flex-1">
-        <div className="bg-purple-100 text-purple-800 text-sm p-3 rounded-lg mb-6 font-medium text-center">
-          ⚠️ Please make sure you screenshot your order.
-        </div>
-
         <h1 className="text-4xl font-bold mb-8">Checkout</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* LEFT SECTION */}
+          {/* LEFT SIDE */}
           <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-6">Delivery Information</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Delivery Method */}
-                <div>
-                  <Label className="text-base font-semibold mb-3 block">
-                    Choose Delivery Method *
-                  </Label>
-                  <RadioGroup
-                    value={formData.deliveryMethod}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, deliveryMethod: value })
-                    }
-                    className="grid grid-cols-3 gap-4"
-                  >
-                    {[
-                      {
-                        id: "doorstep",
-                        label: "Doorstep",
-                        desc: "Delivered directly to your home or office.",
-                        icon: <Truck className="h-6 w-6 mb-2 text-purple-600" />,
-                      },
-                      {
-                        id: "park",
-                        label: "Park",
-                        desc: "Delivered to a nearby park or bus terminal for pickup.",
-                        icon: <Package className="h-6 w-6 mb-2 text-purple-600" />,
-                      },
-                      {
-                        id: "pickup",
-                        label: "Pickup",
-                        desc: "Collect your order from our store location.",
-                        icon: <Store className="h-6 w-6 mb-2 text-purple-600" />,
-                      },
-                    ].map((m) => (
-                      <div key={m.id}>
-                        <RadioGroupItem
-                          value={m.id}
-                          id={m.id}
-                          className="peer sr-only"
-                        />
-                        <Label
-                          htmlFor={m.id}
-                          className="flex flex-col items-center justify-between rounded-lg border-2 border-purple-200 bg-white p-4 hover:bg-purple-50 peer-data-[state=checked]:border-purple-500 cursor-pointer transition"
-                        >
-                          {m.icon}
-                          <span className="font-semibold">{m.label}</span>
-                          <span className="text-xs text-gray-500 mt-1 text-center">
-                            {m.desc}
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
+              <h2 className="text-2xl font-semibold mb-6">
+                {showPayment ? "Card Payment" : "Order Information"}
+              </h2>
 
-                {/* Basic Info */}
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
+              {!showPayment ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Delivery Options */}
+                  <div>
+                    <Label className="font-semibold mb-3 block">
+                      Fulfillment Method *
+                    </Label>
+                    <RadioGroup
+                      value={formData.deliveryMethod}
+                      onValueChange={(v) =>
+                        setFormData({ ...formData, deliveryMethod: v })
+                      }
+                      className="grid grid-cols-3 gap-4"
+                    >
+                      <DeliveryOption
+                        value="doorstep"
+                        icon={<Truck className="h-6 w-6 mb-3" />}
+                        title="Doorstep"
+                        desc="Delivered to your home"
+                      />
+                      <DeliveryOption
+                        value="park"
+                        icon={<Package className="h-6 w-6 mb-3" />}
+                        title="Park"
+                        desc="Pick up at nearest park"
+                      />
+                      <DeliveryOption
+                        value="pickup"
+                        icon={<Store className="h-6 w-6 mb-3" />}
+                        title="Pickup"
+                        desc="Collect in store"
+                      />
+                    </RadioGroup>
+                  </div>
+
+                  <InputField
+                    label="Full Name *"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    required
                   />
-                </div>
 
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
+                  <InputField
+                    label="Email *"
                     type="email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    required
                   />
-                </div>
 
-                <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
+                  <InputField
+                    label="Phone Number *"
                     type="tel"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    required
                   />
-                </div>
 
-                {/* Address Section */}
-                {formData.deliveryMethod === "doorstep" && (
-                  <>
-                    <div>
-                      <Label htmlFor="state">State *</Label>
-                      <Input
-                        list="nigerian-states"
-                        id="state"
-                        placeholder="Select your state"
-                        value={formData.state}
-                        onChange={(e) =>
-                          setFormData({ ...formData, state: e.target.value })
-                        }
-                        required
-                      />
-                      <datalist id="nigerian-states">
-                        {statesInNigeria.map((s) => (
-                          <option key={s} value={s} />
-                        ))}
-                      </datalist>
-                    </div>
-                    <div>
-                      <Label htmlFor="address">Delivery Address *</Label>
-                      <Textarea
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) =>
-                          setFormData({ ...formData, address: e.target.value })
-                        }
-                        rows={3}
-                        placeholder="Enter your complete delivery address"
-                        required
-                      />
-                    </div>
-                  </>
-                )}
+                  {formData.deliveryMethod !== "pickup" && (
+                    <Textarea
+                      placeholder={
+                        formData.deliveryMethod === "doorstep"
+                          ? "Enter your complete delivery address"
+                          : "Enter nearest park or terminal"
+                      }
+                      value={formData.address}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
+                      rows={3}
+                      required
+                    />
+                  )}
 
-                {formData.deliveryMethod === "pickup" && (
-                  <div className="bg-gray-50 border border-purple-200 p-4 rounded-md text-sm text-gray-700">
-                    📍 Pickup Location: Sango Ota Market, Ota, Ogun State.
+                  <Button type="submit" size="lg" className="w-full">
+                    Proceed to Payment
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handlePayment} className="space-y-5">
+                  <InputField
+                    label="Cardholder Name"
+                    value={paymentData.name}
+                    onChange={(e) =>
+                      setPaymentData({ ...paymentData, name: e.target.value })
+                    }
+                  />
+                  <InputField
+                    label="Card Number"
+                    value={paymentData.cardNumber}
+                    onChange={(e) =>
+                      setPaymentData({
+                        ...paymentData,
+                        cardNumber: e.target.value,
+                      })
+                    }
+                    placeholder="1234 5678 9012 3456"
+                    maxLength={16}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <InputField
+                      label="Expiry Date"
+                      placeholder="MM/YY"
+                      value={paymentData.expiry}
+                      onChange={(e) =>
+                        setPaymentData({
+                          ...paymentData,
+                          expiry: e.target.value,
+                        })
+                      }
+                    />
+                    <InputField
+                      label="CVV"
+                      placeholder="123"
+                      maxLength={3}
+                      value={paymentData.cvv}
+                      onChange={(e) =>
+                        setPaymentData({
+                          ...paymentData,
+                          cvv: e.target.value,
+                        })
+                      }
+                    />
                   </div>
-                )}
-              </form>
+
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Processing..." : "Pay Now"}
+                  </Button>
+                </form>
+              )}
             </Card>
           </div>
 
-          {/* RIGHT SECTION */}
+          {/* RIGHT SIDE */}
           <div className="lg:col-span-1">
-            <Card className="p-6 sticky top-24 space-y-4">
+            <Card className="p-6 sticky top-24">
               <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
               <div className="space-y-3 mb-4">
                 {cartItems.map((item) => (
@@ -312,88 +361,56 @@ const Checkout = () => {
                   </div>
                 ))}
               </div>
-
               <div className="flex justify-between font-bold text-xl border-t pt-3 mb-4">
                 <span>Total</span>
-                <span className="text-purple-600">
+                <span className="text-primary">
                   ₦{getTotalPrice().toLocaleString()}
                 </span>
-              </div>
-
-              {/* PAYMENT METHODS */}
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Payment Method</h3>
-                <RadioGroup
-                  value={selectedPayment}
-                  onValueChange={(v) => setSelectedPayment(v)}
-                  className="space-y-3"
-                >
-                  <div>
-                    <Label className="flex items-center gap-2 cursor-pointer">
-                      <RadioGroupItem value="card" id="card" />
-                      Card Payment
-                    </Label>
-                    {selectedPayment === "card" && (
-                      <div className="mt-3 p-3 rounded-lg bg-purple-50 border border-purple-200">
-                        <Button
-                          className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                          onClick={() => setShowConfirm(true)}
-                        >
-                          Pay Now
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label className="flex items-center gap-2 cursor-pointer">
-                      <RadioGroupItem value="bank" id="bank" />
-                      Bank Transfer
-                    </Label>
-                    {selectedPayment === "bank" && (
-                      <div className="mt-3 p-3 rounded-lg bg-purple-50 border border-purple-200 text-sm">
-                        <p><strong>Account Number:</strong> 6142257816</p>
-                        <p><strong>Bank:</strong> OPay</p>
-                        <p><strong>Account Name:</strong> Mosh Apparels Ventures</p>
-                      </div>
-                    )}
-                  </div>
-                </RadioGroup>
               </div>
             </Card>
           </div>
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 shadow-lg text-center max-w-sm w-full">
-            <h3 className="text-xl font-semibold mb-3">Proceed to secure payment?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              You’ll be redirected to complete payment securely.
-            </p>
-            <div className="flex justify-center gap-3">
-              <Button variant="outline" onClick={() => setShowConfirm(false)}>
-                Cancel
-              </Button>
-              <Button
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                onClick={() => {
-                  setShowConfirm(false);
-                  handleSubmit();
-                }}
-              >
-                Confirm
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <Footer />
     </div>
   );
 };
+
+// ✅ Reusable subcomponents
+const InputField = ({
+  label,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
+  <div>
+    <Label>{label}</Label>
+    <Input {...props} />
+  </div>
+);
+
+const DeliveryOption = ({
+  value,
+  icon,
+  title,
+  desc,
+}: {
+  value: string;
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) => (
+  <div>
+    <RadioGroupItem value={value} id={value} className="peer sr-only" />
+    <Label
+      htmlFor={value}
+      className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+    >
+      {icon}
+      <div className="text-center">
+        <div className="font-semibold">{title}</div>
+        <div className="text-xs text-muted-foreground mt-1">{desc}</div>
+      </div>
+    </Label>
+  </div>
+);
 
 export default Checkout;
