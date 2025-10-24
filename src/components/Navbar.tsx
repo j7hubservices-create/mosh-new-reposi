@@ -85,7 +85,6 @@ export const Navbar = () => {
     navigate("/");
   };
 
-  // ✅ Shop Sections
   const shopSections = [
     {
       title: "Ladies",
@@ -161,8 +160,6 @@ export const Navbar = () => {
       {/* ✅ Top Bar */}
       <div className="bg-primary text-white py-2">
         <div className="container mx-auto flex justify-between items-center text-xs sm:text-sm px-4">
-
-          {/* Desktop: Full info */}
           <div className="hidden md:flex items-center gap-4">
             <a href={`tel:${storeInfo.phone}`} className="flex items-center gap-1 hover:underline">
               <Phone className="h-3 w-3" /> {storeInfo.phone}
@@ -177,7 +174,6 @@ export const Navbar = () => {
             </a>
           </div>
 
-          {/* Mobile: Icons only */}
           <div className="flex md:hidden items-center gap-3">
             <a href={`tel:${storeInfo.phone}`}><Phone className="h-4 w-4" /></a>
             <a
@@ -189,7 +185,6 @@ export const Navbar = () => {
             </a>
           </div>
 
-          {/* Social icons */}
           <div className="flex items-center gap-3">
             <a href={storeInfo.whatsapp} target="_blank" rel="noreferrer">
               <FaWhatsapp className="hover:text-green-400" />
@@ -264,10 +259,9 @@ export const Navbar = () => {
               side="right"
               className="w-72 bg-white p-5 overflow-y-auto shadow-lg"
             >
-              <div className="flex flex-col gap-4 text-lg font-medium text-gray-800">
+              <div className="flex flex-col gap-4 text-base font-semibold text-gray-800">
                 <Link to="/" className="hover:text-primary">Home</Link>
 
-                {/* Accordion for shop sections */}
                 <Accordion type="single" collapsible>
                   {shopSections.map((section) => (
                     <AccordionItem key={section.title} value={section.title}>
@@ -296,6 +290,24 @@ export const Navbar = () => {
                 <Link to="/about" className="hover:text-primary">About</Link>
                 <Link to="/contact" className="hover:text-primary">Contact</Link>
                 {isAdmin && <Link to="/admin" className="hover:text-primary">Admin</Link>}
+
+                <div className="pt-4 border-t mt-4">
+                  {user ? (
+                    <Button
+                      className="w-full bg-primary text-white"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full bg-primary text-white"
+                      onClick={() => navigate("/auth")}
+                    >
+                      Login
+                    </Button>
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
