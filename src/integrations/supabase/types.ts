@@ -189,10 +189,9 @@ export type Database = {
           customer_phone: string
           delivery_method: string
           id: string
-          payment_method: string
           status: string
           total: number
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -202,10 +201,9 @@ export type Database = {
           customer_phone: string
           delivery_method?: string
           id?: string
-          payment_method?: string
           status?: string
           total: number
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -215,10 +213,9 @@ export type Database = {
           customer_phone?: string
           delivery_method?: string
           id?: string
-          payment_method?: string
           status?: string
           total?: number
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -298,8 +295,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_slug: { Args: { text_input: string }; Returns: string }
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      generate_slug: {
+        Args: { text_input: string }
+        Returns: string
+      }
+      is_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "customer"
