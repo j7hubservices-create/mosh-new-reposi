@@ -275,7 +275,14 @@ const Checkout = () => {
                 <h3 className="text-lg font-semibold mb-3">Payment</h3>
 
                 {/* Bank transfer — always visible */}
-                <div className="border rounded-lg p-4 mb-3 bg-white">
+                <div
+                  className={`border rounded-lg p-4 mb-3 bg-white cursor-pointer ${selectedPayment === "bank" ? "ring-2 ring-purple-500" : ""}`}
+                  role="radio"
+                  aria-checked={selectedPayment === "bank"}
+                  tabIndex={0}
+                  onClick={() => { setSelectedPayment("bank"); setShowCardInputs(false); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedPayment("bank"); setShowCardInputs(false); } }}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Banknote className="h-5 w-5 text-purple-600" />
@@ -303,7 +310,14 @@ const Checkout = () => {
                 </div>
 
                 {/* Card payment */}
-                <div className="border rounded-lg p-4 bg-white">
+                <div
+                  className={`border rounded-lg p-4 bg-white cursor-pointer ${selectedPayment === "card" ? "ring-2 ring-purple-500" : ""}`}
+                  role="radio"
+                  aria-checked={selectedPayment === "card"}
+                  tabIndex={0}
+                  onClick={() => { setSelectedPayment("card"); setShowCardInputs(true); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedPayment("card"); setShowCardInputs(true); } }}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <CreditCard className="h-5 w-5 text-purple-600" />
