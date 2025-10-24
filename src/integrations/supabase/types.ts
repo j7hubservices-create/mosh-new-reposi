@@ -189,6 +189,7 @@ export type Database = {
           customer_phone: string
           delivery_method: string
           id: string
+          payment_method: string
           status: string
           total: number
           user_id: string
@@ -201,6 +202,7 @@ export type Database = {
           customer_phone: string
           delivery_method?: string
           id?: string
+          payment_method?: string
           status?: string
           total: number
           user_id: string
@@ -213,6 +215,7 @@ export type Database = {
           customer_phone?: string
           delivery_method?: string
           id?: string
+          payment_method?: string
           status?: string
           total?: number
           user_id?: string
@@ -295,14 +298,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_slug: {
-        Args: { text_input: string }
-        Returns: string
-      }
-      is_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      generate_slug: { Args: { text_input: string }; Returns: string }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "customer"

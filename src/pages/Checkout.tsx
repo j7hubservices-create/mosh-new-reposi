@@ -118,26 +118,48 @@ const Checkout = () => {
     e.preventDefault();
     try {
       checkoutSchema.parse(formData);
-      // Focus user to payment selection — we'll keep payment UI visible on right
-      toast.success("Delivery details saved. Choose a payment option to continue.");
-      // nothing else required here; payment is on the right panel
+      toast.success("Delivery details saved. Please select a payment option below.");
     } catch (err) {
       if (err instanceof z.ZodError) toast.error(err.errors[0].message);
     }
   };
 
-  // Simulated payment handler: card or bank path
+  // Comprehensive payment handler with full validation
   const handlePayNow = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
+    // First, validate delivery details
+    try {
+      checkoutSchema.parse(formData);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error("Please complete delivery details: " + err.errors[0].message);
+        return;
+      }
+    }
+
+    // Validate payment method is selected
+    if (selectedPayment === "none") {
+      toast.error("Please select a payment method");
+      return;
+    }
+
     // If card selected, validate card fields
     if (selectedPayment === "card") {
+      if (!cardData.cardName.trim()) {
+        toast.error("Enter cardholder name");
+        return;
+      }
       if (cardData.cardNumber.replace(/\s+/g, "").length < 16) {
         toast.error("Enter a valid 16-digit card number");
         return;
       }
-      if (!cardData.cardName.trim()) {
-        toast.error("Enter cardholder name");
+      if (!cardData.expiry.trim() || cardData.expiry.length < 5) {
+        toast.error("Enter valid expiry date (MM/YY)");
+        return;
+      }
+      if (!cardData.cvv.trim() || cardData.cvv.length < 3) {
+        toast.error("Enter valid CVV");
         return;
       }
     }
