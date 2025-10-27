@@ -49,6 +49,7 @@ const Checkout = () => {
         fetchGuestCart();
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCart = async (userId: string) => {
@@ -458,7 +459,13 @@ const Checkout = () => {
 };
 
 // helper component for radio options
-const LabelOption = ({ value, label, description, icon, formData }: any) => (
+const LabelOption = ({
+  value,
+  label,
+  description,
+  icon,
+  formData,
+}: any) => (
   <div>
     <RadioGroupItem value={value} id={value} className="peer sr-only" />
     <Label
