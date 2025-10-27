@@ -28,9 +28,15 @@ USING (
   AND is_admin(auth.uid())
 );
 
--- Add delivery_method to orders table
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method text NOT NULL DEFAULT 'delivery';
+-- Add delivery_method to orders table, no default
+ALTER TABLE orders 
+ADD COLUMN IF NOT EXISTS delivery_method text NOT NULL;
 
--- Add constraint to ensure valid delivery methods
-ALTER TABLE orders ADD CONSTRAINT valid_delivery_method 
-CHECK (delivery_method IN ('delivery', 'pickup'));
+-- Drop existing invalid constraint if it exists
+ALTER TABLE orders
+DROP CONSTRAINT IF EXISTS valid_delivery_method;
+
+-- Add correct constraint with allowed delivery methods
+ALTER TABLE orders 
+ADD CONSTRAINT valid_delivery_method 
+CHECK (delivery_method IN ('pickup', 'doorstep', 'park'));
