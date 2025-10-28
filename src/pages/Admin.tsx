@@ -24,7 +24,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -60,10 +65,6 @@ const Admin = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Homepage inline edit
-  const [homepageTitle, setHomepageTitle] = useState("");
-  const [homepageSubtitle, setHomepageSubtitle] = useState("");
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -81,13 +82,11 @@ const Admin = () => {
       .maybeSingle();
     if (data) {
       setIsAdmin(true);
-      Promise.all([
-        fetchProducts(),
-        fetchCategories(),
-        fetchOrders(),
-        fetchUsers(),
-        fetchReviews(),
-      ]).finally(() => setLoading(false));
+      fetchProducts();
+      fetchCategories();
+      fetchOrders();
+      fetchUsers();
+      fetchReviews();
     } else {
       navigate("/");
     }
@@ -99,6 +98,7 @@ const Admin = () => {
       .select("*, categories(name)")
       .order("created_at", { ascending: false });
     if (data) setProducts(data);
+    setLoading(false);
   };
 
   const fetchCategories = async () => {
@@ -112,6 +112,7 @@ const Admin = () => {
       .select("*")
       .order("created_at", { ascending: false });
     if (data) setOrders(data);
+    setLoading(false);
   };
 
   const fetchUsers = async () => {
@@ -159,9 +160,9 @@ const Admin = () => {
           .from("product-images")
           .upload(fileName, file);
         if (error) throw error;
-        const publicUrl = supabase.storage
+        const { data: { publicUrl } } = supabase.storage
           .from("product-images")
-          .getPublicUrl(fileName).data.publicUrl;
+          .getPublicUrl(fileName);
         return publicUrl;
       });
 
@@ -180,7 +181,7 @@ const Admin = () => {
   const removeImageFile = (index: number) =>
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
 
-  const handleProductSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const productData = {
       name: formData.name,
@@ -205,7 +206,9 @@ const Admin = () => {
         if (error) throw error;
         toast.success("Product updated!");
       } else {
-        const { error } = await supabase.from("products").insert(productData);
+        const { error } = await supabase
+          .from("products")
+          .insert(productData);
         if (error) throw error;
         toast.success("Product added!");
       }
@@ -237,193 +240,404 @@ const Admin = () => {
     fetchProducts();
   };
 
-  // Dummy homepage save handler (replace with actual logic)
-  const handleHomepageSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Homepage content saved!");
-  };
-
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-lg">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
       </div>
     );
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/10">
       <Navbar />
-      <main className="container mx-auto px-2 sm:px-4 py-6 flex-1">
-        <Tabs
-          defaultValue="homepage"
-          className="w-full"
-          aria-label="Admin dashboard tabs"
-        >
-          {/* MOBILE-OPTIMIZED SCROLLABLE TABS LIST */}
-          <TabsList
-            className="
-              flex overflow-x-auto no-scrollbar px-2 sm:px-0 flex-nowrap gap-2 mb-6
-              bg-white rounded-lg shadow-sm
-            "
-            style={{ WebkitOverflowScrolling: "touch" }}
-            aria-label="Admin navigation"
-          >
-            <TabsTrigger value="homepage" className="whitespace-nowrap px-4 py-2 text-sm">
-              Homepage
-            </TabsTrigger>
-            <TabsTrigger value="products" className="whitespace-nowrap px-4 py-2 text-sm">
-              Products ({products.length})
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="whitespace-nowrap px-4 py-2 text-sm">
-              Orders ({orders.length})
-            </TabsTrigger>
-            <TabsTrigger value="users" className="whitespace-nowrap px-4 py-2 text-sm">
-              Users ({users.length})
-            </TabsTrigger>
-            <TabsTrigger value="reviews" className="whitespace-nowrap px-4 py-2 text-sm">
-              Reviews ({reviews.length})
-            </TabsTrigger>
-          </TabsList>
+      <div className="container mx-auto px-4 py-8 flex-1">
+        <Tabs defaultValue="homepage" className="w-full">
+          {/* Responsive Tabs */}
+          <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-6 overflow-x-auto">
+            <TabsList className="flex flex-wrap gap-2 justify-center sm:justify-start">
+              <TabsTrigger value="homepage" className="sm:mb-0 mb-2">
+                Manage Homepage
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Manage Homepage Inline */}
+            <TabsList className="flex flex-wrap gap-2 justify-center sm:justify-start">
+              <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
+              <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
+              <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
+              <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Manage Homepage */}
           <TabsContent value="homepage">
-            <Card className="p-6 max-w-4xl mx-auto text-left">
-              <h2 className="text-2xl font-bold mb-4">Manage Homepage Section</h2>
-              <form
-                onSubmit={handleHomepageSubmit}
-                className="space-y-4 max-w-full"
-                aria-label="Homepage management form"
+            <Card className="p-6 text-center">
+              <h2 className="text-2xl font-bold mb-2">
+                Manage Homepage Section
+              </h2>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/sections")}
               >
-                <div>
-                  <Label htmlFor="homepageTitle">Homepage Title</Label>
-                  <Input
-                    id="homepageTitle"
-                    placeholder="Enter homepage title"
-                    value={homepageTitle}
-                    onChange={(e) => setHomepageTitle(e.target.value)}
-                    autoComplete="off"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="homepageSubtitle">Homepage Subtitle</Label>
-                  <Textarea
-                    id="homepageSubtitle"
-                    rows={3}
-                    placeholder="Enter homepage subtitle or description"
-                    value={homepageSubtitle}
-                    onChange={(e) => setHomepageSubtitle(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" className="w-full mt-4">
-                  Save Changes
-                </Button>
-              </form>
+                Go to Manage Homepage
+              </Button>
             </Card>
           </TabsContent>
 
-          {/* Products Tab with scrollable table */}
+          {/* Products */}
           <TabsContent value="products">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
               <h2 className="text-xl font-bold">Manage Products</h2>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="flex items-center gap-2"
-                    aria-label="Add a new product"
-                  >
+                  <Button variant="outline" className="flex items-center gap-2">
                     <Plus size={16} /> Add Product
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-full sm:max-w-lg w-full">
+                <DialogContent className="max-w-lg">
                   <DialogHeader>
                     <DialogTitle>
                       {editingProduct ? "Edit Product" : "Add Product"}
                     </DialogTitle>
                   </DialogHeader>
-                  <form
-                    onSubmit={handleProductSubmit}
-                    className="space-y-4 mt-4"
-                    aria-label="Product form"
-                  >
-                    {/* Product form fields... */}
-                    {/* (content unchanged from earlier optimized code) */}
+                  <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                    <div>
+                      <Label>Name</Label>
+                      <Input
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        value={formData.description}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Price</Label>
+                        <Input
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) =>
+                            setFormData({ ...formData, price: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Original Price</Label>
+                        <Input
+                          type="number"
+                          value={formData.original_price}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              original_price: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Category</Label>
+                      <Select
+                        value={formData.category_id}
+                        onValueChange={(val) =>
+                          setFormData({ ...formData, category_id: val })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Size</Label>
+                      <Input
+                        value={formData.size}
+                        onChange={(e) =>
+                          setFormData({ ...formData, size: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label>Stock</Label>
+                      <Input
+                        type="number"
+                        value={formData.stock}
+                        onChange={(e) =>
+                          setFormData({ ...formData, stock: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Slug</Label>
+                      <Input
+                        value={formData.slug}
+                        onChange={(e) =>
+                          setFormData({ ...formData, slug: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label>Image</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                      />
+                      {imageFiles.length > 0 && (
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {imageFiles.map((file, i) => (
+                            <div
+                              key={i}
+                              className="relative w-20 h-20 border rounded overflow-hidden"
+                            >
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt="preview"
+                                className="w-full h-full object-cover"
+                              />
+                              <Button
+                                size="icon"
+                                variant="destructive"
+                                className="absolute top-1 right-1 p-1"
+                                onClick={() => removeImageFile(i)}
+                              >
+                                <X size={12} />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full mt-4"
+                      disabled={uploadingImages}
+                    >
+                      {editingProduct ? "Update Product" : "Add Product"}
+                    </Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
-            {products.length === 0 ? (
-              <Card className="p-12 text-center">
-                <p className="text-xl text-muted-foreground">No products found</p>
-              </Card>
-            ) : (
-              // Mobile scrolls horizontally, desktop displays full table
-              <div className="overflow-x-auto rounded-md shadow-sm border">
-                <Table className="min-w-[750px] sm:min-w-full" role="grid" aria-label="Products table">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Actions</TableHead>
+
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>
+                        {product.categories?.name || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        ₦{product.price.toLocaleString()}
+                      </TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell>{product.size || "-"}</TableCell>
+                      <TableCell className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setFormData({
+                              name: product.name,
+                              description: product.description,
+                              price: String(product.price),
+                              original_price: product.original_price
+                                ? String(product.original_price)
+                                : "",
+                              category_id: product.category_id || "",
+                              image_url: product.image_url || "",
+                              size: product.size || "",
+                              stock: String(product.stock),
+                              slug: product.slug || "",
+                            });
+                            setDialogOpen(true);
+                          }}
+                        >
+                          <Pencil size={16} />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(product.id)}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell>{product.categories?.name || "N/A"}</TableCell>
-                        <TableCell>₦{product.price.toLocaleString()}</TableCell>
-                        <TableCell>{product.stock}</TableCell>
-                        <TableCell>{product.size || "-"}</TableCell>
-                        <TableCell className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            aria-label={`Edit product ${product.name}`}
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setFormData({
-                                name: product.name,
-                                description: product.description,
-                                price: String(product.price),
-                                original_price: product.original_price
-                                  ? String(product.original_price)
-                                  : "",
-                                category_id: product.category_id || "",
-                                image_url: product.image_url || "",
-                                size: product.size || "",
-                                stock: String(product.stock),
-                                slug: product.slug || "",
-                              });
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Pencil size={16} />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            aria-label={`Delete product ${product.name}`}
-                            onClick={() => handleDelete(product.id)}
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </TabsContent>
-          {/* Similar approach for Orders, Users, Reviews */}
-          {/* -- Orders, Users, Reviews tabs code go here as before -- */}
+
+          {/* Orders */}
+          <TabsContent value="orders">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Delivery</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-mono text-xs">
+                        {order.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell>{order.customer_name}</TableCell>
+                      <TableCell>{order.customer_email}</TableCell>
+                      <TableCell>{order.customer_phone}</TableCell>
+                      <TableCell>
+                        ₦{order.total.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {order.delivery_method === "delivery"
+                          ? "Delivery"
+                          : "Pickup"}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={order.status}
+                          onValueChange={(val) =>
+                            updateOrderStatus(order.id, val)
+                          }
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="processing">
+                              Processing
+                            </SelectItem>
+                            <SelectItem value="completed">
+                              Completed
+                            </SelectItem>
+                            <SelectItem value="cancelled">
+                              Cancelled
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          {/* Users */}
+          <TabsContent value="users">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User ID</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user, index) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-mono text-xs">
+                        USER-{String(index + 1).padStart(4, "0")}
+                      </TableCell>
+                      <TableCell>{user.user?.email || "N/A"}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                            user.role === "admin"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {user.role.charAt(0).toUpperCase() +
+                            user.role.slice(1)}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          {/* Reviews */}
+          <TabsContent value="reviews">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Review</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reviews.map((review) => (
+                    <TableRow key={review.id}>
+                      <TableCell>{review.products?.name || "N/A"}</TableCell>
+                      <TableCell>{review.review_text}</TableCell>
+                      <TableCell>{review.rating}</TableCell>
+                      <TableCell>
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
         </Tabs>
-      </main>
+      </div>
       <Footer />
     </div>
   );
