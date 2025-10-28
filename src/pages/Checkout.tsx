@@ -277,9 +277,14 @@ const Checkout = () => {
           </div>
 
           {/* Delivery Form */}
-          <div className="order-2 lg:order-1 lg:col-span-2">
+          {/* Delivery Form — appears after summary on mobile */}
+<div className="order-2 lg:order-1 lg:col-span-2">
+
             <Card className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Delivery Information</h2>
+             <div className="grid gap-8 lg:grid-cols-3">
+  {/* Order Summary first for mobile */}
+  <div className="order-1 lg:order-2 lg:col-span-1">
+
 
               <form onSubmit={handleProceedToPayment} className="space-y-4">
                 <div>
