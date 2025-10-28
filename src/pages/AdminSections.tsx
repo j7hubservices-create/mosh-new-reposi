@@ -17,7 +17,6 @@ const AdminSections = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<"products"|"orders"|"users"|"reviews"|"manage">("manage");
   const [sections, setSections] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,283 +146,238 @@ const AdminSections = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/10">
       <Navbar />
-
-      <div className="container mx-auto px-4 py-6 flex-1">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div className="flex items-center gap-3 mb-4 sm:mb-0">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/admin')}>
+      <div className="container mx-auto px-4 py-8 flex-1">
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/admin')}
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              <Settings className="w-7 h-7 text-primary" />
-              Admin Dashboard
+            <h1 className="text-4xl font-bold flex items-center gap-3">
+              <Settings className="w-10 h-10 text-primary" />
+              Homepage Management
             </h1>
+          </div>
+          <p className="text-muted-foreground">Manage homepage sections and customer reviews</p>
+        </div>
+
+        {/* Homepage Sections */}
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Featured Sections</h2>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Section
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingSection ? 'Edit Section' : 'Add New Section'}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSectionSubmit} className="space-y-4">
+                  <div>
+                    <Label>Section Type</Label>
+                    <Select
+                      value={sectionForm.section_type}
+                      onValueChange={(value) => setSectionForm({ ...sectionForm, section_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="latest">Latest Products</SelectItem>
+                        <SelectItem value="best_sellers">Best Sellers</SelectItem>
+                        <SelectItem value="random">Random Products</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={sectionForm.title}
+                      onChange={(e) => setSectionForm({ ...sectionForm, title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={sectionForm.description}
+                      onChange={(e) => setSectionForm({ ...sectionForm, description: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Display Order</Label>
+                    <Input
+                      type="number"
+                      value={sectionForm.display_order}
+                      onChange={(e) => setSectionForm({ ...sectionForm, display_order: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    {editingSection ? 'Update Section' : 'Add Section'}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="grid gap-4">
+            {sections.map((section) => (
+              <Card key={section.id} className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-xl mb-1">{section.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">{section.description}</p>
+                    <div className="flex gap-4 text-sm">
+                      <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+                        {section.section_type.replace('_', ' ').toUpperCase()}
+                      </span>
+                      <span className={section.is_active ? 'text-green-600' : 'text-red-600'}>
+                        {section.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className="text-muted-foreground">Order: {section.display_order}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setEditingSection(section);
+                        setSectionForm(section);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => handleDeleteSection(section.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
 
-        {/* Tabs */}
-        <nav className="flex gap-3 overflow-x-auto pb-4 border-b border-gray-200 mb-6">
-          {[
-            { key: "products", label: "Products" },
-            { key: "orders", label: "Orders" },
-            { key: "users", label: "Users" },
-            { key: "reviews", label: "Reviews" },
-            { key: "manage", label: "Manage Homepage Content" }
-          ].map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key as any)}
-              aria-current={activeTab === (t.key as any) ? "true" : "false"}
-              className={`px-4 py-2 rounded-t-md whitespace-nowrap font-medium transition ${
-                activeTab === (t.key as any)
-                  ? "bg-primary text-white"
-                  : "text-gray-600 hover:text-primary hover:bg-primary/10"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
+        {/* Customer Reviews */}
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Star className="w-6 h-6 text-primary" />
+              Customer Reviews
+            </h2>
+            <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Review
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingReview ? 'Edit Review' : 'Add New Review'}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  <div>
+                    <Label>Customer Name</Label>
+                    <Input
+                      value={reviewForm.customer_name}
+                      onChange={(e) => setReviewForm({ ...reviewForm, customer_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Rating (1-5)</Label>
+                    <Select
+                      value={reviewForm.rating.toString()}
+                      onValueChange={(value) => setReviewForm({ ...reviewForm, rating: parseInt(value) })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 Stars</SelectItem>
+                        <SelectItem value="4">4 Stars</SelectItem>
+                        <SelectItem value="3">3 Stars</SelectItem>
+                        <SelectItem value="2">2 Stars</SelectItem>
+                        <SelectItem value="1">1 Star</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Review Text</Label>
+                    <Textarea
+                      value={reviewForm.review_text}
+                      onChange={(e) => setReviewForm({ ...reviewForm, review_text: e.target.value })}
+                      rows={3}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    {editingReview ? 'Update Review' : 'Add Review'}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-        {/* Tab content */}
-        {activeTab === "manage" && (
-          <section>
-            {/* Keep original Homepage Management content exactly */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-2">Homepage Management</h2>
-              <p className="text-muted-foreground mb-6">Manage homepage sections and customer reviews</p>
-
-              {/* Sections */}
-              <div className="mb-10">
-                <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
-                  <h3 className="text-lg font-semibold">Featured Sections</h3>
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Section
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{editingSection ? 'Edit Section' : 'Add New Section'}</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleSectionSubmit} className="space-y-4">
-                        <div>
-                          <Label>Section Type</Label>
-                          <Select
-                            value={sectionForm.section_type}
-                            onValueChange={(value) => setSectionForm({ ...sectionForm, section_type: value })}
-                          >
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="latest">Latest Products</SelectItem>
-                              <SelectItem value="best_sellers">Best Sellers</SelectItem>
-                              <SelectItem value="random">Random Products</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Title</Label>
-                          <Input value={sectionForm.title} onChange={(e) => setSectionForm({ ...sectionForm, title: e.target.value })} required />
-                        </div>
-                        <div>
-                          <Label>Description</Label>
-                          <Textarea value={sectionForm.description} onChange={(e) => setSectionForm({ ...sectionForm, description: e.target.value })} />
-                        </div>
-                        <div>
-                          <Label>Display Order</Label>
-                          <Input type="number" value={sectionForm.display_order} onChange={(e) => setSectionForm({ ...sectionForm, display_order: parseInt(e.target.value) })} />
-                        </div>
-                        <Button type="submit" className="w-full">
-                          {editingSection ? 'Update Section' : 'Add Section'}
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                <div className="grid gap-4">
-                  {sections.map((section) => (
-                    <Card key={section.id} className="p-6 hover:shadow-lg transition-shadow">
-                      <div className="flex items-start justify-between flex-wrap gap-3">
-                        <div className="flex-1 min-w-[200px]">
-                          <h4 className="font-bold text-lg mb-1">{section.title}</h4>
-                          <p className="text-sm text-muted-foreground mb-2">{section.description}</p>
-                          <div className="flex flex-wrap gap-3 text-sm">
-                            <span className="px-2 py-1 bg-primary/10 text-primary rounded">{section.section_type.replace('_',' ').toUpperCase()}</span>
-                            <span className={section.is_active ? 'text-green-600' : 'text-red-600'}>{section.is_active ? 'Active' : 'Inactive'}</span>
-                            <span className="text-muted-foreground">Order: {section.display_order}</span>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="icon" onClick={() => { setEditingSection(section); setSectionForm(section); setDialogOpen(true); }}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="destructive" size="icon" onClick={() => handleDeleteSection(section.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              {/* Reviews */}
-              <div>
-                <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
-                  <h3 className="text-lg font-semibold flex items-center gap-2"><Star className="w-5 h-5 text-primary" />Customer Reviews</h3>
-                  <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Review
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{editingReview ? 'Edit Review' : 'Add New Review'}</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleReviewSubmit} className="space-y-4">
-                        <div>
-                          <Label>Customer Name</Label>
-                          <Input value={reviewForm.customer_name} onChange={(e) => setReviewForm({ ...reviewForm, customer_name: e.target.value })} required />
-                        </div>
-                        <div>
-                          <Label>Rating (1-5)</Label>
-                          <Select value={reviewForm.rating.toString()} onValueChange={(value) => setReviewForm({ ...reviewForm, rating: parseInt(value) })}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="5">5 Stars</SelectItem>
-                              <SelectItem value="4">4 Stars</SelectItem>
-                              <SelectItem value="3">3 Stars</SelectItem>
-                              <SelectItem value="2">2 Stars</SelectItem>
-                              <SelectItem value="1">1 Star</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Review Text</Label>
-                          <Textarea value={reviewForm.review_text} onChange={(e) => setReviewForm({ ...reviewForm, review_text: e.target.value })} rows={3} required />
-                        </div>
-                        <Button type="submit" className="w-full">{editingReview ? 'Update Review' : 'Add Review'}</Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                <div className="grid gap-4">
-                  {reviews.map((review) => (
-                    <Card key={review.id} className="p-6 hover:shadow-lg transition-shadow">
-                      <div className="flex items-start justify-between flex-wrap gap-3">
-                        <div className="flex-1 min-w-[200px]">
-                          <div className="flex gap-1 mb-2">{[...Array(review.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-primary text-primary" />)}</div>
-                          <p className="text-sm mb-2 italic">"{review.review_text}"</p>
-                          <div className="flex gap-3 text-sm flex-wrap"><span className="font-semibold">- {review.customer_name}</span>{review.is_featured && <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">Featured</span>}</div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="icon" onClick={() => { setEditingReview(review); setReviewForm(review); setReviewDialogOpen(true); }}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="destructive" size="icon" onClick={() => handleDeleteReview(review.id)}><Trash2 className="h-4 w-4" /></Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {activeTab === "products" && (
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Products</h2>
-            <p className="text-sm text-muted-foreground mb-6">Product list layout goes here. (You can plug your existing product list / fetch logic here.)</p>
-
-            {/* Example responsive placeholder grid — replace with your product list as needed */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Placeholder cards */}
-              <Card className="p-4">Product 1 — replace with real data</Card>
-              <Card className="p-4">Product 2 — replace with real data</Card>
-              <Card className="p-4">Product 3 — replace with real data</Card>
-            </div>
-          </section>
-        )}
-
-        {activeTab === "orders" && (
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Orders</h2>
-            <p className="text-sm text-muted-foreground mb-4">Orders table layout similar to your screenshot — replace with your table logic.</p>
-
-            {/* Responsive table wrapper */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left">
-                <thead>
-                  <tr>
-                    <th className="py-2 px-3 text-sm font-medium">Order ID</th>
-                    <th className="py-2 px-3 text-sm font-medium">Customer</th>
-                    <th className="py-2 px-3 text-sm font-medium">Total</th>
-                    <th className="py-2 px-3 text-sm font-medium">Status</th>
-                    <th className="py-2 px-3 text-sm font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="py-3 px-3 text-sm">#12345</td>
-                    <td className="py-3 px-3 text-sm">John Doe</td>
-                    <td className="py-3 px-3 text-sm">$120.00</td>
-                    <td className="py-3 px-3 text-sm">Processing</td>
-                    <td className="py-3 px-3 text-sm">—</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {activeTab === "users" && (
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Users</h2>
-            <p className="text-sm text-muted-foreground mb-4">User management UI placeholder. Plug in your user fetch / actions here.</p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Card className="p-4">User A</Card>
-              <Card className="p-4">User B</Card>
-              <Card className="p-4">User C</Card>
-            </div>
-          </section>
-        )}
-
-        {activeTab === "reviews" && (
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Reviews</h2>
-            {/* reuse reviews list if desired, or keep separate */}
-            <div className="grid gap-4">
-              {reviews.map((review) => (
-                <Card key={review.id} className="p-6">
-                  <div className="flex items-start justify-between flex-wrap gap-3">
-                    <div className="flex-1 min-w-[200px]">
-                      <div className="flex gap-1 mb-2">{[...Array(review.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-primary text-primary" />)}</div>
-                      <p className="text-sm mb-2 italic">"{review.review_text}"</p>
-                      <div className="flex gap-3 text-sm"><span className="font-semibold">- {review.customer_name}</span>{review.is_featured && <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">Featured</span>}</div>
+          <div className="grid gap-4">
+            {reviews.map((review) => (
+              <Card key={review.id} className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex gap-1 mb-2">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                      ))}
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="icon" onClick={() => { setEditingReview(review); setReviewForm(review); setReviewDialogOpen(true); }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="destructive" size="icon" onClick={() => handleDeleteReview(review.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <p className="text-sm mb-2 italic">"{review.review_text}"</p>
+                    <div className="flex gap-3 text-sm">
+                      <span className="font-semibold">- {review.customer_name}</span>
+                      {review.is_featured && (
+                        <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
+                          Featured
+                        </span>
+                      )}
                     </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setEditingReview(review);
+                        setReviewForm(review);
+                        setReviewDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => handleDeleteReview(review.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
-
       <Footer />
     </div>
   );
