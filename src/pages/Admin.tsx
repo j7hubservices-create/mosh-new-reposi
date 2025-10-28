@@ -54,9 +54,9 @@ const Admin = () => {
     });
   }, []);
 
-  // 🔹 Auto-generate slug from product name
+ // ✅ Automatically generate slug from product name
 useEffect(() => {
-  if (formData.name && !formData.slug) {
+  if (formData.name) {
     const generatedSlug = formData.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -64,6 +64,7 @@ useEffect(() => {
     setFormData((prev) => ({ ...prev, slug: generatedSlug }));
   }
 }, [formData.name]);
+
 
 
   const checkAdminStatus = async (userId: string) => {
