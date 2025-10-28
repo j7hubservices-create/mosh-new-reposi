@@ -17,7 +17,7 @@ const AdminSections = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState("manage"); // NEW TAB CONTROL
+  const [activeTab, setActiveTab] = useState<"products"|"orders"|"users"|"reviews"|"manage">("manage");
   const [sections, setSections] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,7 @@ const AdminSections = () => {
       .eq('user_id', userId)
       .eq('role', 'admin')
       .maybeSingle();
-
+    
     if (data) {
       setIsAdmin(true);
       fetchSections();
@@ -162,35 +162,42 @@ const AdminSections = () => {
           </div>
         </div>
 
-        {/* Responsive Tabs */}
-        <div className="flex overflow-x-auto gap-3 border-b border-gray-200 mb-8 scrollbar-hide">
-          {["products", "orders", "users", "reviews", "manage"].map((tab) => (
+        {/* Tabs */}
+        <nav className="flex gap-3 overflow-x-auto pb-4 border-b border-gray-200 mb-6">
+          {[
+            { key: "products", label: "Products" },
+            { key: "orders", label: "Orders" },
+            { key: "users", label: "Users" },
+            { key: "reviews", label: "Reviews" },
+            { key: "manage", label: "Manage Homepage Content" }
+          ].map((t) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 font-medium whitespace-nowrap transition-all duration-200 rounded-t-md ${
-                activeTab === tab
+              key={t.key}
+              onClick={() => setActiveTab(t.key as any)}
+              aria-current={activeTab === (t.key as any) ? "true" : "false"}
+              className={`px-4 py-2 rounded-t-md whitespace-nowrap font-medium transition ${
+                activeTab === (t.key as any)
                   ? "bg-primary text-white"
                   : "text-gray-600 hover:text-primary hover:bg-primary/10"
               }`}
             >
-              {tab === "manage" ? "Manage Homepage Content" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {t.label}
             </button>
           ))}
-        </div>
+        </nav>
 
-        {/* Tab Content */}
+        {/* Tab content */}
         {activeTab === "manage" && (
-          <div>
-            {/* Existing Homepage Management content */}
+          <section>
+            {/* Keep original Homepage Management content exactly */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">Homepage Management</h2>
-              <p className="text-muted-foreground mb-8">Manage homepage sections and customer reviews</p>
+              <h2 className="text-2xl font-bold mb-2">Homepage Management</h2>
+              <p className="text-muted-foreground mb-6">Manage homepage sections and customer reviews</p>
 
-              {/* Homepage Sections */}
-              <div className="mb-12">
-                <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-                  <h2 className="text-xl font-semibold">Featured Sections</h2>
+              {/* Sections */}
+              <div className="mb-10">
+                <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
+                  <h3 className="text-lg font-semibold">Featured Sections</h3>
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
                       <Button>
@@ -227,11 +234,7 @@ const AdminSections = () => {
                         </div>
                         <div>
                           <Label>Display Order</Label>
-                          <Input
-                            type="number"
-                            value={sectionForm.display_order}
-                            onChange={(e) => setSectionForm({ ...sectionForm, display_order: parseInt(e.target.value) })}
-                          />
+                          <Input type="number" value={sectionForm.display_order} onChange={(e) => setSectionForm({ ...sectionForm, display_order: parseInt(e.target.value) })} />
                         </div>
                         <Button type="submit" className="w-full">
                           {editingSection ? 'Update Section' : 'Add Section'}
@@ -246,28 +249,16 @@ const AdminSections = () => {
                     <Card key={section.id} className="p-6 hover:shadow-lg transition-shadow">
                       <div className="flex items-start justify-between flex-wrap gap-3">
                         <div className="flex-1 min-w-[200px]">
-                          <h3 className="font-bold text-lg mb-1">{section.title}</h3>
+                          <h4 className="font-bold text-lg mb-1">{section.title}</h4>
                           <p className="text-sm text-muted-foreground mb-2">{section.description}</p>
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span className="px-2 py-1 bg-primary/10 text-primary rounded">
-                              {section.section_type.replace('_', ' ').toUpperCase()}
-                            </span>
-                            <span className={section.is_active ? 'text-green-600' : 'text-red-600'}>
-                              {section.is_active ? 'Active' : 'Inactive'}
-                            </span>
+                          <div className="flex flex-wrap gap-3 text-sm">
+                            <span className="px-2 py-1 bg-primary/10 text-primary rounded">{section.section_type.replace('_',' ').toUpperCase()}</span>
+                            <span className={section.is_active ? 'text-green-600' : 'text-red-600'}>{section.is_active ? 'Active' : 'Inactive'}</span>
                             <span className="text-muted-foreground">Order: {section.display_order}</span>
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => {
-                              setEditingSection(section);
-                              setSectionForm(section);
-                              setDialogOpen(true);
-                            }}
-                          >
+                          <Button variant="outline" size="icon" onClick={() => { setEditingSection(section); setSectionForm(section); setDialogOpen(true); }}>
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button variant="destructive" size="icon" onClick={() => handleDeleteSection(section.id)}>
@@ -282,10 +273,8 @@ const AdminSections = () => {
 
               {/* Reviews */}
               <div>
-                <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <Star className="w-5 h-5 text-primary" /> Customer Reviews
-                  </h2>
+                <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
+                  <h3 className="text-lg font-semibold flex items-center gap-2"><Star className="w-5 h-5 text-primary" />Customer Reviews</h3>
                   <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
                     <DialogTrigger asChild>
                       <Button>
@@ -300,18 +289,11 @@ const AdminSections = () => {
                       <form onSubmit={handleReviewSubmit} className="space-y-4">
                         <div>
                           <Label>Customer Name</Label>
-                          <Input
-                            value={reviewForm.customer_name}
-                            onChange={(e) => setReviewForm({ ...reviewForm, customer_name: e.target.value })}
-                            required
-                          />
+                          <Input value={reviewForm.customer_name} onChange={(e) => setReviewForm({ ...reviewForm, customer_name: e.target.value })} required />
                         </div>
                         <div>
                           <Label>Rating (1-5)</Label>
-                          <Select
-                            value={reviewForm.rating.toString()}
-                            onValueChange={(value) => setReviewForm({ ...reviewForm, rating: parseInt(value) })}
-                          >
+                          <Select value={reviewForm.rating.toString()} onValueChange={(value) => setReviewForm({ ...reviewForm, rating: parseInt(value) })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="5">5 Stars</SelectItem>
@@ -324,16 +306,9 @@ const AdminSections = () => {
                         </div>
                         <div>
                           <Label>Review Text</Label>
-                          <Textarea
-                            value={reviewForm.review_text}
-                            onChange={(e) => setReviewForm({ ...reviewForm, review_text: e.target.value })}
-                            rows={3}
-                            required
-                          />
+                          <Textarea value={reviewForm.review_text} onChange={(e) => setReviewForm({ ...reviewForm, review_text: e.target.value })} rows={3} required />
                         </div>
-                        <Button type="submit" className="w-full">
-                          {editingReview ? 'Update Review' : 'Add Review'}
-                        </Button>
+                        <Button type="submit" className="w-full">{editingReview ? 'Update Review' : 'Add Review'}</Button>
                       </form>
                     </DialogContent>
                   </Dialog>
@@ -344,36 +319,15 @@ const AdminSections = () => {
                     <Card key={review.id} className="p-6 hover:shadow-lg transition-shadow">
                       <div className="flex items-start justify-between flex-wrap gap-3">
                         <div className="flex-1 min-w-[200px]">
-                          <div className="flex gap-1 mb-2">
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} className="w-4 h-4 fill-primary text-primary" />
-                            ))}
-                          </div>
+                          <div className="flex gap-1 mb-2">{[...Array(review.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-primary text-primary" />)}</div>
                           <p className="text-sm mb-2 italic">"{review.review_text}"</p>
-                          <div className="flex gap-3 text-sm flex-wrap">
-                            <span className="font-semibold">- {review.customer_name}</span>
-                            {review.is_featured && (
-                              <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
-                                Featured
-                              </span>
-                            )}
-                          </div>
+                          <div className="flex gap-3 text-sm flex-wrap"><span className="font-semibold">- {review.customer_name}</span>{review.is_featured && <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">Featured</span>}</div>
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => {
-                              setEditingReview(review);
-                              setReviewForm(review);
-                              setReviewDialogOpen(true);
-                            }}
-                          >
+                          <Button variant="outline" size="icon" onClick={() => { setEditingReview(review); setReviewForm(review); setReviewDialogOpen(true); }}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="destructive" size="icon" onClick={() => handleDeleteReview(review.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <Button variant="destructive" size="icon" onClick={() => handleDeleteReview(review.id)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </div>
                     </Card>
@@ -381,15 +335,92 @@ const AdminSections = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Placeholder content for other tabs */}
-        {activeTab !== "manage" && (
-          <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg">You are viewing the <strong>{activeTab}</strong> section.</p>
-            <p className="text-sm">Content for this tab will be added soon.</p>
-          </div>
+        {activeTab === "products" && (
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Products</h2>
+            <p className="text-sm text-muted-foreground mb-6">Product list layout goes here. (You can plug your existing product list / fetch logic here.)</p>
+
+            {/* Example responsive placeholder grid — replace with your product list as needed */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Placeholder cards */}
+              <Card className="p-4">Product 1 — replace with real data</Card>
+              <Card className="p-4">Product 2 — replace with real data</Card>
+              <Card className="p-4">Product 3 — replace with real data</Card>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "orders" && (
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Orders</h2>
+            <p className="text-sm text-muted-foreground mb-4">Orders table layout similar to your screenshot — replace with your table logic.</p>
+
+            {/* Responsive table wrapper */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left">
+                <thead>
+                  <tr>
+                    <th className="py-2 px-3 text-sm font-medium">Order ID</th>
+                    <th className="py-2 px-3 text-sm font-medium">Customer</th>
+                    <th className="py-2 px-3 text-sm font-medium">Total</th>
+                    <th className="py-2 px-3 text-sm font-medium">Status</th>
+                    <th className="py-2 px-3 text-sm font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="py-3 px-3 text-sm">#12345</td>
+                    <td className="py-3 px-3 text-sm">John Doe</td>
+                    <td className="py-3 px-3 text-sm">$120.00</td>
+                    <td className="py-3 px-3 text-sm">Processing</td>
+                    <td className="py-3 px-3 text-sm">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "users" && (
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Users</h2>
+            <p className="text-sm text-muted-foreground mb-4">User management UI placeholder. Plug in your user fetch / actions here.</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card className="p-4">User A</Card>
+              <Card className="p-4">User B</Card>
+              <Card className="p-4">User C</Card>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "reviews" && (
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+            {/* reuse reviews list if desired, or keep separate */}
+            <div className="grid gap-4">
+              {reviews.map((review) => (
+                <Card key={review.id} className="p-6">
+                  <div className="flex items-start justify-between flex-wrap gap-3">
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="flex gap-1 mb-2">{[...Array(review.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-primary text-primary" />)}</div>
+                      <p className="text-sm mb-2 italic">"{review.review_text}"</p>
+                      <div className="flex gap-3 text-sm"><span className="font-semibold">- {review.customer_name}</span>{review.is_featured && <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">Featured</span>}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="icon" onClick={() => { setEditingReview(review); setReviewForm(review); setReviewDialogOpen(true); }}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="destructive" size="icon" onClick={() => handleDeleteReview(review.id)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
         )}
       </div>
 
