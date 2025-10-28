@@ -1,19 +1,24 @@
-import { Navbar } from "@/components/Navbar"; 
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, Trash2, Plus, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -32,8 +37,6 @@ const Admin = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [expandedOrders, setExpandedOrders] = useState<string[]>([]);
-  const [expandedReviews, setExpandedReviews] = useState<string[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -166,17 +169,14 @@ const Admin = () => {
     fetchProducts();
   };
 
-  const toggleOrderExpand = (id: string) => setExpandedOrders(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  const toggleReviewExpand = (id: string) => setExpandedReviews(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-
   if (loading) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/10">
       <Navbar />
       <div className="container mx-auto px-4 py-8 flex-1">
-        <Tabs defaultValue="homepage" className="w-full overflow-x-auto touch-pan-x">
-          <TabsList className="mb-6 flex-nowrap">
+        <Tabs defaultValue="homepage" className="w-full">
+          <TabsList className="mb-6 flex-wrap gap-2">
             <TabsTrigger value="homepage">Manage Homepage</TabsTrigger>
             <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
             <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
@@ -188,7 +188,9 @@ const Admin = () => {
           <TabsContent value="homepage">
             <Card className="p-6 text-center">
               <h2 className="text-2xl font-bold mb-2">Manage Homepage Section</h2>
-              <Button variant="outline" onClick={() => navigate('/admin/sections')}>Go to Manage Homepage</Button>
+              <Button variant="outline" onClick={() => navigate('/admin/sections')}>
+                Go to Manage Homepage
+              </Button>
             </Card>
           </TabsContent>
 
@@ -207,57 +209,103 @@ const Admin = () => {
                     <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                    {/* Form fields as in original code */}
+                    {/* Form inputs (same as before) */}
+                    <div>
+                      <Label>Name</Label>
+                      <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                    </div>
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Price</Label>
+                        <Input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label>Original Price</Label>
+                        <Input type="number" value={formData.original_price} onChange={(e) => setFormData({ ...formData, original_price: e.target.value })} />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Category</Label>
+                      <Select value={formData.category_id} onValueChange={(val) => setFormData({ ...formData, category_id: val })}>
+                        <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Size</Label>
+                      <Input value={formData.size} onChange={(e) => setFormData({ ...formData, size: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Stock</Label>
+                      <Input type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
+                    </div>
+                    <div>
+                      <Label>Slug</Label>
+                      <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Image</Label>
+                      <Input type="file" accept="image/*" onChange={handleImageUpload} />
+                      {imageFiles.length > 0 && (
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {imageFiles.map((file, i) => (
+                            <div key={i} className="relative w-20 h-20 border rounded overflow-hidden">
+                              <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
+                              <Button size="icon" variant="destructive" className="absolute top-1 right-1 p-1" onClick={() => removeImageFile(i)}>
+                                <X size={12} />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <Button type="submit" className="w-full mt-4" disabled={uploadingImages}>{editingProduct ? 'Update Product' : 'Add Product'}</Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
 
+            {/* Product display */}
             {products.length === 0 ? (
-              <Card className="p-12 text-center"><p className="text-xl text-muted-foreground">No products found</p></Card>
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No products found</p>
+              </Card>
             ) : (
-              <div className="overflow-x-auto md:overflow-x-hidden">
-                <Table className="min-w-full">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map(product => (
-                      <TableRow key={product.id}>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell>{product.categories?.name || 'N/A'}</TableCell>
-                        <TableCell>₦{product.price.toLocaleString()}</TableCell>
-                        <TableCell>{product.stock}</TableCell>
-                        <TableCell>{product.size || '-'}</TableCell>
-                        <TableCell className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => {
-                            setEditingProduct(product);
-                            setFormData({
-                              name: product.name,
-                              description: product.description,
-                              price: String(product.price),
-                              original_price: product.original_price ? String(product.original_price) : '',
-                              category_id: product.category_id || '',
-                              image_url: product.image_url || '',
-                              size: product.size || '',
-                              stock: String(product.stock),
-                              slug: product.slug || '',
-                            });
-                            setDialogOpen(true);
-                          }}><Pencil size={16} /></Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(product.id)}><Trash2 size={16} /></Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {products.map(product => (
+                  <Card key={product.id} className="p-4 flex flex-col gap-2">
+                    <img src={product.image_url || '/placeholder.png'} alt={product.name} className="w-full h-40 object-cover rounded" />
+                    <h3 className="font-bold text-lg">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground">{product.categories?.name || 'N/A'}</p>
+                    <p className="text-sm">₦{product.price.toLocaleString()}</p>
+                    <p className="text-sm">Stock: {product.stock}</p>
+                    <p className="text-sm">Size: {product.size || '-'}</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setEditingProduct(product);
+                        setFormData({
+                          name: product.name,
+                          description: product.description,
+                          price: String(product.price),
+                          original_price: product.original_price ? String(product.original_price) : '',
+                          category_id: product.category_id || '',
+                          image_url: product.image_url || '',
+                          size: product.size || '',
+                          stock: String(product.stock),
+                          slug: product.slug || '',
+                        });
+                        setDialogOpen(true);
+                      }}><Pencil size={16} /></Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(product.id)}><Trash2 size={16} /></Button>
+                    </div>
+                  </Card>
+                ))}
               </div>
             )}
           </TabsContent>
@@ -265,71 +313,78 @@ const Admin = () => {
           {/* --- Orders Tab --- */}
           <TabsContent value="orders">
             {orders.length === 0 ? (
-              <Card className="p-12 text-center"><p className="text-xl text-muted-foreground">No orders yet</p></Card>
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No orders yet</p>
+              </Card>
             ) : (
-              <div className="grid gap-2">
-                {orders.map(order => {
-                  const isExpanded = expandedOrders.includes(order.id);
-                  return (
-                    <Card key={order.id} className="p-4 md:table md:overflow-x-auto">
-                      <div className="flex justify-between items-center md:hidden cursor-pointer" onClick={() => toggleOrderExpand(order.id)}>
-                        <span className="font-mono">{order.id.substring(0, 8)}</span>
-                        {isExpanded ? <ChevronUp /> : <ChevronDown />}
-                      </div>
-                      <div className={`${isExpanded ? 'block' : 'hidden'} md:block mt-2 md:mt-0`}>
-                        <p>Customer: {order.customer_name}</p>
-                        <p>Email: {order.customer_email}</p>
-                        <p>Phone: {order.customer_phone}</p>
-                        <p>Total: ₦{order.total.toLocaleString()}</p>
-                        <p>Delivery: {order.delivery_method}</p>
-                        <p>Date: {new Date(order.created_at).toLocaleDateString()}</p>
-                        <Select value={order.status} onValueChange={(val) => updateOrderStatus(order.id, val)} className="w-full mt-2">
-                          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </Card>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {orders.map(order => (
+                  <Card key={order.id} className="p-4 flex flex-col gap-2">
+                    <p className="font-mono text-xs">Order: {order.id.substring(0, 8)}</p>
+                    <p className="text-sm font-semibold">{order.customer_name}</p>
+                    <p className="text-sm">{order.customer_email}</p>
+                    <p className="text-sm">{order.customer_phone}</p>
+                    <p className="text-sm">₦{order.total.toLocaleString()}</p>
+                    <p className="text-sm">{order.delivery_method === 'delivery' ? 'Delivery' : 'Pickup'}</p>
+                    <p className="text-sm">{new Date(order.created_at).toLocaleDateString()}</p>
+                    <Select value={order.status} onValueChange={(val) => updateOrderStatus(order.id, val)}>
+                      <SelectTrigger className="w-full mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Card>
+                ))}
               </div>
             )}
           </TabsContent>
 
           {/* --- Users Tab --- */}
           <TabsContent value="users">
-            {/* Keep original Users table code as is */}
+            {users.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No users yet</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {users.map((user, index) => (
+                  <Card key={index} className="p-4 flex flex-col gap-2">
+                    <p className="font-mono text-xs">USER-{String(index + 1).padStart(4,'0')}</p>
+                    <p className="text-sm">{user.user?.email || 'N/A'}</p>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </span>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* --- Reviews Tab --- */}
           <TabsContent value="reviews">
             {reviews.length === 0 ? (
-              <Card className="p-12 text-center"><p className="text-xl text-muted-foreground">No reviews yet</p></Card>
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No reviews yet</p>
+              </Card>
             ) : (
-              <div className="grid gap-2">
-                {reviews.map(review => {
-                  const isExpanded = expandedReviews.includes(review.id);
-                  return (
-                    <Card key={review.id} className="p-4 md:table md:overflow-x-auto">
-                      <div className="flex justify-between items-center md:hidden cursor-pointer" onClick={() => toggleReviewExpand(review.id)}>
-                        <span className="font-semibold">{review.products?.name || 'N/A'}</span>
-                        {isExpanded ? <ChevronUp /> : <ChevronDown />}
-                      </div>
-                      <div className={`${isExpanded ? 'block' : 'hidden'} md:block mt-2 md:mt-0`}>
-                        <p>Review: {review.review_text}</p>
-                        <p>Rating: {review.rating}</p>
-                        <p>Date: {new Date(review.created_at).toLocaleDateString()}</p>
-                      </div>
-                    </Card>
-                  )
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {reviews.map(review => (
+                  <Card key={review.id} className="p-4 flex flex-col gap-2">
+                    <p className="font-bold">{review.products?.name || 'N/A'}</p>
+                    <p className="text-sm">{review.review_text}</p>
+                    <p className="text-sm">Rating: {review.rating}</p>
+                    <p className="text-sm">{new Date(review.created_at).toLocaleDateString()}</p>
+                  </Card>
+                ))}
               </div>
             )}
           </TabsContent>
+
         </Tabs>
       </div>
       <Footer />
