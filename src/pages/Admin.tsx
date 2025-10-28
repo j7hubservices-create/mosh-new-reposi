@@ -333,6 +333,12 @@ useEffect(() => {
                       />
                     </div>
 
+                      <div className="md:col-span-2">
+                  <Label>SEO Slug (URL)</Label>
+                  <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="Auto-generated from name" />
+                  <p className="text-xs text-muted-foreground mt-1">Leave empty to auto-generate from product name</p>
+                </div>
+
                     <div className="md:col-span-2">
                       <Label>Image Upload</Label>
                       <Button
