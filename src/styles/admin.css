@@ -1,16 +1,20 @@
-/* ✅ Make the tab header scrollable on mobile */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE/Edge */
-  scrollbar-width: none;     /* Firefox */
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;             /* Chrome/Safari */
+/* admin.css */
+.tabs-trigger {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
 }
 
-/* Optional: adjust tab spacing on small screens */
-@media (max-width: 640px) {
-  .tabs-trigger {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
+.tabs-trigger[data-state="active"] {
+  background-color: var(--primary);
+  color: white;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
