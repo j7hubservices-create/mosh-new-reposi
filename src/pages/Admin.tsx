@@ -42,12 +42,7 @@ const Admin = () => {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .maybeSingle();
+    const { data } = await supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle();
     if (data) {
       setIsAdmin(true);
       fetchProducts();
@@ -60,7 +55,6 @@ const Admin = () => {
     }
   };
 
-  // Fetch functions
   const fetchProducts = async () => {
     const { data } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false });
     if (data) setProducts(data);
@@ -97,7 +91,6 @@ const Admin = () => {
     }
   };
 
-  // Upload image from device
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -129,7 +122,6 @@ const Admin = () => {
 
   const removeImageFile = (index: number) => setImageFiles(prev => prev.filter((_, i) => i !== index));
 
-  // Submit product
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const productData = {
@@ -187,7 +179,7 @@ const Admin = () => {
             <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
           </TabsList>
 
-          {/* --- Homepage Tab --- */}
+          {/* --- Manage Homepage Tab --- */}
           <TabsContent value="homepage">
             <Card className="p-6 text-center">
               <h2 className="text-2xl font-bold mb-2">Manage Homepage Section</h2>
@@ -199,7 +191,6 @@ const Admin = () => {
 
           {/* --- Products Tab --- */}
           <TabsContent value="products">
-            {/* --- Add/Edit Product Form --- */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Manage Products</h2>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -213,12 +204,111 @@ const Admin = () => {
                     <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                    {/* Form inputs here... (same as your original code) */}
+                    <div>
+                      <Label>Name</Label>
+                      <Input
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Price</Label>
+                        <Input
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Original Price</Label>
+                        <Input
+                          type="number"
+                          value={formData.original_price}
+                          onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Category</Label>
+                      <Select
+                        value={formData.category_id}
+                        onValueChange={(val) => setFormData({ ...formData, category_id: val })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Size</Label>
+                      <Input
+                        value={formData.size}
+                        onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Stock</Label>
+                      <Input
+                        type="number"
+                        value={formData.stock}
+                        onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Slug</Label>
+                      <Input
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Image</Label>
+                      <Input type="file" accept="image/*" onChange={handleImageUpload} />
+                      {imageFiles.length > 0 && (
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {imageFiles.map((file, i) => (
+                            <div key={i} className="relative w-20 h-20 border rounded overflow-hidden">
+                              <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
+                              <Button
+                                size="icon"
+                                variant="destructive"
+                                className="absolute top-1 right-1 p-1"
+                                onClick={() => removeImageFile(i)}
+                              >
+                                <X size={12} />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <Button type="submit" className="w-full mt-4" disabled={uploadingImages}>
+                      {editingProduct ? 'Update Product' : 'Add Product'}
+                    </Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
-            {/* Product Table */}
+
             {products.length === 0 ? (
               <Card className="p-12 text-center">
                 <p className="text-xl text-muted-foreground">No products found</p>
@@ -278,8 +368,126 @@ const Admin = () => {
             )}
           </TabsContent>
 
-          {/* --- Orders, Users, Reviews Tabs --- */}
-          {/* ...Keep your original code here... */}
+          {/* --- Orders Tab --- */}
+          <TabsContent value="orders">
+            {orders.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No orders yet</p>
+              </Card>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Delivery</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map(order => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}</TableCell>
+                        <TableCell className="text-sm">{order.customer_name}</TableCell>
+                        <TableCell className="text-sm">{order.customer_email}</TableCell>
+                        <TableCell className="text-sm">{order.customer_phone}</TableCell>
+                        <TableCell className="text-sm">₦{order.total.toLocaleString()}</TableCell>
+                        <TableCell className="text-sm">{order.delivery_method === 'delivery' ? 'Delivery' : 'Pickup'}</TableCell>
+                        <TableCell className="text-sm">{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-sm">
+                          <Select value={order.status} onValueChange={(val) => updateOrderStatus(order.id, val)}>
+                            <SelectTrigger className="w-36">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="processing">Processing</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* --- Users Tab --- */}
+          <TabsContent value="users">
+            {users.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No users yet</p>
+              </Card>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User ID</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user, index) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-mono text-xs">USER-{String(index + 1).padStart(4,'0')}</TableCell>
+                        <TableCell className="text-sm">{user.user?.email || 'N/A'}</TableCell>
+                        <TableCell>
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* --- Reviews Tab --- */}
+          <TabsContent value="reviews">
+            {reviews.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-xl text-muted-foreground">No reviews yet</p>
+              </Card>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Review</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reviews.map(review => (
+                      <TableRow key={review.id}>
+                        <TableCell>{review.products?.name || 'N/A'}</TableCell>
+                        <TableCell>{review.review_text}</TableCell>
+                        <TableCell>{review.rating}</TableCell>
+                        <TableCell>{new Date(review.created_at).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+
         </Tabs>
       </div>
       <Footer />
