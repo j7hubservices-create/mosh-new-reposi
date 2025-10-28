@@ -10,386 +10,461 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, X } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Settings,
+  Star,
+  Plus,
+  Pencil,
+  Trash2,
+  ArrowLeft,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-const Admin = () => {
+const AdminSections = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: '', slug: '', original_price: ''
-  });
-  const [uploadingImages, setUploadingImages] = useState(false);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<any>(null);
+  const [editingReview, setEditingReview] = useState<any>(null);
+  const [sectionForm, setSectionForm] = useState({
+    section_type: "latest",
+    title: "",
+    description: "",
+    is_active: true,
+    display_order: 0,
+  });
+  const [reviewForm, setReviewForm] = useState({
+    customer_name: "",
+    rating: 5,
+    review_text: "",
+    is_featured: true,
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) checkAdminStatus(session.user.id);
-      else navigate('/auth');
+      if (session?.user) {
+        checkAdminStatus(session.user.id);
+      } else {
+        navigate("/auth");
+      }
     });
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
-    const { data } = await supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle();
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
     if (data) {
       setIsAdmin(true);
-      fetchProducts();
-      fetchCategories();
-      fetchOrders();
-      fetchUsers();
+      fetchSections();
       fetchReviews();
     } else {
-      navigate('/');
+      navigate("/");
     }
   };
 
-  const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false });
-    if (data) setProducts(data);
+  const fetchSections = async () => {
+    const { data } = await supabase
+      .from("homepage_sections")
+      .select("*")
+      .order("display_order", { ascending: true });
+    if (data) setSections(data);
     setLoading(false);
-  };
-
-  const fetchCategories = async () => {
-    const { data } = await supabase.from('categories').select('*');
-    if (data) setCategories(data);
-  };
-
-  const fetchOrders = async () => {
-    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-    if (data) setOrders(data);
-    setLoading(false);
-  };
-
-  const fetchUsers = async () => {
-    const { data } = await supabase.from('user_roles').select('*, user:user_id(email)').order('id', { ascending: false });
-    if (data) setUsers(data);
   };
 
   const fetchReviews = async () => {
-    const { data } = await supabase.from('customer_reviews').select('*, products(name)').order('created_at', { ascending: false });
+    const { data } = await supabase
+      .from("customer_reviews")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (data) setReviews(data);
   };
 
-  const updateOrderStatus = async (orderId: string, status: string) => {
-    const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
-    if (error) toast.error("Failed to update order status");
-    else {
-      toast.success("Order status updated!");
-      fetchOrders();
-    }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setUploadingImages(true);
-    const fileArray = Array.from(files);
-    setImageFiles(prev => [...prev, ...fileArray]);
-
-    try {
-      const uploadPromises = fileArray.map(async (file) => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const { error } = await supabase.storage.from('product-images').upload(fileName, file);
-        if (error) throw error;
-        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(fileName);
-        return publicUrl;
-      });
-
-      const uploadedUrls = await Promise.all(uploadPromises);
-      if (uploadedUrls.length > 0) {
-        setFormData(prev => ({ ...prev, image_url: uploadedUrls[0] }));
-        toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`);
-      }
-    } catch (error: any) {
-      toast.error("Error uploading images: " + error.message);
-    } finally {
-      setUploadingImages(false);
-    }
-  };
-
-  const removeImageFile = (index: number) => setImageFiles(prev => prev.filter((_, i) => i !== index));
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSectionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const productData = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      original_price: formData.original_price ? parseFloat(formData.original_price) : null,
-      category_id: formData.category_id || null,
-      image_url: formData.image_url || null,
-      size: formData.size || null,
-      stock: parseInt(formData.stock),
-      slug: formData.slug || null,
-    } as any;
 
-    try {
-      if (editingProduct) {
-        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
-        if (error) throw error;
-        toast.success("Product updated!");
-      } else {
-        const { error } = await supabase.from('products').insert(productData);
-        if (error) throw error;
-        toast.success("Product added!");
-      }
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to save product");
-      return;
+    if (editingSection) {
+      await supabase
+        .from("homepage_sections")
+        .update(sectionForm)
+        .eq("id", editingSection.id);
+      toast.success("Section updated!");
+    } else {
+      await supabase.from("homepage_sections").insert(sectionForm);
+      toast.success("Section added!");
     }
 
-    setFormData({ name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: '', slug: '', original_price: '' });
-    setEditingProduct(null);
-    setImageFiles([]);
+    setSectionForm({
+      section_type: "latest",
+      title: "",
+      description: "",
+      is_active: true,
+      display_order: 0,
+    });
+    setEditingSection(null);
     setDialogOpen(false);
-    fetchProducts();
+    fetchSections();
   };
 
-  const handleDelete = async (id: string) => {
-    await supabase.from('products').delete().eq('id', id);
-    toast.success("Product deleted!");
-    fetchProducts();
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (editingReview) {
+      await supabase
+        .from("customer_reviews")
+        .update(reviewForm)
+        .eq("id", editingReview.id);
+      toast.success("Review updated!");
+    } else {
+      await supabase.from("customer_reviews").insert(reviewForm);
+      toast.success("Review added!");
+    }
+
+    setReviewForm({
+      customer_name: "",
+      rating: 5,
+      review_text: "",
+      is_featured: true,
+    });
+    setEditingReview(null);
+    setReviewDialogOpen(false);
+    fetchReviews();
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
+  const handleDeleteSection = async (id: string) => {
+    await supabase.from("homepage_sections").delete().eq("id", id);
+    toast.success("Section deleted!");
+    fetchSections();
+  };
+
+  const handleDeleteReview = async (id: string) => {
+    await supabase.from("customer_reviews").delete().eq("id", id);
+    toast.success("Review deleted!");
+    fetchReviews();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/10">
       <Navbar />
-      <div className="container mx-auto px-4 py-8 flex-1">
-        <Tabs defaultValue="homepage" className="w-full">
-          <TabsList className="mb-6 flex-wrap gap-2">
-            <TabsTrigger value="homepage">Manage Homepage</TabsTrigger>
-            <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
-            <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
-            <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
-          </TabsList>
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 flex-1">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 mb-3 sm:mb-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl sm:text-4xl font-bold flex items-center gap-2 sm:gap-3">
+              <Settings className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              Homepage Management
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Manage homepage sections and customer reviews
+          </p>
+        </div>
 
-          {/* --- Homepage Tab --- */}
-          <TabsContent value="homepage">
-            <Card className="p-6 text-center">
-              <h2 className="text-2xl font-bold mb-2">Manage Homepage Section</h2>
-              <Button variant="outline" onClick={() => navigate('/admin/sections')}>
-                Go to Manage Homepage
-              </Button>
-            </Card>
-          </TabsContent>
-
-          {/* --- Products Tab --- */}
-          <TabsContent value="products">
-            <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-              <h2 className="text-xl font-bold">Manage Products</h2>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Plus size={16} /> Add Product
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                    {/* Form inputs (same as before) */}
-                    <div>
-                      <Label>Name</Label>
-                      <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-                    </div>
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Price</Label>
-                        <Input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
-                      </div>
-                      <div>
-                        <Label>Original Price</Label>
-                        <Input type="number" value={formData.original_price} onChange={(e) => setFormData({ ...formData, original_price: e.target.value })} />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Category</Label>
-                      <Select value={formData.category_id} onValueChange={(val) => setFormData({ ...formData, category_id: val })}>
-                        <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Size</Label>
-                      <Input value={formData.size} onChange={(e) => setFormData({ ...formData, size: e.target.value })} />
-                    </div>
-                    <div>
-                      <Label>Stock</Label>
-                      <Input type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
-                    </div>
-                    <div>
-                      <Label>Slug</Label>
-                      <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} />
-                    </div>
-                    <div>
-                      <Label>Image</Label>
-                      <Input type="file" accept="image/*" onChange={handleImageUpload} />
-                      {imageFiles.length > 0 && (
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          {imageFiles.map((file, i) => (
-                            <div key={i} className="relative w-20 h-20 border rounded overflow-hidden">
-                              <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
-                              <Button size="icon" variant="destructive" className="absolute top-1 right-1 p-1" onClick={() => removeImageFile(i)}>
-                                <X size={12} />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <Button type="submit" className="w-full mt-4" disabled={uploadingImages}>{editingProduct ? 'Update Product' : 'Add Product'}</Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {/* Product display */}
-            {products.length === 0 ? (
-              <Card className="p-12 text-center">
-                <p className="text-xl text-muted-foreground">No products found</p>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {products.map(product => (
-                  <Card key={product.id} className="p-4 flex flex-col gap-2">
-                    <img src={product.image_url || '/placeholder.png'} alt={product.name} className="w-full h-40 object-cover rounded" />
-                    <h3 className="font-bold text-lg">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">{product.categories?.name || 'N/A'}</p>
-                    <p className="text-sm">₦{product.price.toLocaleString()}</p>
-                    <p className="text-sm">Stock: {product.stock}</p>
-                    <p className="text-sm">Size: {product.size || '-'}</p>
-                    <div className="flex gap-2 mt-2">
-                      <Button variant="outline" size="sm" onClick={() => {
-                        setEditingProduct(product);
-                        setFormData({
-                          name: product.name,
-                          description: product.description,
-                          price: String(product.price),
-                          original_price: product.original_price ? String(product.original_price) : '',
-                          category_id: product.category_id || '',
-                          image_url: product.image_url || '',
-                          size: product.size || '',
-                          stock: String(product.stock),
-                          slug: product.slug || '',
-                        });
-                        setDialogOpen(true);
-                      }}><Pencil size={16} /></Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete(product.id)}><Trash2 size={16} /></Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* --- Orders Tab --- */}
-          <TabsContent value="orders">
-            {orders.length === 0 ? (
-              <Card className="p-12 text-center">
-                <p className="text-xl text-muted-foreground">No orders yet</p>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {orders.map(order => (
-                  <Card key={order.id} className="p-4 flex flex-col gap-2">
-                    <p className="font-mono text-xs">Order: {order.id.substring(0, 8)}</p>
-                    <p className="text-sm font-semibold">{order.customer_name}</p>
-                    <p className="text-sm">{order.customer_email}</p>
-                    <p className="text-sm">{order.customer_phone}</p>
-                    <p className="text-sm">₦{order.total.toLocaleString()}</p>
-                    <p className="text-sm">{order.delivery_method === 'delivery' ? 'Delivery' : 'Pickup'}</p>
-                    <p className="text-sm">{new Date(order.created_at).toLocaleDateString()}</p>
-                    <Select value={order.status} onValueChange={(val) => updateOrderStatus(order.id, val)}>
-                      <SelectTrigger className="w-full mt-2">
+        {/* Homepage Sections */}
+        <div className="mb-10 sm:mb-12">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Featured Sections</h2>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Section
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95%] sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingSection ? "Edit Section" : "Add New Section"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSectionSubmit} className="space-y-4">
+                  <div>
+                    <Label>Section Type</Label>
+                    <Select
+                      value={sectionForm.section_type}
+                      onValueChange={(value) =>
+                        setSectionForm({ ...sectionForm, section_type: value })
+                      }
+                    >
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="latest">Latest Products</SelectItem>
+                        <SelectItem value="best_sellers">
+                          Best Sellers
+                        </SelectItem>
+                        <SelectItem value="random">Random Products</SelectItem>
                       </SelectContent>
                     </Select>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={sectionForm.title}
+                      onChange={(e) =>
+                        setSectionForm({ ...sectionForm, title: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={sectionForm.description}
+                      onChange={(e) =>
+                        setSectionForm({
+                          ...sectionForm,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label>Display Order</Label>
+                    <Input
+                      type="number"
+                      value={sectionForm.display_order}
+                      onChange={(e) =>
+                        setSectionForm({
+                          ...sectionForm,
+                          display_order: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    {editingSection ? "Update Section" : "Add Section"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-          {/* --- Users Tab --- */}
-          <TabsContent value="users">
-            {users.length === 0 ? (
-              <Card className="p-12 text-center">
-                <p className="text-xl text-muted-foreground">No users yet</p>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {users.map((user, index) => (
-                  <Card key={index} className="p-4 flex flex-col gap-2">
-                    <p className="font-mono text-xs">USER-{String(index + 1).padStart(4,'0')}</p>
-                    <p className="text-sm">{user.user?.email || 'N/A'}</p>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                    </span>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+          <div className="overflow-x-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-[600px] sm:min-w-0">
+              {sections.map((section) => (
+                <Card key={section.id} className="p-6">
+                  <div className="flex items-start justify-between flex-wrap gap-2">
+                    <div className="flex-1 min-w-[200px]">
+                      <h3 className="font-bold text-lg sm:text-xl mb-1">
+                        {section.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {section.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+                          {section.section_type.replace("_", " ").toUpperCase()}
+                        </span>
+                        <span
+                          className={
+                            section.is_active ? "text-green-600" : "text-red-600"
+                          }
+                        >
+                          {section.is_active ? "Active" : "Inactive"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Order: {section.display_order}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setEditingSection(section);
+                          setSectionForm(section);
+                          setDialogOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDeleteSection(section.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
 
-          {/* --- Reviews Tab --- */}
-          <TabsContent value="reviews">
-            {reviews.length === 0 ? (
-              <Card className="p-12 text-center">
-                <p className="text-xl text-muted-foreground">No reviews yet</p>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {reviews.map(review => (
-                  <Card key={review.id} className="p-4 flex flex-col gap-2">
-                    <p className="font-bold">{review.products?.name || 'N/A'}</p>
-                    <p className="text-sm">{review.review_text}</p>
-                    <p className="text-sm">Rating: {review.rating}</p>
-                    <p className="text-sm">{new Date(review.created_at).toLocaleDateString()}</p>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+        {/* Customer Reviews */}
+        <div>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Star className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              Customer Reviews
+            </h2>
+            <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Review
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95%] sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingReview ? "Edit Review" : "Add New Review"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  <div>
+                    <Label>Customer Name</Label>
+                    <Input
+                      value={reviewForm.customer_name}
+                      onChange={(e) =>
+                        setReviewForm({
+                          ...reviewForm,
+                          customer_name: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Rating (1-5)</Label>
+                    <Select
+                      value={reviewForm.rating.toString()}
+                      onValueChange={(value) =>
+                        setReviewForm({
+                          ...reviewForm,
+                          rating: parseInt(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 Stars</SelectItem>
+                        <SelectItem value="4">4 Stars</SelectItem>
+                        <SelectItem value="3">3 Stars</SelectItem>
+                        <SelectItem value="2">2 Stars</SelectItem>
+                        <SelectItem value="1">1 Star</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Review Text</Label>
+                    <Textarea
+                      value={reviewForm.review_text}
+                      onChange={(e) =>
+                        setReviewForm({
+                          ...reviewForm,
+                          review_text: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    {editingReview ? "Update Review" : "Add Review"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-        </Tabs>
+          <div className="overflow-x-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-[600px] sm:min-w-0">
+              {reviews.map((review) => (
+                <Card key={review.id} className="p-6">
+                  <div className="flex items-start justify-between flex-wrap gap-2">
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="flex gap-1 mb-2">
+                        {[...Array(review.rating)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className="w-4 h-4 fill-primary text-primary"
+                          />
+                        ))}
+                      </div>
+                      <p className="text-sm mb-2 italic">
+                        "{review.review_text}"
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        <span className="font-semibold">
+                          - {review.customer_name}
+                        </span>
+                        {review.is_featured && (
+                          <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setEditingReview(review);
+                          setReviewForm(review);
+                          setReviewDialogOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDeleteReview(review.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
       <Footer />
     </div>
   );
 };
 
-export default Admin;
+export default AdminSections;
