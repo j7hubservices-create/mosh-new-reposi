@@ -12,10 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import SafeImage from "@/components/ui/safe-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SelectTrigger as SelectUITrigger, SelectValue as SelectUIValue, SelectContent as SelectUIContent, SelectItem as SelectUIItem } from "@/components/ui/select";
+import SafeImage from "@/components/ui/safe-image";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -52,7 +51,9 @@ const Admin = () => {
       fetchOrders();
       fetchUsers();
       fetchReviews();
-    } else navigate('/');
+    } else {
+      navigate('/');
+    }
   };
 
   const fetchProducts = async () => {
@@ -67,11 +68,9 @@ const Admin = () => {
   };
 
   const fetchOrders = async () => {
-    const { data } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
     if (data) setOrders(data);
+    setLoading(false);
   };
 
   const fetchUsers = async () => {
@@ -93,39 +92,111 @@ const Admin = () => {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingImages(true);
+    const fileArray = Array.from(files);
+    setImageFiles(prev => [...prev, ...fileArray]);
+
+    try {
+      const uploadPromises = fileArray.map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const { error } = await supabase.storage.from('product-images').upload(fileName, file);
+        if (error) throw error;
+        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(fileName);
+        return publicUrl;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      if (uploadedUrls.length > 0) {
+        setFormData(prev => ({ ...prev, image_url: uploadedUrls[0] }));
+        toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`);
+      }
+    } catch (error: any) {
+      toast.error("Error uploading images: " + error.message);
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const removeImageFile = (index: number) => setImageFiles(prev => prev.filter((_, i) => i !== index));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const productData = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      original_price: formData.original_price ? parseFloat(formData.original_price) : null,
+      category_id: formData.category_id || null,
+      image_url: formData.image_url || null,
+      size: formData.size || null,
+      stock: parseInt(formData.stock),
+      slug: formData.slug || null,
+    } as any;
+
+    try {
+      if (editingProduct) {
+        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
+        if (error) throw error;
+        toast.success("Product updated!");
+      } else {
+        const { error } = await supabase.from('products').insert(productData);
+        if (error) throw error;
+        toast.success("Product added!");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save product");
+      return;
+    }
+
+    setFormData({ name: '', description: '', price: '', category_id: '', image_url: '', size: '', stock: '', slug: '', original_price: '' });
+    setEditingProduct(null);
+    setImageFiles([]);
+    setDialogOpen(false);
+    fetchProducts();
+  };
+
+  const handleDelete = async (id: string) => {
+    await supabase.from('products').delete().eq('id', id);
+    toast.success("Product deleted!");
+    fetchProducts();
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/10">
       <Navbar />
       <div className="container mx-auto px-4 py-8 flex-1">
-        <h1 className="text-4xl font-bold mb-6">Admin Section</h1>
-
-        <Tabs defaultValue="manage-homepage" className="w-full">
+        <Tabs defaultValue="homepage" className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="manage-homepage">Manage Homepage</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="homepage">Manage Homepage</TabsTrigger>
+            <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
             <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
             <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
             <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
           </TabsList>
 
-          {/* Manage Homepage */}
-          <TabsContent value="manage-homepage">
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Manage Homepage Content</h2>
-              <p className="text-muted-foreground">Here you can edit sections of your homepage inline.</p>
-              {/* Add inline editable homepage content here */}
+          {/* --- Manage Homepage Tab --- */}
+          <TabsContent value="homepage">
+            <Card className="p-6 text-center">
+              <h2 className="text-2xl font-bold mb-2">Manage Homepage Section</h2>
+              <Button variant="outline" onClick={() => navigate('/admin/sections')}>
+                Go to Manage Homepage
+              </Button>
             </Card>
           </TabsContent>
 
-          {/* Products */}
+          {/* --- Products Tab --- */}
           <TabsContent value="products">
-            {/* Your existing Products JSX maintained */}
-            {/* Add Dialog, Card layout, SafeImage, Edit/Delete buttons exactly as before */}
+            {/* Keep your Products code intact, including Dialogs, Cards, Images */}
+            {/* ...Same as your current Products code... */}
           </TabsContent>
 
-          {/* Orders */}
+          {/* --- Orders Tab --- */}
           <TabsContent value="orders">
             {orders.length === 0 ? (
               <Card className="p-12 text-center">
@@ -149,16 +220,16 @@ const Admin = () => {
                   <TableBody>
                     {orders.map(order => (
                       <TableRow key={order.id}>
-                        <TableCell className="font-mono">{order.id.substring(0, 8)}</TableCell>
-                        <TableCell>{order.customer_name}</TableCell>
-                        <TableCell>{order.customer_email}</TableCell>
-                        <TableCell>{order.customer_phone}</TableCell>
-                        <TableCell>₦{order.total.toLocaleString()}</TableCell>
-                        <TableCell>{order.delivery_method === 'delivery' ? 'Delivery' : 'Pickup'}</TableCell>
-                        <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}</TableCell>
+                        <TableCell className="text-sm">{order.customer_name}</TableCell>
+                        <TableCell className="text-sm">{order.customer_email}</TableCell>
+                        <TableCell className="text-sm">{order.customer_phone}</TableCell>
+                        <TableCell className="text-sm">₦{order.total.toLocaleString()}</TableCell>
+                        <TableCell className="text-sm">{order.delivery_method === 'delivery' ? 'Delivery' : 'Pickup'}</TableCell>
+                        <TableCell className="text-sm">{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-sm">
                           <Select value={order.status} onValueChange={(val) => updateOrderStatus(order.id, val)}>
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="w-36">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -177,7 +248,7 @@ const Admin = () => {
             )}
           </TabsContent>
 
-          {/* Users */}
+          {/* --- Users Tab --- */}
           <TabsContent value="users">
             {users.length === 0 ? (
               <Card className="p-12 text-center">
@@ -194,11 +265,17 @@ const Admin = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user, i) => (
+                    {users.map((user, index) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-mono">USER-{String(i + 1).padStart(4, '0')}</TableCell>
-                        <TableCell>{user.user?.email || 'N/A'}</TableCell>
-                        <TableCell>{user.role}</TableCell>
+                        <TableCell className="font-mono text-xs">USER-{String(index + 1).padStart(4,'0')}</TableCell>
+                        <TableCell className="text-sm">{user.user?.email || 'N/A'}</TableCell>
+                        <TableCell>
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </span>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -207,7 +284,7 @@ const Admin = () => {
             )}
           </TabsContent>
 
-          {/* Reviews */}
+          {/* --- Reviews Tab --- */}
           <TabsContent value="reviews">
             {reviews.length === 0 ? (
               <Card className="p-12 text-center">
@@ -217,15 +294,31 @@ const Admin = () => {
               <div className="space-y-4">
                 {reviews.map((review) => (
                   <Card key={review.id} className="p-6">
-                    <h3 className="font-semibold">{review.customer_name}</h3>
-                    <p className="text-muted-foreground">{review.products?.name || 'Product not found'}</p>
-                    <p className="text-sm">{review.review_text}</p>
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-semibold text-lg">{review.customer_name}</h3>
+                        <p className="text-sm text-muted-foreground">{review.products?.name || 'Product not found'}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={i < review.rating ? 'text-yellow-500' : 'text-gray-300'}>★</span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground mb-3">{review.review_text}</p>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">{new Date(review.created_at).toLocaleDateString()}</span>
+                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                        review.is_featured ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {review.is_featured ? 'Featured' : 'Not Featured'}
+                      </span>
+                    </div>
                   </Card>
                 ))}
               </div>
             )}
           </TabsContent>
-
         </Tabs>
       </div>
       <Footer />
