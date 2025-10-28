@@ -1,1 +1,16 @@
+/* ✅ Make the tab header scrollable on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome/Safari */
+}
 
+/* Optional: adjust tab spacing on small screens */
+@media (max-width: 640px) {
+  .tabs-trigger {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
