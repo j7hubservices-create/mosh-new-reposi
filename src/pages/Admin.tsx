@@ -29,7 +29,15 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: "", description: "", price: "", category_id: "", image_url: "", size: "", stock: "", slug: "", original_price: ""
+    name: "",
+    description: "",
+    price: "",
+    category_id: "",
+    image_url: "",
+    size: "",
+    stock: "",
+    slug: "",
+    original_price: "",
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -47,7 +55,13 @@ const Admin = () => {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
     if (data) {
       setIsAdmin(true);
       fetchProducts();
@@ -61,7 +75,10 @@ const Admin = () => {
   };
 
   const fetchProducts = async () => {
-    const { data } = await supabase.from("products").select("*, categories(name)").order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("products")
+      .select("*, categories(name)")
+      .order("created_at", { ascending: false });
     if (data) setProducts(data);
     setLoading(false);
   };
@@ -81,12 +98,18 @@ const Admin = () => {
   };
 
   const fetchUsers = async () => {
-    const { data } = await supabase.from("user_roles").select("*, user:user_id(email)").order("id", { ascending: false });
+    const { data } = await supabase
+      .from("user_roles")
+      .select("*, user:user_id(email)")
+      .order("id", { ascending: false });
     if (data) setUsers(data);
   };
 
   const fetchReviews = async () => {
-    const { data } = await supabase.from("customer_reviews").select("*, products(name)").order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("customer_reviews")
+      .select("*, products(name)")
+      .order("created_at", { ascending: false });
     if (data) setReviews(data);
   };
 
@@ -105,7 +128,7 @@ const Admin = () => {
 
     setUploadingImages(true);
     const fileArray = Array.from(files);
-    setImageFiles(prev => [...prev, ...fileArray]);
+    setImageFiles((prev) => [...prev, ...fileArray]);
 
     try {
       const uploadPromises = fileArray.map(async (file) => {
@@ -119,7 +142,7 @@ const Admin = () => {
 
       const uploadedUrls = await Promise.all(uploadPromises);
       if (uploadedUrls.length > 0) {
-        setFormData(prev => ({ ...prev, image_url: uploadedUrls[0] }));
+        setFormData((prev) => ({ ...prev, image_url: uploadedUrls[0] }));
         toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`);
       }
     } catch (error: any) {
@@ -127,6 +150,10 @@ const Admin = () => {
     } finally {
       setUploadingImages(false);
     }
+  };
+
+  const removeImageFile = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -158,7 +185,17 @@ const Admin = () => {
       return;
     }
 
-    setFormData({ name: "", description: "", price: "", category_id: "", image_url: "", size: "", stock: "", slug: "", original_price: "" });
+    setFormData({
+      name: "",
+      description: "",
+      price: "",
+      category_id: "",
+      image_url: "",
+      size: "",
+      stock: "",
+      slug: "",
+      original_price: "",
+    });
     setEditingProduct(null);
     setImageFiles([]);
     setDialogOpen(false);
@@ -201,7 +238,9 @@ const Admin = () => {
           <TabsContent value="products">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="mb-6" size="lg"><Plus className="mr-2 h-4 w-4" /> Add New Product</Button>
+                <Button className="mb-6" size="lg">
+                  <Plus className="mr-2 h-4 w-4" /> Add New Product
+                </Button>
               </DialogTrigger>
               <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
@@ -211,25 +250,134 @@ const Admin = () => {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <Label>Product Name</Label>
-                      <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Enter name" required />
+                      <Input
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Enter name"
+                        required
+                      />
                     </div>
                     <div className="md:col-span-2">
                       <Label>Description</Label>
-                      <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Description" />
+                      <Textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Description"
+                      />
                     </div>
-                    <div><Label>Price</Label><Input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} /></div>
-                    <div><Label>Stock</Label><Input type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} /></div>
+
+                    <div>
+                      <Label>Original Price (₦)</Label>
+                      <Input
+                        type="number"
+                        value={formData.original_price}
+                        onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Sale Price (₦)</Label>
+                      <Input
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Stock</Label>
+                      <Input
+                        type="number"
+                        value={formData.stock}
+                        onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                      />
+                    </div>
+
                     <div>
                       <Label>Category</Label>
-                      <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
-                        <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                      <Select
+                        value={formData.category_id}
+                        onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
                         <SelectContent>
-                          {categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
+
+                    <div>
+                      <Label>Size</Label>
+                      <Input
+                        value={formData.size}
+                        onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label>Image Upload</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="relative mt-2"
+                        disabled={uploadingImages}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {uploadingImages ? "Uploading..." : "Upload Images"}
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          disabled={uploadingImages}
+                        />
+                      </Button>
+                      {imageFiles.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {imageFiles.map((file, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                className="w-20 h-20 object-cover rounded border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImageFile(index)}
+                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <Input
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        placeholder="Or paste image URL"
+                        className="mt-3"
+                      />
+                      {formData.image_url && (
+                        <SafeImage
+                          src={formData.image_url}
+                          alt="Preview"
+                          className="w-32 h-32 rounded border mt-2"
+                        />
+                      )}
+                    </div>
                   </div>
-                  <Button type="submit" className="w-full">{editingProduct ? "Update" : "Add Product"}</Button>
+
+                  <Button type="submit" className="w-full">
+                    {editingProduct ? "Update Product" : "Add Product"}
+                  </Button>
                 </form>
               </DialogContent>
             </Dialog>
@@ -254,12 +402,28 @@ const Admin = () => {
                       <TableCell>{product.stock}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button size="icon" variant="outline" onClick={() => {
-                            setEditingProduct(product);
-                            setFormData({ ...product, price: product.price.toString(), stock: product.stock.toString() });
-                            setDialogOpen(true);
-                          }}><Pencil className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="destructive" onClick={() => handleDelete(product.id)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setFormData({
+                                ...product,
+                                price: product.price.toString(),
+                                stock: product.stock.toString(),
+                              });
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => handleDelete(product.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -282,13 +446,18 @@ const Admin = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {orders.map(order => (
+                  {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>{order.customer_name}</TableCell>
                       <TableCell>
-                        <Select value={order.status} onValueChange={(v) => updateOrderStatus(order.id, v)}>
-                          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+                        <Select
+                          value={order.status}
+                          onValueChange={(v) => updateOrderStatus(order.id, v)}
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="processing">Processing</SelectItem>
@@ -304,7 +473,7 @@ const Admin = () => {
               </Table>
             </div>
           </TabsContent>
-
+    
                     {/* ✅ Users Tab */}
           <TabsContent value="users">
             <div className="overflow-x-auto">
