@@ -17,18 +17,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import "@/styles/admin.css";
 
-
 const Admin = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -40,10 +42,12 @@ const Admin = () => {
     slug: "",
     original_price: "",
   });
+
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  // Fetch session and check admin
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -55,7 +59,7 @@ const Admin = () => {
     });
   }, []);
 
-  // ✅ Automatically generate slug from product name
+  // Auto-generate slug
   useEffect(() => {
     if (formData.name) {
       const generatedSlug = formData.name
@@ -66,6 +70,7 @@ const Admin = () => {
     }
   }, [formData.name]);
 
+  // Check if user is admin
   const checkAdminStatus = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
@@ -86,6 +91,7 @@ const Admin = () => {
     }
   };
 
+  // Fetch data functions
   const fetchProducts = async () => {
     const { data } = await supabase
       .from("products")
@@ -125,6 +131,7 @@ const Admin = () => {
     if (data) setReviews(data);
   };
 
+  // Update order status
   const updateOrderStatus = async (orderId: string, status: string) => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
     if (error) toast.error("Failed to update order status");
@@ -134,6 +141,7 @@ const Admin = () => {
     }
   };
 
+  // Image upload handlers
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -148,8 +156,8 @@ const Admin = () => {
         const fileName = `${Math.random()}.${fileExt}`;
         const { error } = await supabase.storage.from("product-images").upload(fileName, file);
         if (error) throw error;
-        const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
-        return publicUrl;
+        const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+        return data?.publicUrl;
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);
@@ -168,70 +176,66 @@ const Admin = () => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-// 💤 Soft Delete (Hide Product)
-const handleSoftDelete = async (id: string) => {
-  const confirm = window.confirm("Hide this product from the shop?");
-  if (!confirm) return;
+  // Soft delete / restore / permanent delete handlers
+  const handleSoftDelete = async (id: string) => {
+    const confirm = window.confirm("Hide this product from the shop?");
+    if (!confirm) return;
 
-  const { error } = await supabase.from("products").update({ is_deleted: true }).eq("id", id);
-  if (error) toast.error("Failed to hide product");
-  else {
-    toast.success("Product hidden!");
-    fetchProducts();
-  }
-};
-
-// ♻️ Restore Deleted Product
-const handleRestore = async (id: string) => {
-  const confirm = window.confirm("Restore this hidden product?");
-  if (!confirm) return;
-
-  const { error } = await supabase.from("products").update({ is_deleted: false }).eq("id", id);
-  if (error) toast.error("Failed to restore product");
-  else {
-    toast.success("Product restored!");
-    fetchProducts();
-  }
-};
-
-// 🧹 Safe Delete (Permanent Delete with spinner)
-const handleSafeDelete = async (id: string) => {
-  const confirm = window.confirm("This will permanently delete the product. Continue?");
-  if (!confirm) return;
-
-  const toastId = toast.loading("Deleting product...");
-
-  const { error } = await supabase.from("products").delete().eq("id", id);
-  toast.dismiss(toastId);
-
-  if (error) {
-    if (error.message.includes("foreign key")) {
-      toast.error("Cannot delete this product because it has related orders or reviews.");
-    } else {
-      toast.error("Failed to delete product.");
+    const { error } = await supabase.from("products").update({ is_deleted: true }).eq("id", id);
+    if (error) toast.error("Failed to hide product");
+    else {
+      toast.success("Product hidden!");
+      fetchProducts();
     }
-  } else {
-    toast.success("Product deleted successfully!");
-    fetchProducts();
-  }
-};
-
-   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const productData = {
-    name: formData.name,
-    description: formData.description,
-    price: parseFloat(formData.price),
-    original_price: formData.original_price
-      ? parseFloat(formData.original_price)
-      : null,
-    category_id: formData.category_id || null,
-    image_url: formData.image_url || null,
-    size: formData.size || null,
-    stock: parseInt(formData.stock),
-    slug: formData.slug || null,
   };
-     
+
+  const handleRestore = async (id: string) => {
+    const confirm = window.confirm("Restore this hidden product?");
+    if (!confirm) return;
+
+    const { error } = await supabase.from("products").update({ is_deleted: false }).eq("id", id);
+    if (error) toast.error("Failed to restore product");
+    else {
+      toast.success("Product restored!");
+      fetchProducts();
+    }
+  };
+
+  const handleSafeDelete = async (id: string) => {
+    const confirm = window.confirm("This will permanently delete the product. Continue?");
+    if (!confirm) return;
+
+    const toastId = toast.loading("Deleting product...");
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    toast.dismiss(toastId);
+
+    if (error) {
+      if (error.message.includes("foreign key")) {
+        toast.error("Cannot delete this product because it has related orders or reviews.");
+      } else {
+        toast.error("Failed to delete product.");
+      }
+    } else {
+      toast.success("Product deleted successfully!");
+      fetchProducts();
+    }
+  };
+
+  // Product form submit
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const productData = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      original_price: formData.original_price ? parseFloat(formData.original_price) : null,
+      category_id: formData.category_id || null,
+      image_url: formData.image_url || null,
+      size: formData.size || null,
+      stock: parseInt(formData.stock),
+      slug: formData.slug || null,
+    };
+
     try {
       if (editingProduct) {
         const { error } = await supabase.from("products").update(productData).eq("id", editingProduct.id);
@@ -266,7 +270,7 @@ const handleSafeDelete = async (id: string) => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+           <div className="min-h-screen flex items-center justify-center">
         <p>Loading...</p>
       </div>
     );
@@ -274,6 +278,7 @@ const handleSafeDelete = async (id: string) => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/10">
       <Navbar />
+
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8 flex justify-between items-center flex-wrap gap-3">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -283,14 +288,14 @@ const handleSafeDelete = async (id: string) => {
         </div>
 
         <Tabs defaultValue="products" className="w-full">
-  <TabsList className="mb-6 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide rounded-lg border bg-muted p-1">
-    <TabsTrigger value="products" className="tabs-trigger">Products</TabsTrigger>
-    <TabsTrigger value="orders" className="tabs-trigger">Orders ({orders.length})</TabsTrigger>
-    <TabsTrigger value="users" className="tabs-trigger">Users ({users.length})</TabsTrigger>
-    <TabsTrigger value="reviews" className="tabs-trigger">Reviews ({reviews.length})</TabsTrigger>
-  </TabsList>
+          <TabsList className="mb-6 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide rounded-lg border bg-muted p-1">
+            <TabsTrigger value="products" className="tabs-trigger">Products</TabsTrigger>
+            <TabsTrigger value="orders" className="tabs-trigger">Orders ({orders.length})</TabsTrigger>
+            <TabsTrigger value="users" className="tabs-trigger">Users ({users.length})</TabsTrigger>
+            <TabsTrigger value="reviews" className="tabs-trigger">Reviews ({reviews.length})</TabsTrigger>
+          </TabsList>
 
-          {/* ✅ Products Tab */}
+          {/* Products Tab */}
           <TabsContent value="products">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -302,8 +307,10 @@ const handleSafeDelete = async (id: string) => {
                 <DialogHeader>
                   <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                 </DialogHeader>
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
+                    {/* Name */}
                     <div className="md:col-span-2">
                       <Label>Product Name</Label>
                       <Input
@@ -314,6 +321,7 @@ const handleSafeDelete = async (id: string) => {
                       />
                     </div>
 
+                    {/* Description */}
                     <div className="md:col-span-2">
                       <Label>Description</Label>
                       <Textarea
@@ -323,6 +331,7 @@ const handleSafeDelete = async (id: string) => {
                       />
                     </div>
 
+                    {/* Original Price */}
                     <div>
                       <Label>Original Price (₦)</Label>
                       <Input
@@ -332,6 +341,7 @@ const handleSafeDelete = async (id: string) => {
                       />
                     </div>
 
+                    {/* Sale Price */}
                     <div>
                       <Label>Sale Price (₦)</Label>
                       <Input
@@ -341,6 +351,7 @@ const handleSafeDelete = async (id: string) => {
                       />
                     </div>
 
+                    {/* Stock */}
                     <div>
                       <Label>Stock</Label>
                       <Input
@@ -350,6 +361,7 @@ const handleSafeDelete = async (id: string) => {
                       />
                     </div>
 
+                    {/* Category */}
                     <div>
                       <Label>Category</Label>
                       <Select
@@ -369,6 +381,7 @@ const handleSafeDelete = async (id: string) => {
                       </Select>
                     </div>
 
+                    {/* Size */}
                     <div>
                       <Label>Size</Label>
                       <Input
@@ -377,13 +390,12 @@ const handleSafeDelete = async (id: string) => {
                       />
                     </div>
 
+                    {/* Slug */}
                     <div className="md:col-span-2">
                       <Label>SEO Slug (URL)</Label>
                       <Input
                         value={formData.slug}
-                        onChange={(e) =>
-                          setFormData({ ...formData, slug: e.target.value })
-                        }
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                         placeholder="Auto-generated from name"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
@@ -391,6 +403,7 @@ const handleSafeDelete = async (id: string) => {
                       </p>
                     </div>
 
+                    {/* Image Upload */}
                     <div className="md:col-span-2">
                       <Label>Image Upload</Label>
                       <Button
@@ -434,9 +447,7 @@ const handleSafeDelete = async (id: string) => {
 
                       <Input
                         value={formData.image_url}
-                        onChange={(e) =>
-                          setFormData({ ...formData, image_url: e.target.value })
-                        }
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                         placeholder="Or paste image URL"
                         className="mt-3"
                       />
@@ -458,6 +469,7 @@ const handleSafeDelete = async (id: string) => {
               </DialogContent>
             </Dialog>
 
+            {/* Products Table */}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -469,154 +481,155 @@ const handleSafeDelete = async (id: string) => {
                     <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
-  {products.map((product) => (
-    <TableRow key={product.id}>
-      <TableCell>{product.name}</TableCell>
-      <TableCell>{product.categories?.name}</TableCell>
-      <TableCell>₦{product.price.toLocaleString()}</TableCell>
-      <TableCell>{product.stock}</TableCell>
-      <TableCell>
-        <div className="flex gap-2">
-          {/* ✏️ Edit Product */}
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={() => {
-              setEditingProduct(product);
-              setFormData({
-                ...product,
-                price: product.price.toString(),
-                stock: product.stock.toString(),
-              });
-              setDialogOpen(true);
-            }}
-            title="Edit Product"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.categories?.name}</TableCell>
+                      <TableCell>₦{product.price.toLocaleString()}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {/* Edit */}
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setFormData({
+                                ...product,
+                                price: product.price.toString(),
+                                stock: product.stock.toString(),
+                              });
+                              setDialogOpen(true);
+                            }}
+                            title="Edit Product"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
 
-          {/* 🧹 Permanent Delete */}
-          <Button
-            variant="destructive"
-            size="icon"
-            onClick={() => handleSafeDelete(product.id)}
-            title="Delete Permanently"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+                          {/* Permanent Delete */}
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleSafeDelete(product.id)}
+                            title="Delete Permanently"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
 
-          {/* 💤 Soft Delete or ♻️ Restore */}
-          {product.is_deleted ? (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handleRestore(product.id)}
-              title="Restore Product"
-            >
-              <Undo2 className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => handleSoftDelete(product.id)}
-              title="Hide Product"
-            >
-              <AlertTriangle className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </TableCell>
-    </TableRow>
-  ))}
+                          {/* Soft Delete / Restore */}
+                          {product.is_deleted ? (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleRestore(product.id)}
+                              title="Restore Product"
+                            >
+                              <Undo2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => handleSoftDelete(product.id)}
+                              title="Hide Product"
+                            >
+                              <AlertTriangle className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
 
-</TableBody>
-</Table>
-</TabsContent>
-            
-        {/* ✅ Enhanced Orders Tab */}
-<TabsContent value="orders">
-  <div className="overflow-x-auto">
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Phone</TableHead>
-          <TableHead>Address</TableHead>
-          <TableHead>Delivery</TableHead>
-          <TableHead>Payment</TableHead>
-          <TableHead>Products</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Total</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {orders.map((order) => (
-          <TableRow key={order.id}>
-            <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-            <TableCell>{order.customer_name}</TableCell>
-            <TableCell>{order.customer_email || "—"}</TableCell>
-            <TableCell>{order.customer_phone || "—"}</TableCell>
-            <TableCell className="max-w-[200px] truncate">{order.customer_address || "—"}</TableCell>
-            <TableCell>{order.delivery_method || "—"}</TableCell>
-            <TableCell>{order.payment_method || "—"}</TableCell>
+                    {/* Orders Tab */}
+          <TabsContent value="orders">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Delivery</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Products</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Total</TableHead>
+                  </TableRow>
+                </TableHeader>
 
-            {/* 🛍️ Ordered Products */}
-            <TableCell>
-              <div className="space-y-2">
-                {order.order_items?.length ? (
-                  order.order_items.map((item: any) => (
-                    <div key={item.id} className="flex items-center gap-2 border rounded-md p-2">
-                      <img
-                        src={item.products?.image_url || "/placeholder.jpg"}
-                        alt={item.products?.name || "Product"}
-                        className="w-10 h-10 object-cover rounded"
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium text-sm">{item.products?.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ₦{item.price?.toLocaleString()} × {item.quantity}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-muted-foreground">No items</p>
-                )}
-              </div>
-            </TableCell>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{order.customer_name}</TableCell>
+                      <TableCell>{order.customer_email || "—"}</TableCell>
+                      <TableCell>{order.customer_phone || "—"}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">{order.customer_address || "—"}</TableCell>
+                      <TableCell>{order.delivery_method || "—"}</TableCell>
+                      <TableCell>{order.payment_method || "—"}</TableCell>
 
-            {/* 🏷️ Status Selector */}
-            <TableCell>
-              <Select
-                value={order.status}
-                onValueChange={(v) => updateOrderStatus(order.id, v)}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </TableCell>
+                      {/* Ordered Products */}
+                      <TableCell>
+                        <div className="space-y-2">
+                          {order.order_items?.length ? (
+                            order.order_items.map((item: any) => (
+                              <div key={item.id} className="flex items-center gap-2 border rounded-md p-2">
+                                <img
+                                  src={item.products?.image_url || "/placeholder.jpg"}
+                                  alt={item.products?.name || "Product"}
+                                  className="w-10 h-10 object-cover rounded"
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-sm">{item.products?.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    ₦{item.price?.toLocaleString()} × {item.quantity}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-xs text-muted-foreground">No items</p>
+                          )}
+                        </div>
+                      </TableCell>
 
-            <TableCell>₦{order.total?.toLocaleString()}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </div>
-</TabsContent>
+                      {/* Status Selector */}
+                      <TableCell>
+                        <Select
+                          value={order.status}
+                          onValueChange={(v) => updateOrderStatus(order.id, v)}
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="processing">Processing</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
 
-    
-                    {/* ✅ Users Tab */}
+                      <TableCell>₦{order.total?.toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          {/* Users Tab */}
           <TabsContent value="users">
             <div className="overflow-x-auto">
               <Table>
@@ -627,6 +640,7 @@ const handleSafeDelete = async (id: string) => {
                     <TableHead>Date Added</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {users.map((u) => (
                     <TableRow key={u.id}>
@@ -640,7 +654,7 @@ const handleSafeDelete = async (id: string) => {
             </div>
           </TabsContent>
 
-          {/* ✅ Reviews Tab */}
+          {/* Reviews Tab */}
           <TabsContent value="reviews">
             <div className="overflow-x-auto">
               <Table>
@@ -654,6 +668,7 @@ const handleSafeDelete = async (id: string) => {
                     <TableHead>Featured</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {reviews.map((r) => (
                     <TableRow key={r.id}>
@@ -682,9 +697,11 @@ const handleSafeDelete = async (id: string) => {
 
         </Tabs>
       </div>
+
       <Footer />
     </div>
   );
 };
 
 export default Admin;
+
