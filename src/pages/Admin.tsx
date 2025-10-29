@@ -283,12 +283,12 @@ const handleSafeDelete = async (id: string) => {
         </div>
 
         <Tabs defaultValue="products" className="w-full">
-          <TabsList className="mb-6 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide rounded-lg border bg-muted p-1">
-            <TabsTrigger value="products" className="tabs-trigger">Products</TabsTrigger>
-            <TabsTrigger value="orders" className="tabs-trigger">Orders ({orders.length})</TabsTrigger>
-            <TabsTrigger value="users" className="tabs-trigger">Users ({users.length})</TabsTrigger>
-            <TabsTrigger value="reviews" className="tabs-trigger">Reviews ({reviews.length})</TabsTrigger>
-          </TabsList>
+  <TabsList className="mb-6 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide rounded-lg border bg-muted p-1">
+    <TabsTrigger value="products" className="tabs-trigger">Products</TabsTrigger>
+    <TabsTrigger value="orders" className="tabs-trigger">Orders ({orders.length})</TabsTrigger>
+    <TabsTrigger value="users" className="tabs-trigger">Users ({users.length})</TabsTrigger>
+    <TabsTrigger value="reviews" className="tabs-trigger">Reviews ({reviews.length})</TabsTrigger>
+  </TabsList>
 
           {/* ✅ Products Tab */}
           <TabsContent value="products">
