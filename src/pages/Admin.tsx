@@ -548,109 +548,184 @@ const Admin = () => {
             </div>
           </TabsContent>
 
-                  {/* ✅ Modern Orders Tab */}
+                 {/* ✅ Orders Tab (Modern & Mobile-Friendly) */}
 <TabsContent value="orders">
-  <div className="space-y-6">
-    {orders.map((order) => (
+  <div className="mb-4 flex flex-wrap gap-3 items-center">
+    {/* Filter by Date */}
+    <Input
+      type="month"
+      value={filterDate}
+      onChange={(e) => setFilterDate(e.target.value)}
+      placeholder="Filter by Month"
+      className="max-w-[200px]"
+    />
+
+    {/* Filter by Size */}
+    <Select
+      value={filterSize}
+      onValueChange={(v) => setFilterSize(v)}
+      className="max-w-[200px]"
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Filter by Size" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="">All Sizes</SelectItem>
+        {Array.from(new Set(products.map((p) => p.size))).map((size) => (
+          <SelectItem key={size} value={size}>{size}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
+
+  {/* Desktop Table */}
+  <div className="hidden md:block overflow-x-auto">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>S/N</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>C/N</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Phone</TableHead>
+          <TableHead>Address</TableHead>
+          <TableHead>Delivery</TableHead>
+          <TableHead>Payment</TableHead>
+          <TableHead>Products</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Total</TableHead>
+          <TableHead>Action</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {filteredOrders.map((order, idx) => (
+          <TableRow key={order.id}>
+            <TableCell>{idx + 1}</TableCell>
+            <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+            <TableCell>{order.customer_name}</TableCell>
+            <TableCell>{order.customer_email || "—"}</TableCell>
+            <TableCell>{order.customer_phone || "—"}</TableCell>
+            <TableCell className="max-w-[200px] truncate">{order.customer_address || "—"}</TableCell>
+            <TableCell>{order.delivery_method || "—"}</TableCell>
+            <TableCell>{order.payment_method || "—"}</TableCell>
+            <TableCell className="max-w-[250px]">
+              <div className="flex flex-col gap-1">
+                {order.order_items?.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2">
+                    <SafeImage
+                      src={item.products?.image_url || "/placeholder.jpg"}
+                      alt={item.products?.name || "Product"}
+                      className="w-8 h-8 object-cover rounded"
+                    />
+                    <div className="flex flex-col text-xs">
+                      <span>{item.products?.name}</span>
+                      <span>₦{item.price?.toLocaleString()} × {item.quantity}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TableCell>
+            <TableCell>
+              <Select
+                value={order.status}
+                onValueChange={(v) => updateOrderStatus(order.id, v)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell>₦{order.total?.toLocaleString()}</TableCell>
+            <TableCell>
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={() => handleDeleteOrder(order.id)}
+                title="Delete Order"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+
+  {/* Mobile List */}
+  <div className="md:hidden flex flex-col gap-3">
+    {filteredOrders.map((order, idx) => (
       <div
         key={order.id}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col md:flex-row md:justify-between gap-4"
+        className="border rounded-md p-3 bg-white shadow-sm cursor-pointer"
+        onClick={() => toggleOrderDetails(order.id)}
       >
-        {/* Order Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:gap-6 w-full md:w-1/3">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              {new Date(order.created_at).toLocaleDateString()}
-            </p>
-            <h3 className="font-semibold text-lg">{order.customer_name}</h3>
-          </div>
-          <span
-            className={`mt-2 md:mt-0 px-3 py-1 rounded-full text-xs font-semibold ${
-              order.status === "pending"
-                ? "bg-yellow-100 text-yellow-800"
-                : order.status === "processing"
-                ? "bg-blue-100 text-blue-800"
-                : order.status === "completed"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-          </span>
+        <div className="flex justify-between items-center">
+          <span className="font-semibold">{idx + 1}. {order.customer_name}</span>
+          <span className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</span>
         </div>
 
-        {/* Customer & Delivery Info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 flex-1">
-          <div>
-            <p className="text-xs text-muted-foreground">Email</p>
-            <p className="text-sm truncate">{order.customer_email || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Phone</p>
-            <p className="text-sm">{order.customer_phone || "—"}</p>
-          </div>
-          <div className="col-span-2 md:col-span-1">
-            <p className="text-xs text-muted-foreground">Address</p>
-            <p className="text-sm truncate">{order.customer_address || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Delivery</p>
-            <p className="text-sm">{order.delivery_method || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Payment</p>
-            <p className="text-sm">{order.payment_method || "—"}</p>
-          </div>
-        </div>
-
-        {/* Products Scroll */}
-        <div className="flex overflow-x-auto gap-4 py-2">
-          {order.order_items?.length ? (
-            order.order_items.map((item: any) => (
-              <div
-                key={item.id}
-                className="flex flex-col items-center min-w-[80px] border rounded p-2 bg-gray-50 dark:bg-gray-700"
+        {expandedOrders.includes(order.id) && (
+          <div className="mt-2 space-y-2 text-xs">
+            <div>Email: {order.customer_email || "—"}</div>
+            <div>Phone: {order.customer_phone || "—"}</div>
+            <div>Address: {order.customer_address || "—"}</div>
+            <div>Delivery: {order.delivery_method || "—"}</div>
+            <div>Payment: {order.payment_method || "—"}</div>
+            <div className="space-y-1">
+              Products:
+              {order.order_items?.map((item) => (
+                <div key={item.id} className="flex items-center gap-2">
+                  <SafeImage
+                    src={item.products?.image_url || "/placeholder.jpg"}
+                    alt={item.products?.name || "Product"}
+                    className="w-8 h-8 object-cover rounded"
+                  />
+                  <div>
+                    <span>{item.products?.name}</span>
+                    <span> ₦{item.price?.toLocaleString()} × {item.quantity}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div>Status: 
+              <Select
+                value={order.status}
+                onValueChange={(v) => updateOrderStatus(order.id, v)}
               >
-                <SafeImage
-                  src={item.products?.image_url || "/placeholder.jpg"}
-                  alt={item.products?.name || "Product"}
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <p className="text-xs mt-1 text-center truncate w-16">
-                  {item.products?.name || "Unknown"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  ₦{item.price?.toLocaleString() || "0"} × {item.quantity || 0}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-xs text-muted-foreground">No items</p>
-          )}
-        </div>
-
-        {/* Footer: Total & Status Dropdown */}
-        <div className="flex flex-col md:flex-row md:items-center md:gap-4 mt-2 md:mt-0">
-          <p className="font-semibold text-sm">Total: ₦{order.total?.toLocaleString() || "0"}</p>
-          <Select
-            value={order.status}
-            onValueChange={(v) => updateOrderStatus(order.id, v)}
-          >
-            <SelectTrigger className="w-[140px] mt-1 md:mt-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="processing">Processing</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+                <SelectTrigger className="w-full mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>Total: ₦{order.total?.toLocaleString()}</div>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="mt-2"
+              onClick={() => handleDeleteOrder(order.id)}
+            >
+              Delete Order
+            </Button>
+          </div>
+        )}
       </div>
     ))}
   </div>
 </TabsContent>
+
 
 
           {/* Users Tab */}
