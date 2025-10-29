@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import "@/styles/admin.css";
 
+
 const Admin = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -147,8 +148,8 @@ const Admin = () => {
         const fileName = `${Math.random()}.${fileExt}`;
         const { error } = await supabase.storage.from("product-images").upload(fileName, file);
         if (error) throw error;
-        const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
-        return data.publicUrl;
+        const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+        return publicUrl;
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);
@@ -167,68 +168,70 @@ const Admin = () => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // 💤 Soft Delete (Hide Product)
-  const handleSoftDelete = async (id: string) => {
-    const confirm = window.confirm("Hide this product from the shop?");
-    if (!confirm) return;
+// 💤 Soft Delete (Hide Product)
+const handleSoftDelete = async (id: string) => {
+  const confirm = window.confirm("Hide this product from the shop?");
+  if (!confirm) return;
 
-    const { error } = await supabase.from("products").update({ is_deleted: true }).eq("id", id);
-    if (error) toast.error("Failed to hide product");
-    else {
-      toast.success("Product hidden!");
-      fetchProducts();
-    }
-  };
+  const { error } = await supabase.from("products").update({ is_deleted: true }).eq("id", id);
+  if (error) toast.error("Failed to hide product");
+  else {
+    toast.success("Product hidden!");
+    fetchProducts();
+  }
+};
 
-  // ♻️ Restore Deleted Product
-  const handleRestore = async (id: string) => {
-    const confirm = window.confirm("Restore this hidden product?");
-    if (!confirm) return;
+// ♻️ Restore Deleted Product
+const handleRestore = async (id: string) => {
+  const confirm = window.confirm("Restore this hidden product?");
+  if (!confirm) return;
 
-    const { error } = await supabase.from("products").update({ is_deleted: false }).eq("id", id);
-    if (error) toast.error("Failed to restore product");
-    else {
-      toast.success("Product restored!");
-      fetchProducts();
-    }
-  };
+  const { error } = await supabase.from("products").update({ is_deleted: false }).eq("id", id);
+  if (error) toast.error("Failed to restore product");
+  else {
+    toast.success("Product restored!");
+    fetchProducts();
+  }
+};
 
-  // 🧹 Safe Delete (Permanent Delete with spinner)
-  const handleSafeDelete = async (id: string) => {
-    const confirm = window.confirm("This will permanently delete the product. Continue?");
-    if (!confirm) return;
+// 🧹 Safe Delete (Permanent Delete with spinner)
+const handleSafeDelete = async (id: string) => {
+  const confirm = window.confirm("This will permanently delete the product. Continue?");
+  if (!confirm) return;
 
-    const toastId = toast.loading("Deleting product...");
+  const toastId = toast.loading("Deleting product...");
 
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    toast.dismiss(toastId);
+  const { error } = await supabase.from("products").delete().eq("id", id);
+  toast.dismiss(toastId);
 
-    if (error) {
-      if (error.message.includes("foreign key")) {
-        toast.error("Cannot delete this product because it has related orders or reviews.");
-      } else {
-        toast.error("Failed to delete product.");
-      }
+  if (error) {
+    if (error.message.includes("foreign key")) {
+      toast.error("Cannot delete this product because it has related orders or reviews.");
     } else {
-      toast.success("Product deleted successfully!");
-      fetchProducts();
+      toast.error("Failed to delete product.");
     }
+  } else {
+    toast.success("Product deleted successfully!");
+    fetchProducts();
+  }
+};
+
+   const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const productData = {
+    name: formData.name,
+    description: formData.description,
+    price: parseFloat(formData.price),
+    original_price: formData.original_price
+      ? parseFloat(formData.original_price)
+      : null,
+    category_id: formData.category_id || null,
+    image_url: formData.image_url || null,
+    size: formData.size || null,
+    stock: parseInt(formData.stock),
+    slug: formData.slug || null,
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const productData = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      original_price: formData.original_price ? parseFloat(formData.original_price) : null,
-      category_id: formData.category_id || null,
-      image_url: formData.image_url || null,
-      size: formData.size || null,
-      stock: parseInt(formData.stock),
-      slug: formData.slug || null,
-    };
-
+     
     try {
       if (editingProduct) {
         const { error } = await supabase.from("products").update(productData).eq("id", editingProduct.id);
