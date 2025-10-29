@@ -155,26 +155,35 @@ const Admin = () => {
       fetchOrders();
     }
   };
-
- const handleDeleteOrder = async (orderId: string) => {
+const handleDeleteOrder = async (orderId: string) => {
   if (!confirm("Are you sure you want to delete this order?")) return;
 
   try {
-    const { error } = await supabase
+    // 1️⃣ Delete order_items first
+    let { error: itemsError } = await supabase
+      .from("order_items")
+      .delete()
+      .eq("order_id", orderId);
+
+    if (itemsError) throw itemsError;
+
+    // 2️⃣ Delete the order
+    let { error: orderError } = await supabase
       .from("orders")
       .delete()
       .eq("id", orderId);
 
-    if (error) throw error;
+    if (orderError) throw orderError;
 
-    // Update UI immediately
-    setFilteredOrders((prev) => prev.filter((order) => order.id !== orderId));
+    // 3️⃣ Update UI
+    setFilteredOrders((prev) => prev.filter((o) => o.id !== orderId));
     toast.success("Order deleted successfully");
   } catch (err: any) {
     console.error(err);
-    toast.error("Failed to delete order");
+    toast.error("Failed to delete order: " + err.message);
   }
 };
+
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
