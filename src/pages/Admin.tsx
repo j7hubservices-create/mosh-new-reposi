@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { ArrowLeft, Pencil, Trash2, Plus, Upload, X, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, Undo2, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Plus, Upload, X, Package, AlertTriangle, Undo2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import SafeImage from "@/components/ui/safe-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -169,20 +168,70 @@ const Admin = () => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const productData = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      original_price: formData.original_price ? parseFloat(formData.original_price) : null,
-      category_id: formData.category_id || null,
-      image_url: formData.image_url || null,
-      size: formData.size || null,
-      stock: parseInt(formData.stock),
-      slug: formData.slug || null,
-    };
+// 💤 Soft Delete (Hide Product)
+const handleSoftDelete = async (id: string) => {
+  const confirm = window.confirm("Hide this product from the shop?");
+  if (!confirm) return;
 
+  const { error } = await supabase.from("products").update({ is_deleted: true }).eq("id", id);
+  if (error) toast.error("Failed to hide product");
+  else {
+    toast.success("Product hidden!");
+    fetchProducts();
+  }
+};
+
+// ♻️ Restore Deleted Product
+const handleRestore = async (id: string) => {
+  const confirm = window.confirm("Restore this hidden product?");
+  if (!confirm) return;
+
+  const { error } = await supabase.from("products").update({ is_deleted: false }).eq("id", id);
+  if (error) toast.error("Failed to restore product");
+  else {
+    toast.success("Product restored!");
+    fetchProducts();
+  }
+};
+
+// 🧹 Safe Delete (Permanent Delete with spinner)
+const handleSafeDelete = async (id: string) => {
+  const confirm = window.confirm("This will permanently delete the product. Continue?");
+  if (!confirm) return;
+
+  const toastId = toast.loading("Deleting product...");
+
+  const { error } = await supabase.from("products").delete().eq("id", id);
+  toast.dismiss(toastId);
+
+  if (error) {
+    if (error.message.includes("foreign key")) {
+      toast.error("Cannot delete this product because it has related orders or reviews.");
+    } else {
+      toast.error("Failed to delete product.");
+    }
+  } else {
+    toast.success("Product deleted successfully!");
+    fetchProducts();
+  }
+};
+
+   const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const productData = {
+    name: formData.name,
+    description: formData.description,
+    price: parseFloat(formData.price),
+    original_price: formData.original_price
+      ? parseFloat(formData.original_price)
+      : null,
+    category_id: formData.category_id || null,
+    image_url: formData.image_url || null,
+    size: formData.size || null,
+    stock: parseInt(formData.stock),
+    slug: formData.slug || null,
+  };
+     
     try {
       if (editingProduct) {
         const { error } = await supabase.from("products").update(productData).eq("id", editingProduct.id);
@@ -213,35 +262,6 @@ const Admin = () => {
     setImageFiles([]);
     setDialogOpen(false);
     fetchProducts();
-  };
-
-  // ✅ Safe Delete with confirmation + spinner + refresh
-  const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this product? This action cannot be undone."
-    );
-    if (!confirmDelete) return;
-
-    toast.loading("Deleting product...");
-    try {
-      const { error } = await supabase.from("products").delete().eq("id", id);
-      toast.dismiss();
-
-      if (error) {
-        if (error.message.includes("foreign key")) {
-          toast.error("Cannot delete this product because it has related orders or reviews.");
-        } else {
-          toast.error("Failed to delete product.");
-        }
-        return;
-      }
-
-      toast.success("Product deleted successfully!");
-      fetchProducts();
-    } catch (err: any) {
-      toast.dismiss();
-      toast.error("Unexpected error: " + err.message);
-    }
   };
 
   if (loading)
@@ -450,82 +470,67 @@ const Admin = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.categories?.name}</TableCell>
-                      <TableCell>₦{product.price.toLocaleString()}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setFormData({
-                                ...product,
-                                price: product.price.toString(),
-                                stock: product.stock.toString(),
-                              });
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            onClick={() => handleDelete(product.id)}
-                          >
-                            {/* 🛑 Safe Delete */}
-{/* 🛠 Edit Button */}
-<Button
-  size="icon"
-  variant="outline"
-  onClick={() => {
-    setEditingProduct(product);
-    setFormData({
-      ...product,
-      price: product.price.toString(),
-      stock: product.stock.toString(),
-    });
-    setDialogOpen(true);
-  }}
->
-  <Pencil className="h-4 w-4" />
-</Button>
+  {products.map((product) => (
+    <TableRow key={product.id}>
+      <TableCell>{product.name}</TableCell>
+      <TableCell>{product.categories?.name}</TableCell>
+      <TableCell>₦{product.price.toLocaleString()}</TableCell>
+      <TableCell>{product.stock}</TableCell>
+      <TableCell>
+        <div className="flex gap-2">
+          {/* ✏️ Edit Product */}
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => {
+              setEditingProduct(product);
+              setFormData({
+                ...product,
+                price: product.price.toString(),
+                stock: product.stock.toString(),
+              });
+              setDialogOpen(true);
+            }}
+            title="Edit Product"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
 
-{/* 🛑 Safe Delete (Permanent) */}
-<Button
-  variant="destructive"
-  size="icon"
-  onClick={() => handleSafeDelete(product.id)}
-  title="Delete Permanently"
->
-  <Trash2 className="h-4 w-4" />
-</Button>
+          {/* 🧹 Permanent Delete */}
+          <Button
+            variant="destructive"
+            size="icon"
+            onClick={() => handleSafeDelete(product.id)}
+            title="Delete Permanently"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
 
-{/* 💤 Soft Delete or ♻️ Restore */}
-{product.is_deleted ? (
-  <Button
-    variant="outline"
-    size="icon"
-    onClick={() => handleRestore(product.id)}
-    title="Restore Product"
-  >
-    <Undo2 className="h-4 w-4" />
-  </Button>
-) : (
-  <Button
-    variant="secondary"
-    size="icon"
-    onClick={() => handleSoftDelete(product.id)}
-    title="Hide Product"
-  >
-    <AlertTriangle className="h-4 w-4" />
-  </Button>
-)}
+          {/* 💤 Soft Delete or ♻️ Restore */}
+          {product.is_deleted ? (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handleRestore(product.id)}
+              title="Restore Product"
+            >
+              <Undo2 className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => handleSoftDelete(product.id)}
+              title="Hide Product"
+            >
+              <AlertTriangle className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
 
         {/* ✅ Enhanced Orders Tab */}
 <TabsContent value="orders">
