@@ -21,16 +21,13 @@ const Admin = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
-
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
-
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -42,12 +39,44 @@ const Admin = () => {
     slug: "",
     original_price: "",
   });
-
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Fetch session and check admin
+  // Orders filters & mobile expansion
+  const [filterDate, setFilterDate] = useState("");
+  const [filterSize, setFilterSize] = useState("");
+  const [expandedOrders, setExpandedOrders] = useState<string[]>([]);
+
+  const toggleOrderDetails = (orderId: string) => {
+    setExpandedOrders((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    const matchDate = filterDate
+      ? order.created_at.startsWith(filterDate)
+      : true;
+    const matchSize = filterSize
+      ? order.order_items?.some((item) => item.products?.size === filterSize)
+      : true;
+    return matchDate && matchSize;
+  });
+
+  // ✅ Automatically generate slug
+  useEffect(() => {
+    if (formData.name) {
+      const generatedSlug = formData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      setFormData((prev) => ({ ...prev, slug: generatedSlug }));
+    }
+  }, [formData.name]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -59,18 +88,6 @@ const Admin = () => {
     });
   }, []);
 
-  // Auto-generate slug
-  useEffect(() => {
-    if (formData.name) {
-      const generatedSlug = formData.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      setFormData((prev) => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.name]);
-
-  // Check if user is admin
   const checkAdminStatus = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
@@ -91,7 +108,6 @@ const Admin = () => {
     }
   };
 
-  // Fetch data functions
   const fetchProducts = async () => {
     const { data } = await supabase
       .from("products")
@@ -131,7 +147,6 @@ const Admin = () => {
     if (data) setReviews(data);
   };
 
-  // Update order status
   const updateOrderStatus = async (orderId: string, status: string) => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
     if (error) toast.error("Failed to update order status");
@@ -141,7 +156,18 @@ const Admin = () => {
     }
   };
 
-  // Image upload handlers
+  const handleDeleteOrder = async (orderId: string) => {
+    const confirm = window.confirm("Delete this order permanently?");
+    if (!confirm) return;
+
+    const { error } = await supabase.from("orders").delete().eq("id", orderId);
+    if (error) toast.error("Failed to delete order");
+    else {
+      toast.success("Order deleted successfully!");
+      fetchOrders();
+    }
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -156,8 +182,8 @@ const Admin = () => {
         const fileName = `${Math.random()}.${fileExt}`;
         const { error } = await supabase.storage.from("product-images").upload(fileName, file);
         if (error) throw error;
-        const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
-        return data?.publicUrl;
+        const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+        return publicUrl;
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);
@@ -176,7 +202,6 @@ const Admin = () => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Soft delete / restore / permanent delete handlers
   const handleSoftDelete = async (id: string) => {
     const confirm = window.confirm("Hide this product from the shop?");
     if (!confirm) return;
@@ -206,22 +231,18 @@ const Admin = () => {
     if (!confirm) return;
 
     const toastId = toast.loading("Deleting product...");
+
     const { error } = await supabase.from("products").delete().eq("id", id);
     toast.dismiss(toastId);
 
     if (error) {
-      if (error.message.includes("foreign key")) {
-        toast.error("Cannot delete this product because it has related orders or reviews.");
-      } else {
-        toast.error("Failed to delete product.");
-      }
+      toast.error("Failed to delete product.");
     } else {
       toast.success("Product deleted successfully!");
       fetchProducts();
     }
   };
 
-  // Product form submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const productData = {
@@ -270,7 +291,7 @@ const Admin = () => {
 
   if (loading)
     return (
-           <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p>Loading...</p>
       </div>
     );
@@ -278,7 +299,6 @@ const Admin = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/10">
       <Navbar />
-
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8 flex justify-between items-center flex-wrap gap-3">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -295,8 +315,9 @@ const Admin = () => {
             <TabsTrigger value="reviews" className="tabs-trigger">Reviews ({reviews.length})</TabsTrigger>
           </TabsList>
 
-          {/* Products Tab */}
+          {/* ✅ Products Tab */}
           <TabsContent value="products">
+            {/* Product Add/Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="mb-6" size="lg">
@@ -307,10 +328,8 @@ const Admin = () => {
                 <DialogHeader>
                   <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                 </DialogHeader>
-
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
-                    {/* Name */}
                     <div className="md:col-span-2">
                       <Label>Product Name</Label>
                       <Input
@@ -321,7 +340,6 @@ const Admin = () => {
                       />
                     </div>
 
-                    {/* Description */}
                     <div className="md:col-span-2">
                       <Label>Description</Label>
                       <Textarea
@@ -331,7 +349,6 @@ const Admin = () => {
                       />
                     </div>
 
-                    {/* Original Price */}
                     <div>
                       <Label>Original Price (₦)</Label>
                       <Input
@@ -341,7 +358,6 @@ const Admin = () => {
                       />
                     </div>
 
-                    {/* Sale Price */}
                     <div>
                       <Label>Sale Price (₦)</Label>
                       <Input
@@ -351,7 +367,6 @@ const Admin = () => {
                       />
                     </div>
 
-                    {/* Stock */}
                     <div>
                       <Label>Stock</Label>
                       <Input
@@ -361,7 +376,6 @@ const Admin = () => {
                       />
                     </div>
 
-                    {/* Category */}
                     <div>
                       <Label>Category</Label>
                       <Select
@@ -381,7 +395,6 @@ const Admin = () => {
                       </Select>
                     </div>
 
-                    {/* Size */}
                     <div>
                       <Label>Size</Label>
                       <Input
@@ -390,12 +403,13 @@ const Admin = () => {
                       />
                     </div>
 
-                    {/* Slug */}
                     <div className="md:col-span-2">
                       <Label>SEO Slug (URL)</Label>
                       <Input
                         value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, slug: e.target.value })
+                        }
                         placeholder="Auto-generated from name"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
@@ -403,7 +417,6 @@ const Admin = () => {
                       </p>
                     </div>
 
-                    {/* Image Upload */}
                     <div className="md:col-span-2">
                       <Label>Image Upload</Label>
                       <Button
@@ -412,316 +425,270 @@ const Admin = () => {
                         className="relative mt-2"
                         disabled={uploadingImages}
                       >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {uploadingImages ? "Uploading..." : "Upload Images"}
+                        <Upload
+                        className="mr-2 h-4 w-4" /> Upload Image
                         <input
                           type="file"
                           multiple
                           accept="image/*"
                           onChange={handleImageUpload}
                           className="absolute inset-0 opacity-0 cursor-pointer"
-                          disabled={uploadingImages}
                         />
                       </Button>
-
-                      {imageFiles.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {imageFiles.map((file, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={URL.createObjectURL(file)}
-                                alt={file.name}
-                                className="w-20 h-20 object-cover rounded border"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeImageFile(index)}
-                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <Input
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                        placeholder="Or paste image URL"
-                        className="mt-3"
-                      />
-
-                      {formData.image_url && (
-                        <SafeImage
-                          src={formData.image_url}
-                          alt="Preview"
-                          className="w-32 h-32 rounded border mt-2"
-                        />
-                      )}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {imageFiles.map((file, idx) => (
+                          <div key={idx} className="relative">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt="preview"
+                              className="w-20 h-20 object-cover rounded"
+                            />
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="absolute -top-2 -right-2 p-1"
+                              onClick={() => removeImageFile(idx)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+
                   </div>
 
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="mt-4 w-full">
                     {editingProduct ? "Update Product" : "Add Product"}
                   </Button>
                 </form>
               </DialogContent>
             </Dialog>
 
-            {/* Products Table */}
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Action</TableHead>
+            {/* Product Table */}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.map((product, idx) => (
+                  <TableRow key={product.id}>
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>₦{product.price?.toLocaleString()}</TableCell>
+                    <TableCell>{product.stock}</TableCell>
+                    <TableCell>{product.categories?.name}</TableCell>
+                    <TableCell>
+                      <SafeImage
+                        src={product.image_url || "/placeholder.jpg"}
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    </TableCell>
+                    <TableCell className="flex gap-2">
+                      <Button
+                        size="icon"
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setFormData({
+                            name: product.name,
+                            description: product.description,
+                            price: product.price,
+                            original_price: product.original_price,
+                            category_id: product.category_id,
+                            image_url: product.image_url,
+                            size: product.size,
+                            stock: product.stock,
+                            slug: product.slug,
+                          });
+                          setDialogOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={() => handleSafeDelete(product.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
+                ))}
+              </TableBody>
+            </Table>
+          </TabsContent>
 
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.categories?.name}</TableCell>
-                      <TableCell>₦{product.price.toLocaleString()}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {/* Edit */}
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setFormData({
-                                ...product,
-                                price: product.price.toString(),
-                                stock: product.stock.toString(),
-                              });
-                              setDialogOpen(true);
-                            }}
-                            title="Edit Product"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+          {/* ✅ Orders Tab */}
+          <TabsContent value="orders">
+            <div className="mb-4 flex flex-col md:flex-row md:items-center gap-4">
+              <Input
+                type="month"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                placeholder="Filter by month"
+              />
+              <Input
+                value={filterSize}
+                onChange={(e) => setFilterSize(e.target.value)}
+                placeholder="Filter by size"
+              />
+            </div>
 
-                          {/* Permanent Delete */}
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => handleSafeDelete(product.id)}
-                            title="Delete Permanently"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-
-                          {/* Soft Delete / Restore */}
-                          {product.is_deleted ? (
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleRestore(product.id)}
-                              title="Restore Product"
-                            >
-                              <Undo2 className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="secondary"
-                              size="icon"
-                              onClick={() => handleSoftDelete(product.id)}
-                              title="Hide Product"
-                            >
-                              <AlertTriangle className="h-4 w-4" />
-                            </Button>
-                          )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>C/N</TableHead>
+                  <TableHead>Details</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order, idx) => (
+                  <TableRow key={order.id}>
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{order.customer_name}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleOrderDetails(order.id)}
+                      >
+                        {expandedOrders.includes(order.id) ? "Hide Details" : "View Details"}
+                      </Button>
+                      {expandedOrders.includes(order.id) && (
+                        <div className="mt-2 p-2 border rounded-md space-y-2 bg-muted">
+                          <p>
+                            <strong>Email:</strong> {order.customer_email || "—"}
+                          </p>
+                          <p>
+                            <strong>Phone:</strong> {order.customer_phone || "—"}
+                          </p>
+                          <p className="truncate">
+                            <strong>Address:</strong> {order.customer_address || "—"}
+                          </p>
+                          <p>
+                            <strong>Delivery:</strong> {order.delivery_method || "—"}
+                          </p>
+                          <p>
+                            <strong>Payment:</strong> {order.payment_method || "—"}
+                          </p>
+                          <div className="space-y-1">
+                            {order.order_items?.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-2 border rounded-md p-1"
+                              >
+                                <SafeImage
+                                  src={item.products?.image_url || "/placeholder.jpg"}
+                                  alt={item.products?.name || "Product"}
+                                  className="w-8 h-8 object-cover rounded"
+                                />
+                                <div className="flex flex-col text-xs">
+                                  <span>{item.products?.name}</span>
+                                  <span>
+                                    ₦{item.price?.toLocaleString()} × {item.quantity}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={order.status}
+                        onValueChange={(v) => updateOrderStatus(order.id, v)}
+                      >
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="processing">Processing</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>₦{order.total?.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDeleteOrder(order.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </TabsContent>
 
-                  {/* ✅ Modern Orders Tab */}
-<TabsContent value="orders">
-  <div className="space-y-6">
-    {orders.map((order) => (
-      <div
-        key={order.id}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col md:flex-row md:justify-between gap-4"
-      >
-        {/* Order Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:gap-6 w-full md:w-1/3">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              {new Date(order.created_at).toLocaleDateString()}
-            </p>
-            <h3 className="font-semibold text-lg">{order.customer_name}</h3>
-          </div>
-          <span
-            className={`mt-2 md:mt-0 px-3 py-1 rounded-full text-xs font-semibold ${
-              order.status === "pending"
-                ? "bg-yellow-100 text-yellow-800"
-                : order.status === "processing"
-                ? "bg-blue-100 text-blue-800"
-                : order.status === "completed"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-          </span>
-        </div>
-
-        {/* Customer & Delivery Info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 flex-1">
-          <div>
-            <p className="text-xs text-muted-foreground">Email</p>
-            <p className="text-sm truncate">{order.customer_email || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Phone</p>
-            <p className="text-sm">{order.customer_phone || "—"}</p>
-          </div>
-          <div className="col-span-2 md:col-span-1">
-            <p className="text-xs text-muted-foreground">Address</p>
-            <p className="text-sm truncate">{order.customer_address || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Delivery</p>
-            <p className="text-sm">{order.delivery_method || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Payment</p>
-            <p className="text-sm">{order.payment_method || "—"}</p>
-          </div>
-        </div>
-
-        {/* Products Scroll */}
-        <div className="flex overflow-x-auto gap-4 py-2">
-          {order.order_items?.length ? (
-            order.order_items.map((item: any) => (
-              <div
-                key={item.id}
-                className="flex flex-col items-center min-w-[80px] border rounded p-2 bg-gray-50 dark:bg-gray-700"
-              >
-                <SafeImage
-                  src={item.products?.image_url || "/placeholder.jpg"}
-                  alt={item.products?.name || "Product"}
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <p className="text-xs mt-1 text-center truncate w-16">
-                  {item.products?.name || "Unknown"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  ₦{item.price?.toLocaleString() || "0"} × {item.quantity || 0}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-xs text-muted-foreground">No items</p>
-          )}
-        </div>
-
-        {/* Footer: Total & Status Dropdown */}
-        <div className="flex flex-col md:flex-row md:items-center md:gap-4 mt-2 md:mt-0">
-          <p className="font-semibold text-sm">Total: ₦{order.total?.toLocaleString() || "0"}</p>
-          <Select
-            value={order.status}
-            onValueChange={(v) => updateOrderStatus(order.id, v)}
-          >
-            <SelectTrigger className="w-[140px] mt-1 md:mt-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="processing">Processing</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    ))}
-  </div>
-</TabsContent>
-
-
-          {/* Users Tab */}
+          {/* ✅ Users Tab */}
           <TabsContent value="users">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Date Added</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user, idx) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>{user.user?.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
                   </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell>{u.user?.email}</TableCell>
-                      <TableCell className="capitalize">{u.role}</TableCell>
-                      <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           </TabsContent>
 
-          {/* Reviews Tab */}
+          {/* ✅ Reviews Tab */}
           <TabsContent value="reviews">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Review</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Featured</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S/N</TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Review</TableHead>
+                  <TableHead>Rating</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reviews.map((review, idx) => (
+                  <TableRow key={review.id}>
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>{review.products?.name}</TableCell>
+                    <TableCell>{review.review}</TableCell>
+                    <TableCell>{review.rating}</TableCell>
                   </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {reviews.map((r) => (
-                    <TableRow key={r.id}>
-                      <TableCell>{r.customer_name}</TableCell>
-                      <TableCell>{r.products?.name}</TableCell>
-                      <TableCell>{"★".repeat(r.rating)}</TableCell>
-                      <TableCell className="max-w-xs truncate">{r.review_text}</TableCell>
-                      <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                            r.is_featured
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {r.is_featured ? "Yes" : "No"}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           </TabsContent>
-
         </Tabs>
       </div>
-
       <Footer />
     </div>
   );
