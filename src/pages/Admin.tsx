@@ -156,17 +156,25 @@ const Admin = () => {
     }
   };
 
-  const handleDeleteOrder = async (orderId: string) => {
-    const confirm = window.confirm("Delete this order permanently?");
-    if (!confirm) return;
+ const handleDeleteOrder = async (orderId: string) => {
+  if (!confirm("Are you sure you want to delete this order?")) return;
 
-    const { error } = await supabase.from("orders").delete().eq("id", orderId);
-    if (error) toast.error("Failed to delete order");
-    else {
-      toast.success("Order deleted successfully!");
-      fetchOrders();
-    }
-  };
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .delete()
+      .eq("id", orderId);
+
+    if (error) throw error;
+
+    // Update UI immediately
+    setFilteredOrders((prev) => prev.filter((order) => order.id !== orderId));
+    toast.success("Order deleted successfully");
+  } catch (err: any) {
+    console.error(err);
+    toast.error("Failed to delete order");
+  }
+};
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
