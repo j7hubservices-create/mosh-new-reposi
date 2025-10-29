@@ -11,11 +11,13 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AlertTriangle, Undo2, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import SafeImage from "@/components/ui/safe-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import "@/styles/admin.css";
+
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -476,16 +478,54 @@ const Admin = () => {
                             variant="destructive"
                             onClick={() => handleDelete(product.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
+                            {/* 🛑 Safe Delete */}
+{/* 🛠 Edit Button */}
+<Button
+  size="icon"
+  variant="outline"
+  onClick={() => {
+    setEditingProduct(product);
+    setFormData({
+      ...product,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+    });
+    setDialogOpen(true);
+  }}
+>
+  <Pencil className="h-4 w-4" />
+</Button>
+
+{/* 🛑 Safe Delete (Permanent) */}
+<Button
+  variant="destructive"
+  size="icon"
+  onClick={() => handleSafeDelete(product.id)}
+  title="Delete Permanently"
+>
+  <Trash2 className="h-4 w-4" />
+</Button>
+
+{/* 💤 Soft Delete or ♻️ Restore */}
+{product.is_deleted ? (
+  <Button
+    variant="outline"
+    size="icon"
+    onClick={() => handleRestore(product.id)}
+    title="Restore Product"
+  >
+    <Undo2 className="h-4 w-4" />
+  </Button>
+) : (
+  <Button
+    variant="secondary"
+    size="icon"
+    onClick={() => handleSoftDelete(product.id)}
+    title="Hide Product"
+  >
+    <AlertTriangle className="h-4 w-4" />
+  </Button>
+)}
 
         {/* ✅ Enhanced Orders Tab */}
 <TabsContent value="orders">
