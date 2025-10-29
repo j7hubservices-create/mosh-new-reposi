@@ -664,31 +664,50 @@ const Admin = () => {
             </Table>
           </TabsContent>
 
-          {/* ✅ Reviews Tab */}
+          {/* Reviews Tab */}
           <TabsContent value="reviews">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>S/N</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Review</TableHead>
-                  <TableHead>Rating</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reviews.map((review, idx) => (
-                  <TableRow key={review.id}>
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>{review.products?.name}</TableCell>
-                    <TableCell>{review.review}</TableCell>
-                    <TableCell>{review.rating}</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Review</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Featured</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+
+                <TableBody>
+                  {reviews.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>{r.customer_name}</TableCell>
+                      <TableCell>{r.products?.name}</TableCell>
+                      <TableCell>{"★".repeat(r.rating)}</TableCell>
+                      <TableCell className="max-w-xs truncate">{r.review_text}</TableCell>
+                      <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                            r.is_featured
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {r.is_featured ? "Yes" : "No"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </TabsContent>
+
         </Tabs>
       </div>
+
       <Footer />
     </div>
   );
