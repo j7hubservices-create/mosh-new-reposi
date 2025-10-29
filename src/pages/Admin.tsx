@@ -531,7 +531,7 @@ const handleSafeDelete = async (id: string) => {
     </TableRow>
   ))}
 </TableBody>
-
+</TabsContent>
         {/* ✅ Enhanced Orders Tab */}
 <TabsContent value="orders">
   <div className="overflow-x-auto">
