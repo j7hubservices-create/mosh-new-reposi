@@ -248,209 +248,244 @@ useEffect(() => {
           </TabsList>
 
           {/* ✅ Products Tab */}
-          <TabsContent value="products">
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="mb-6" size="lg">
-                  <Plus className="mr-2 h-4 w-4" /> Add New Product
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <Label>Product Name</Label>
-                      <Input
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Enter name"
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label>Description</Label>
-                      <Textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Description"
-                      />
-                    </div>
+<TabsContent value="products">
+  <Dialog
+    open={dialogOpen}
+    onOpenChange={(open) => {
+      setDialogOpen(open);
+      if (!open) {
+        setEditingProduct(null);
+        setFormData({
+          name: "",
+          description: "",
+          price: "",
+          category_id: "",
+          image_url: "",
+          size: "",
+          stock: "",
+          slug: "",
+          original_price: "",
+        });
+        setImageFiles([]);
+      }
+    }}
+  >
+    <DialogTrigger asChild>
+      <Button className="mb-6" size="lg">
+        <Plus className="mr-2 h-4 w-4" /> Add New Product
+      </Button>
+    </DialogTrigger>
 
-                    <div>
-                      <Label>Original Price (₦)</Label>
-                      <Input
-                        type="number"
-                        value={formData.original_price}
-                        onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
-                      />
-                    </div>
+    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+      </DialogHeader>
 
-                    <div>
-                      <Label>Sale Price (₦)</Label>
-                      <Input
-                        type="number"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      />
-                    </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <Label>Product Name</Label>
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Enter name"
+              required
+            />
+          </div>
 
-                    <div>
-                      <Label>Stock</Label>
-                      <Input
-                        type="number"
-                        value={formData.stock}
-                        onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                      />
-                    </div>
+          <div className="md:col-span-2">
+            <Label>Description</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Description"
+            />
+          </div>
 
-                    <div>
-                      <Label>Category</Label>
-                      <Select
-                        value={formData.category_id}
-                        onValueChange={(value) => setFormData({ ...formData, category_id: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+          <div>
+            <Label>Original Price (₦)</Label>
+            <Input
+              type="number"
+              value={formData.original_price}
+              onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+            />
+          </div>
 
-                    <div>
-                      <Label>Size</Label>
-                      <Input
-                        value={formData.size}
-                        onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                      />
-                    </div>
+          <div>
+            <Label>Sale Price (₦)</Label>
+            <Input
+              type="number"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            />
+          </div>
 
-                      <div className="md:col-span-2">
-                  <Label>SEO Slug (URL)</Label>
-                  <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="Auto-generated from name" />
-                  <p className="text-xs text-muted-foreground mt-1">Leave empty to auto-generate from product name</p>
-                </div>
+          <div>
+            <Label>Stock</Label>
+            <Input
+              type="number"
+              value={formData.stock}
+              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+            />
+          </div>
 
-                    <div className="md:col-span-2">
-                      <Label>Image Upload</Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="relative mt-2"
-                        disabled={uploadingImages}
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {uploadingImages ? "Uploading..." : "Upload Images"}
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          disabled={uploadingImages}
-                        />
-                      </Button>
-                      {imageFiles.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {imageFiles.map((file, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={URL.createObjectURL(file)}
-                                alt={file.name}
-                                className="w-20 h-20 object-cover rounded border"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeImageFile(index)}
-                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <Input
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                        placeholder="Or paste image URL"
-                        className="mt-3"
-                      />
-                      {formData.image_url && (
-                        <SafeImage
-                          src={formData.image_url}
-                          alt="Preview"
-                          className="w-32 h-32 rounded border mt-2"
-                        />
-                      )}
-                    </div>
+          <div>
+            <Label>Category</Label>
+            <Select
+              value={formData.category_id}
+              onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id.toString()}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>Size</Label>
+            <Input
+              value={formData.size}
+              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Label>SEO Slug (URL)</Label>
+            <Input
+              value={formData.slug}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              placeholder="Auto-generated from name"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Leave empty to auto-generate from product name
+            </p>
+          </div>
+
+          <div className="md:col-span-2">
+            <Label>Image Upload</Label>
+            <Button
+              type="button"
+              variant="outline"
+              className="relative mt-2"
+              disabled={uploadingImages}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {uploadingImages ? "Uploading..." : "Upload Images"}
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                disabled={uploadingImages}
+              />
+            </Button>
+
+            {imageFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {imageFiles.map((file, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="w-20 h-20 object-cover rounded border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImageFile(index)}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </div>
+                ))}
+              </div>
+            )}
 
-                  <Button type="submit" className="w-full">
-                    {editingProduct ? "Update Product" : "Add Product"}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Input
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              placeholder="Or paste image URL"
+              className="mt-3"
+            />
 
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.categories?.name}</TableCell>
-                      <TableCell>₦{product.price.toLocaleString()}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setFormData({
-                                ...product,
-                                price: product.price.toString(),
-                                stock: product.stock.toString(),
-                              });
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            onClick={() => handleDelete(product.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
+            {formData.image_url && (
+              <SafeImage
+                src={formData.image_url}
+                alt="Preview"
+                className="w-32 h-32 rounded border mt-2"
+              />
+            )}
+          </div>
+        </div>
+
+        <Button type="submit" className="w-full">
+          {editingProduct ? "Update Product" : "Add Product"}
+        </Button>
+      </form>
+    </DialogContent>
+  </Dialog>
+
+  {/* ✅ Product Table */}
+  <div className="overflow-x-auto">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Product</TableHead>
+          <TableHead>Category</TableHead>
+          <TableHead>Price</TableHead>
+          <TableHead>Stock</TableHead>
+          <TableHead>Action</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {products.map((product) => (
+          <TableRow key={product.id}>
+            <TableCell>{product.name}</TableCell>
+            <TableCell>{product.category?.name || "—"}</TableCell>
+            <TableCell>₦{product.price?.toLocaleString()}</TableCell>
+            <TableCell>{product.stock}</TableCell>
+            <TableCell>
+              <div className="flex gap-2">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingProduct(product);
+                    setFormData({
+                      ...product,
+                      price: product.price?.toString() || "",
+                      stock: product.stock?.toString() || "",
+                      category_id: product.category_id?.toString() || "",
+                    });
+                    setDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  onClick={() => handleDelete(product.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+</TabsContent>
 
         {/* ✅ Enhanced Orders Tab */}
 <TabsContent value="orders">
