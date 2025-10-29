@@ -453,45 +453,55 @@ useEffect(() => {
           </TabsContent>
 
           {/* ✅ Orders Tab */}
-          <TabsContent value="orders">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>{order.customer_name}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={order.status}
-                          onValueChange={(v) => updateOrderStatus(order.id, v)}
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>₦{order.total.toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
+<TabsContent value="orders">
+  <div className="overflow-x-auto">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Date</TableHead>
+          <TableHead>Customer</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Phone</TableHead>
+          <TableHead>Address</TableHead>
+          <TableHead>Delivery</TableHead>
+          <TableHead>Payment</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Total</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {orders.map((order) => (
+          <TableRow key={order.id}>
+            <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+            <TableCell>{order.customer_name}</TableCell>
+            <TableCell>{order.customer_email || "—"}</TableCell>
+            <TableCell>{order.customer_phone || "—"}</TableCell>
+            <TableCell className="max-w-[200px] truncate">{order.customer_address || "—"}</TableCell>
+            <TableCell>{order.delivery_method || "—"}</TableCell>
+            <TableCell>{order.payment_method || "—"}</TableCell>
+            <TableCell>
+              <Select
+                value={order.status}
+                onValueChange={(v) => updateOrderStatus(order.id, v)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell>₦{order.total?.toLocaleString()}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+</TabsContent>
     
                     {/* ✅ Users Tab */}
           <TabsContent value="users">
