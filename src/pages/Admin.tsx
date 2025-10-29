@@ -528,119 +528,129 @@ const Admin = () => {
             </Table>
           </TabsContent>
 
-          {/* ✅ Orders Tab */}
-          <TabsContent value="orders">
-            <div className="mb-4 flex flex-col md:flex-row md:items-center gap-4">
-              <Input
-                type="month"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                placeholder="Filter by month"
-              />
-              <Input
-                value={filterSize}
-                onChange={(e) => setFilterSize(e.target.value)}
-                placeholder="Filter by size"
-              />
-            </div>
+         {/* ✅ Orders Tab */}
+<TabsContent value="orders">
+  <div className="mb-4 flex flex-col md:flex-row md:items-center gap-4">
+    <div className="flex flex-col">
+      <label className="text-sm font-semibold">Filter by Month</label>
+      <Input
+        type="month"
+        value={filterDate}
+        onChange={(e) => setFilterDate(e.target.value)}
+        placeholder="Select month"
+      />
+    </div>
+    <div className="flex flex-col">
+      <label className="text-sm font-semibold">Filter by Size</label>
+      <Select
+        value={filterSize}
+        onValueChange={(value) => setFilterSize(value)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select size" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(sizeMap).map(([letter, num]) => (
+            <SelectItem key={letter} value={letter}>
+              {letter} ({num})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>S/N</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>C/N</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order, idx) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>{order.customer_name}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleOrderDetails(order.id)}
-                      >
-                        {expandedOrders.includes(order.id) ? "Hide Details" : "View Details"}
-                      </Button>
-                      {expandedOrders.includes(order.id) && (
-                        <div className="mt-2 p-2 border rounded-md space-y-2 bg-muted">
-                          <p>
-                            <strong>Email:</strong> {order.customer_email || "—"}
-                          </p>
-                          <p>
-                            <strong>Phone:</strong> {order.customer_phone || "—"}
-                          </p>
-                          <p className="truncate">
-                            <strong>Address:</strong> {order.customer_address || "—"}
-                          </p>
-                          <p>
-                            <strong>Delivery:</strong> {order.delivery_method || "—"}
-                          </p>
-                          <p>
-                            <strong>Payment:</strong> {order.payment_method || "—"}
-                          </p>
-                          <div className="space-y-1">
-                            {order.order_items?.map((item) => (
-                              <div
-                                key={item.id}
-                                className="flex items-center gap-2 border rounded-md p-1"
-                              >
-                                <SafeImage
-                                  src={item.products?.image_url || "/placeholder.jpg"}
-                                  alt={item.products?.name || "Product"}
-                                  className="w-8 h-8 object-cover rounded"
-                                />
-                                <div className="flex flex-col text-xs">
-                                  <span>{item.products?.name}</span>
-                                  <span>
-                                    ₦{item.price?.toLocaleString()} × {item.quantity}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={order.status}
-                        onValueChange={(v) => updateOrderStatus(order.id, v)}
-                      >
-                        <SelectTrigger className="w-[120px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>₦{order.total?.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDeleteOrder(order.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TabsContent>
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead>S/N</TableHead>
+        <TableHead>Date</TableHead>
+        <TableHead>C/N</TableHead>
+        <TableHead>Details</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead>Total</TableHead>
+        <TableHead>Actions</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {filteredOrders.map((order, idx) => (
+        <TableRow key={order.id}>
+          <TableCell>{idx + 1}</TableCell>
+          <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+          <TableCell>{order.customer_name}</TableCell>
+          <TableCell>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleOrderDetails(order.id)}
+            >
+              {expandedOrders.includes(order.id) ? "Hide Details" : "View Details"}
+            </Button>
+
+            {expandedOrders.includes(order.id) && (
+              <div className="mt-2 p-2 border rounded-md space-y-2 bg-muted">
+                <p><strong>Email:</strong> {order.customer_email || "—"}</p>
+                <p><strong>Phone:</strong> {order.customer_phone || "—"}</p>
+                <p className="truncate"><strong>Address:</strong> {order.customer_address || "—"}</p>
+                <p><strong>Delivery:</strong> {order.delivery_method || "—"}</p>
+                <p><strong>Payment:</strong> {order.payment_method || "—"}</p>
+
+                <div className="space-y-1">
+                  {order.order_items?.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2 border rounded-md p-1">
+                      <SafeImage
+                        src={item.products?.image_url || "/placeholder.jpg"}
+                        alt={item.products?.name || "Product"}
+                        className="w-8 h-8 object-cover rounded"
+                      />
+                      <div className="flex flex-col text-xs">
+                        <span>{item.products?.name}</span>
+                        <span>
+                          Size: {item.size} {sizeMap[item.size] ? `(${sizeMap[item.size]})` : ""}
+                        </span>
+                        <span>₦{item.price?.toLocaleString()} × {item.quantity}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TableCell>
+
+          <TableCell>
+            <Select
+              value={order.status}
+              onValueChange={(v) => updateOrderStatus(order.id, v)}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </TableCell>
+
+          <TableCell>₦{order.total?.toLocaleString()}</TableCell>
+
+          <TableCell>
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={() => handleDeleteOrder(order.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</TabsContent>
+
 
           {/* ✅ Users Tab */}
           <TabsContent value="users">
