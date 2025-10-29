@@ -49,7 +49,6 @@ const Checkout = () => {
         fetchGuestCart();
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCart = async (userId: string) => {
@@ -199,93 +198,9 @@ const Checkout = () => {
         <h1 className="text-3xl font-bold mb-6 text-center">Checkout</h1>
 
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Order Summary */}
-          <div className="order-1 lg:order-2 lg:col-span-1">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
-              <div className="space-y-3 mb-4">
-                {cartItems.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No items in cart.</p>
-                ) : (
-                  cartItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex justify-between items-start text-sm"
-                    >
-                      <div className="flex-1">
-                        <div className="font-medium">{item.products.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          Qty: {item.quantity}
-                        </div>
-                      </div>
-                      <div className="font-semibold">
-                        ₦{(item.products.price * item.quantity).toLocaleString()}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="flex justify-between items-center font-bold text-lg border-t pt-3 mb-4">
-                <span>Total</span>
-                <span className="text-purple-700">
-                  ₦{getTotalPrice().toLocaleString()}
-                </span>
-              </div>
-
-              {/* Bank Transfer Section */}
-              <div ref={paymentRef}>
-                <h3 className="text-lg font-semibold mb-3">Bank Transfer</h3>
-
-                <div className="border rounded-lg p-4 bg-white space-y-2">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Banknote className="h-5 w-5 text-purple-600" />
-                    <div>
-                      <div className="font-medium">Pay directly to our account</div>
-                      <div className="text-xs text-muted-foreground">
-                        Use your name as payment reference
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-sm text-muted-foreground leading-relaxed">
-                    <div>
-                      <strong>Account Name:</strong> Mosh Apparels Ventures
-                    </div>
-                    <div>
-                      <strong>Bank:</strong> OPay
-                    </div>
-                    <div>
-                      <strong>Account Number:</strong> 6142257816
-                    </div>
-                  </div>
-
-                  <div className="mt-3 text-xs text-muted-foreground">
-                    After transfer, click <strong>“I have paid — Confirm Order”</strong>.
-                  </div>
-
-                  <Button
-                    onClick={handleConfirmOrder}
-                    className="mt-4 bg-purple-600 hover:bg-purple-700 text-white w-full"
-                    disabled={submitting}
-                  >
-                    {submitting ? "Processing..." : "I have paid — Confirm Order"}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </div>
-
           {/* Delivery Form */}
-          {/* Delivery Form — appears after summary on mobile */}
-<div className="order-2 lg:order-1 lg:col-span-2">
-
+          <div className="lg:col-span-2">
             <Card className="p-6">
-             <div className="grid gap-8 lg:grid-cols-3">
-  {/* Order Summary first for mobile */}
-  <div className="order-1 lg:order-2 lg:col-span-1">
-
-
               <form onSubmit={handleProceedToPayment} className="space-y-4">
                 <div>
                   <Label htmlFor="name">Full name</Label>
@@ -411,9 +326,86 @@ const Checkout = () => {
               </form>
             </Card>
           </div>
+
+          {/* Order Summary */}
+          <div>
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
+              <div className="space-y-3 mb-4">
+                {cartItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No items in cart.</p>
+                ) : (
+                  cartItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-start text-sm"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium">{item.products.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Qty: {item.quantity}
+                        </div>
+                      </div>
+                      <div className="font-semibold">
+                        ₦{(item.products.price * item.quantity).toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex justify-between items-center font-bold text-lg border-t pt-3 mb-4">
+                <span>Total</span>
+                <span className="text-purple-700">
+                  ₦{getTotalPrice().toLocaleString()}
+                </span>
+              </div>
+
+              <div ref={paymentRef}>
+                <h3 className="text-lg font-semibold mb-3">Bank Transfer</h3>
+
+                <div className="border rounded-lg p-4 bg-white space-y-2">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Banknote className="h-5 w-5 text-purple-600" />
+                    <div>
+                      <div className="font-medium">Pay directly to our account</div>
+                      <div className="text-xs text-muted-foreground">
+                        Use your name as payment reference
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    <div>
+                      <strong>Account Name:</strong> Mosh Apparels Ventures
+                    </div>
+                    <div>
+                      <strong>Bank:</strong> OPay
+                    </div>
+                    <div>
+                      <strong>Account Number:</strong> 6142257816
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-xs text-muted-foreground">
+                    After transfer, click <strong>“I have paid — Confirm Order”</strong>.
+                  </div>
+
+                  <Button
+                    onClick={handleConfirmOrder}
+                    className="mt-4 bg-purple-600 hover:bg-purple-700 text-white w-full"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Processing..." : "I have paid — Confirm Order"}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
 
+      {/* Modal */}
       {showBankModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6">
@@ -463,14 +455,8 @@ const Checkout = () => {
   );
 };
 
-// helper component for radio options
-const LabelOption = ({
-  value,
-  label,
-  description,
-  icon,
-  formData,
-}: any) => (
+// helper for radio options
+const LabelOption = ({ value, label, description, icon, formData }: any) => (
   <div>
     <RadioGroupItem value={value} id={value} className="peer sr-only" />
     <Label
