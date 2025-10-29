@@ -548,83 +548,107 @@ const Admin = () => {
             </div>
           </TabsContent>
 
-                   {/* ✅ Enhanced Orders Tab */}
+                  {/* ✅ Modern Orders Tab */}
 <TabsContent value="orders">
-  <div className="overflow-x-auto">
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Phone</TableHead>
-          <TableHead>Address</TableHead>
-          <TableHead>Delivery</TableHead>
-          <TableHead>Payment</TableHead>
-          <TableHead>Products</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Total</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {orders.map((order) => (
-          <TableRow key={order.id}>
-            <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-            <TableCell>{order.customer_name}</TableCell>
-            <TableCell>{order.customer_email || "—"}</TableCell>
-            <TableCell>{order.customer_phone || "—"}</TableCell>
-            <TableCell className="max-w-[200px] truncate">{order.customer_address || "—"}</TableCell>
-            <TableCell>{order.delivery_method || "—"}</TableCell>
-            <TableCell>{order.payment_method || "—"}</TableCell>
+  <div className="space-y-6">
+    {orders.map((order) => (
+      <div
+        key={order.id}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col md:flex-row md:justify-between gap-4"
+      >
+        {/* Order Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:gap-6 w-full md:w-1/3">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              {new Date(order.created_at).toLocaleDateString()}
+            </p>
+            <h3 className="font-semibold text-lg">{order.customer_name}</h3>
+          </div>
+          <span
+            className={`mt-2 md:mt-0 px-3 py-1 rounded-full text-xs font-semibold ${
+              order.status === "pending"
+                ? "bg-yellow-100 text-yellow-800"
+                : order.status === "processing"
+                ? "bg-blue-100 text-blue-800"
+                : order.status === "completed"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+          </span>
+        </div>
 
-            {/* 🛍️ Ordered Products */}
-            <TableCell>
-              <div className="space-y-2">
-                {order.order_items?.length ? (
-                  order.order_items.map((item: any) => (
-                    <div key={item.id} className="flex items-center gap-2 border rounded-md p-2">
-                      <SafeImage
-                        src={item.products?.image_url || "/placeholder.jpg"}
-                        alt={item.products?.name || "Product"}
-                        className="w-10 h-10 object-cover rounded"
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium text-sm">{item.products?.name || "Unknown Product"}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ₦{item.price?.toLocaleString() || "0"} × {item.quantity || 0}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-muted-foreground">No items</p>
-                )}
-              </div>
-            </TableCell>
+        {/* Customer & Delivery Info */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 flex-1">
+          <div>
+            <p className="text-xs text-muted-foreground">Email</p>
+            <p className="text-sm truncate">{order.customer_email || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Phone</p>
+            <p className="text-sm">{order.customer_phone || "—"}</p>
+          </div>
+          <div className="col-span-2 md:col-span-1">
+            <p className="text-xs text-muted-foreground">Address</p>
+            <p className="text-sm truncate">{order.customer_address || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Delivery</p>
+            <p className="text-sm">{order.delivery_method || "—"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Payment</p>
+            <p className="text-sm">{order.payment_method || "—"}</p>
+          </div>
+        </div>
 
-            {/* 🏷️ Status Selector */}
-            <TableCell>
-              <Select
-                value={order.status}
-                onValueChange={(v) => updateOrderStatus(order.id, v)}
+        {/* Products Scroll */}
+        <div className="flex overflow-x-auto gap-4 py-2">
+          {order.order_items?.length ? (
+            order.order_items.map((item: any) => (
+              <div
+                key={item.id}
+                className="flex flex-col items-center min-w-[80px] border rounded p-2 bg-gray-50 dark:bg-gray-700"
               >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </TableCell>
+                <SafeImage
+                  src={item.products?.image_url || "/placeholder.jpg"}
+                  alt={item.products?.name || "Product"}
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <p className="text-xs mt-1 text-center truncate w-16">
+                  {item.products?.name || "Unknown"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  ₦{item.price?.toLocaleString() || "0"} × {item.quantity || 0}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-muted-foreground">No items</p>
+          )}
+        </div>
 
-            <TableCell>₦{order.total?.toLocaleString() || "0"}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        {/* Footer: Total & Status Dropdown */}
+        <div className="flex flex-col md:flex-row md:items-center md:gap-4 mt-2 md:mt-0">
+          <p className="font-semibold text-sm">Total: ₦{order.total?.toLocaleString() || "0"}</p>
+          <Select
+            value={order.status}
+            onValueChange={(v) => updateOrderStatus(order.id, v)}
+          >
+            <SelectTrigger className="w-[140px] mt-1 md:mt-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="processing">Processing</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    ))}
   </div>
 </TabsContent>
 
