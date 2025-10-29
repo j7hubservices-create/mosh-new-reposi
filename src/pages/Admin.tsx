@@ -548,86 +548,86 @@ const Admin = () => {
             </div>
           </TabsContent>
 
-                    {/* Orders Tab */}
-          <TabsContent value="orders">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Delivery</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Products</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Total</TableHead>
-                  </TableRow>
-                </TableHeader>
+                   {/* ✅ Enhanced Orders Tab */}
+<TabsContent value="orders">
+  <div className="overflow-x-auto">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Date</TableHead>
+          <TableHead>Customer</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Phone</TableHead>
+          <TableHead>Address</TableHead>
+          <TableHead>Delivery</TableHead>
+          <TableHead>Payment</TableHead>
+          <TableHead>Products</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Total</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {orders.map((order) => (
+          <TableRow key={order.id}>
+            <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+            <TableCell>{order.customer_name}</TableCell>
+            <TableCell>{order.customer_email || "—"}</TableCell>
+            <TableCell>{order.customer_phone || "—"}</TableCell>
+            <TableCell className="max-w-[200px] truncate">{order.customer_address || "—"}</TableCell>
+            <TableCell>{order.delivery_method || "—"}</TableCell>
+            <TableCell>{order.payment_method || "—"}</TableCell>
 
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>{order.customer_name}</TableCell>
-                      <TableCell>{order.customer_email || "—"}</TableCell>
-                      <TableCell>{order.customer_phone || "—"}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{order.customer_address || "—"}</TableCell>
-                      <TableCell>{order.delivery_method || "—"}</TableCell>
-                      <TableCell>{order.payment_method || "—"}</TableCell>
+            {/* 🛍️ Ordered Products */}
+            <TableCell>
+              <div className="space-y-2">
+                {order.order_items?.length ? (
+                  order.order_items.map((item: any) => (
+                    <div key={item.id} className="flex items-center gap-2 border rounded-md p-2">
+                      <SafeImage
+                        src={item.products?.image_url || "/placeholder.jpg"}
+                        alt={item.products?.name || "Product"}
+                        className="w-10 h-10 object-cover rounded"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{item.products?.name || "Unknown Product"}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ₦{item.price?.toLocaleString() || "0"} × {item.quantity || 0}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No items</p>
+                )}
+              </div>
+            </TableCell>
 
-                      {/* Ordered Products */}
-                      <TableCell>
-                        <div className="space-y-2">
-                          {order.order_items?.length ? (
-                            order.order_items.map((item: any) => (
-                              <div key={item.id} className="flex items-center gap-2 border rounded-md p-2">
-                                <img
-                                  src={item.products?.image_url || "/placeholder.jpg"}
-                                  alt={item.products?.name || "Product"}
-                                  className="w-10 h-10 object-cover rounded"
-                                />
-                                <div className="flex flex-col">
-                                  <span className="font-medium text-sm">{item.products?.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    ₦{item.price?.toLocaleString()} × {item.quantity}
-                                  </span>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-xs text-muted-foreground">No items</p>
-                          )}
-                        </div>
-                      </TableCell>
+            {/* 🏷️ Status Selector */}
+            <TableCell>
+              <Select
+                value={order.status}
+                onValueChange={(v) => updateOrderStatus(order.id, v)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </TableCell>
 
-                      {/* Status Selector */}
-                      <TableCell>
-                        <Select
-                          value={order.status}
-                          onValueChange={(v) => updateOrderStatus(order.id, v)}
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
+            <TableCell>₦{order.total?.toLocaleString() || "0"}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+</TabsContent>
 
-                      <TableCell>₦{order.total?.toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
 
           {/* Users Tab */}
           <TabsContent value="users">
