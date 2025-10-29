@@ -530,7 +530,9 @@ const handleSafeDelete = async (id: string) => {
       </TableCell>
     </TableRow>
   ))}
+
 </TableBody>
+</Table>
 </TabsContent>
         {/* ✅ Enhanced Orders Tab */}
 <TabsContent value="orders">
