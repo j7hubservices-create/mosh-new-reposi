@@ -530,20 +530,28 @@ const Admin = () => {
 
          {/* ✅ Orders Tab */}
 <TabsContent value="orders">
+  {/* Filters */}
   <div className="mb-4 flex flex-col md:flex-row md:items-center gap-4">
-    <Input
-      type="month"
-      value={filterDate || ""}
-      onChange={(e) => setFilterDate(e.target.value)}
-      placeholder="Filter by month"
-    />
-    <Input
-      value={filterSize || ""}
-      onChange={(e) => setFilterSize(e.target.value)}
-      placeholder="Filter by size"
-    />
+    <div className="flex flex-col">
+      <label className="text-sm font-medium mb-1">Filter by month</label>
+      <Input
+        type="month"
+        value={filterDate || ""}
+        onChange={(e) => setFilterDate(e.target.value)}
+        placeholder="Select month"
+      />
+    </div>
+    <div className="flex flex-col">
+      <label className="text-sm font-medium mb-1">Filter by size</label>
+      <Input
+        value={filterSize || ""}
+        onChange={(e) => setFilterSize(e.target.value)}
+        placeholder="Enter size (S, M, L or 8, 10...)"
+      />
+    </div>
   </div>
 
+  {/* Orders Table */}
   <Table>
     <TableHeader>
       <TableRow>
@@ -556,41 +564,81 @@ const Admin = () => {
         <TableHead>Actions</TableHead>
       </TableRow>
     </TableHeader>
+
     <TableBody>
-      {filteredOrders?.length > 0 ? (
-        filteredOrders.map((order, idx) => (
+      {filteredOrders
+        .filter((order) => {
+          // Filter by date
+          if (filterDate) {
+            const orderMonth = new Date(order.created_at)
+              .toISOString()
+              .slice(0, 7); // yyyy-mm
+            if (orderMonth !== filterDate) return false;
+          }
+          // Filter by size
+          if (filterSize) {
+            const hasSize = order.order_items?.some(
+              (item) =>
+                item.size?.toString().toLowerCase() ===
+                filterSize.toLowerCase()
+            );
+            if (!hasSize) return false;
+          }
+          return true;
+        })
+        .map((order, idx) => (
           <TableRow key={order.id}>
             <TableCell>{idx + 1}</TableCell>
-            <TableCell>{order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}</TableCell>
-            <TableCell>{order.customer_name || "—"}</TableCell>
+            <TableCell>
+              {new Date(order.created_at).toLocaleDateString()}
+            </TableCell>
+            <TableCell>{order.customer_name}</TableCell>
             <TableCell>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => toggleOrderDetails(order.id)}
               >
-                {expandedOrders?.includes(order.id) ? "Hide Details" : "View Details"}
+                {expandedOrders.includes(order.id)
+                  ? "Hide Details"
+                  : "View Details"}
               </Button>
-
-              {expandedOrders?.includes(order.id) && order.order_items?.length > 0 && (
+              {expandedOrders.includes(order.id) && (
                 <div className="mt-2 p-2 border rounded-md space-y-2 bg-muted">
-                  <p><strong>Email:</strong> {order.customer_email || "—"}</p>
-                  <p><strong>Phone:</strong> {order.customer_phone || "—"}</p>
-                  <p className="truncate"><strong>Address:</strong> {order.customer_address || "—"}</p>
-                  <p><strong>Delivery:</strong> {order.delivery_method || "—"}</p>
-                  <p><strong>Payment:</strong> {order.payment_method || "—"}</p>
+                  <p>
+                    <strong>Email:</strong> {order.customer_email || "—"}
+                  </p>
+                  <p>
+                    <strong>Phone:</strong> {order.customer_phone || "—"}
+                  </p>
+                  <p className="truncate">
+                    <strong>Address:</strong> {order.customer_address || "—"}
+                  </p>
+                  <p>
+                    <strong>Delivery:</strong> {order.delivery_method || "—"}
+                  </p>
+                  <p>
+                    <strong>Payment:</strong> {order.payment_method || "—"}
+                  </p>
 
+                  {/* Order Items */}
                   <div className="space-y-1">
-                    {order.order_items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2 border rounded-md p-1">
+                    {order.order_items?.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-2 border rounded-md p-1"
+                      >
                         <SafeImage
                           src={item.products?.image_url || "/placeholder.jpg"}
                           alt={item.products?.name || "Product"}
                           className="w-8 h-8 object-cover rounded"
                         />
                         <div className="flex flex-col text-xs">
-                          <span>{item.products?.name || "Product"}</span>
-                          <span>₦{item.price?.toLocaleString() || 0} × {item.quantity || 0}</span>
+                          <span>{item.products?.name}</span>
+                          <span>
+                            ₦{item.price?.toLocaleString()} × {item.quantity}
+                          </span>
+                          {item.size && <span>Size: {item.size}</span>}
                         </div>
                       </div>
                     ))}
@@ -598,11 +646,10 @@ const Admin = () => {
                 </div>
               )}
             </TableCell>
-
             <TableCell>
               <Select
-                value={order.status || "pending"}
-                onValueChange={(v) => updateOrderStatus?.(order.id, v)}
+                value={order.status}
+                onValueChange={(v) => updateOrderStatus(order.id, v)}
               >
                 <SelectTrigger className="w-[120px]">
                   <SelectValue />
@@ -615,30 +662,22 @@ const Admin = () => {
                 </SelectContent>
               </Select>
             </TableCell>
-
-            <TableCell>₦{order.total?.toLocaleString() || 0}</TableCell>
-
+            <TableCell>₦{order.total?.toLocaleString()}</TableCell>
             <TableCell>
               <Button
                 variant="destructive"
                 size="icon"
-                onClick={() => handleDeleteOrder?.(order.id)}
+                onClick={() => handleDeleteOrder(order.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </TableCell>
           </TableRow>
-        ))
-      ) : (
-        <TableRow>
-          <TableCell colSpan={7} className="text-center">
-            No orders found.
-          </TableCell>
-        </TableRow>
-      )}
+        ))}
     </TableBody>
   </Table>
 </TabsContent>
+
 
 
           {/* ✅ Users Tab */}
