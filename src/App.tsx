@@ -64,8 +64,10 @@ const App = () => (
           <Route path="/size-chart" element={<SizeChart />} />
 
           {/* ✅ Added Thank-You Routes */}
-<Route path="/thank-you" element={<ThankYou />} />
-<Route path="/thank-you/:id" element={<ThankYou />} />
+          <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/thank-you/:id" element={<ThankYou />} />
+          <Route path="/thankyou" element={<ThankYou />} />
+          <Route path="/thankyou/:id" element={<ThankYou />} />
 
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
