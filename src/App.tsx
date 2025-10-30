@@ -23,9 +23,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Returns from "./pages/Returns";
 import NotFound from "./pages/NotFound";
-
-// ✅ New import for Size Chart page
-import SizeChart from "./pages/SizeChart";
+import SizeChart from "./pages/SizeChart"; // ✅ Size Chart page
+import TrackOrder from "./pages/TrackOrder"; // ✅ Track Order page
 
 const queryClient = new QueryClient();
 
@@ -47,6 +46,7 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
+          {/* ✅ Main Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
@@ -59,21 +59,28 @@ const App = () => (
           <Route path="/admin/sections" element={<AdminSections />} />
           <Route path="/account" element={<Account />} />
           <Route path="/about" element={<About />} />
-          
-          {/* ✅ Added Size Chart Route */}
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/returns" element={<Returns />} />
+
+          {/* ✅ Size Chart Route */}
           <Route path="/size-chart" element={<SizeChart />} />
 
-          {/* ✅ Added Thank-You Routes */}
+          {/* ✅ Thank You Routes (Both Formats) */}
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/thank-you/:id" element={<ThankYou />} />
           <Route path="/thankyou" element={<ThankYou />} />
           <Route path="/thankyou/:id" element={<ThankYou />} />
 
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/returns" element={<Returns />} />
+          {/* ✅ Track Order Routes (Both Formats) */}
+          <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="/track-order/:id" element={<TrackOrder />} />
+          <Route path="/trackout" element={<TrackOrder />} />
+          <Route path="/trackout/:id" element={<TrackOrder />} />
+          <Route path="/trackorder" element={<TrackOrder />} />
+          <Route path="/trackorder/:id" element={<TrackOrder />} />
 
-          {/* Catch-all 404 route must stay last */}
+          {/* ✅ 404 Page (Keep this last) */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
