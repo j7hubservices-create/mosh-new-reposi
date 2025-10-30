@@ -24,7 +24,7 @@ import Terms from "./pages/Terms";
 import Returns from "./pages/Returns";
 import NotFound from "./pages/NotFound";
 import SizeChart from "./pages/SizeChart"; // ✅ Size Chart page
-import TrackOrder from "./pages/trackOrder"; // ✅ Track Order page
+import TrackOrder from "./pages/trackorder"; // ✅ Track Order page
 
 const queryClient = new QueryClient();
 
@@ -72,13 +72,14 @@ const App = () => (
           <Route path="/thankyou" element={<ThankYou />} />
           <Route path="/thankyou/:id" element={<ThankYou />} />
 
-          {/* ✅ Track Order Routes (Both Formats) */}
-         <Route path="/track-order" element={<TrackOrder />} />
-        <Route path="/track-order/:id" element={<TrackOrder />} />
-        <Route path="/trackout" element={<TrackOrder />} />
-        <Route path="/trackout/:id" element={<TrackOrder />} />
-        <Route path="/trackorder" element={<TrackOrder />} />
-        <Route path="/trackorder/:id" element={<TrackOrder />} />
+         {/* ✅ Order Tracking Routes (supporting multiple URL formats) */}
+          <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="/track-order/:orderId" element={<TrackOrder />} />
+          <Route path="/trackout" element={<TrackOrder />} />
+          <Route path="/trackout/:orderId" element={<TrackOrder />} />
+          <Route path="/trackorder" element={<TrackOrder />} />
+          <Route path="/trackorder/:orderId" element={<TrackOrder />} />
+
 
           {/* ✅ 404 Page (Keep this last) */}
           <Route path="*" element={<NotFound />} />
