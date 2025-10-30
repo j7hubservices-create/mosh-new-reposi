@@ -11,6 +11,7 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import ThankYou from "@/pages/ThankYou";
 import Auth from "./pages/Auth";
 import UserAuth from "./pages/UserAuth";
 import Contact from "./pages/Contact";
