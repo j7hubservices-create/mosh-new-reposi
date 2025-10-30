@@ -406,49 +406,49 @@ const Checkout = () => {
       </div>
 
       {/* Modal */}
-      {showBankModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold mb-3">Order Confirmed</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Thank you — your order has been recorded as pending while we await
-              payment confirmation. Please keep your payment receipt and a
-              screenshot of this order.
-            </p>
-            <div className="space-y-2 text-sm">
-              <div>
-                <strong>Account Name:</strong> Mosh Apparels Ventures
-              </div>
-              <div>
-                <strong>Bank:</strong> OPay
-              </div>
-              <div>
-                <strong>Account Number:</strong> 6142257816
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowBankModal(false);
-                  navigate("/");
-                }}
-              >
-                Done
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowBankModal(false);
-                  navigate("/thank-you");
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                I’ve Paid — Next
-              </Button>
-            </div>
-          </div>
+{showBankModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="bg-white rounded-2xl max-w-md w-full p-6">
+      <h3 className="text-xl font-bold mb-3">Order Confirmed</h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Thank you — your order has been recorded as pending while we await
+        payment confirmation. Please keep your payment receipt and a
+        screenshot of this order.
+      </p>
+      <div className="space-y-2 text-sm">
+        <div>
+          <strong>Account Name:</strong> Mosh Apparels Ventures
         </div>
-      )}
+        <div>
+          <strong>Bank:</strong> OPay
+        </div>
+        <div>
+          <strong>Account Number:</strong> 6142257816
+        </div>
+      </div>
+      <div className="mt-6 flex justify-end gap-3">
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowBankModal(false);
+            navigate("/"); // Goes home
+          }}
+        >
+          Done
+        </Button>
+        <Button
+          onClick={() => {
+            setShowBankModal(false);
+            navigate("/thank-you"); // ✅ Redirect to Thank-You page
+          }}
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          I’ve Paid — Next
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
 
       <Footer />
     </div>
