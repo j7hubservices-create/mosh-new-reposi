@@ -3,7 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, CreditCard, MapPin } from "lucide-react";
-import supabase from "@/lib/supabaseClient"; // ✅ make sure this path is correct
+import { supabase } from "@/integrations/supabase/client"; // ✅ make sure this path is correct
 
 export default function ThankYou() {
   const [order, setOrder] = useState<any>(null);
