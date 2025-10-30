@@ -63,8 +63,9 @@ const App = () => (
           {/* ✅ Added Size Chart Route */}
           <Route path="/size-chart" element={<SizeChart />} />
 
-          {/* ✅ Added Thank-You Route */}
-          <Route path="/thank-you/:id" element={<ThankYou />} />
+          {/* ✅ Added Thank-You Routes */}
+<Route path="/thank-you" element={<ThankYou />} />
+<Route path="/thank-you/:id" element={<ThankYou />} />
 
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
