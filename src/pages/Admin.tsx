@@ -332,9 +332,8 @@ const handleDeleteOrder = async (orderId: string) => {
             <TabsTrigger value="reviews" className="tabs-trigger">Reviews ({reviews.length})</TabsTrigger>
           </TabsList>
 
-       {/* ✅ Products Tab */}
+        {/* ✅ Products Tab */}
           <TabsContent value="products">
-            {/* Product Add/Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="mb-6" size="lg">
@@ -356,7 +355,6 @@ const handleDeleteOrder = async (orderId: string) => {
                         required
                       />
                     </div>
-
                     <div className="md:col-span-2">
                       <Label>Description</Label>
                       <Textarea
@@ -420,19 +418,11 @@ const handleDeleteOrder = async (orderId: string) => {
                       />
                     </div>
 
-                    <div className="md:col-span-2">
-                      <Label>SEO Slug (URL)</Label>
-                      <Input
-                        value={formData.slug}
-                        onChange={(e) =>
-                          setFormData({ ...formData, slug: e.target.value })
-                        }
-                        placeholder="Auto-generated from name"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Leave empty to auto-generate from product name
-                      </p>
-                    </div>
+                      <div className="md:col-span-2">
+                  <Label>SEO Slug (URL)</Label>
+                  <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="Auto-generated from name" />
+                  <p className="text-xs text-muted-foreground mt-1">Leave empty to auto-generate from product name</p>
+                </div>
 
                     <div className="md:col-span-2">
                       <Label>Image Upload</Label>
@@ -442,107 +432,109 @@ const handleDeleteOrder = async (orderId: string) => {
                         className="relative mt-2"
                         disabled={uploadingImages}
                       >
-                        <Upload
-                        className="mr-2 h-4 w-4" /> Upload Image
+                        <Upload className="mr-2 h-4 w-4" />
+                        {uploadingImages ? "Uploading..." : "Upload Images"}
                         <input
                           type="file"
                           multiple
                           accept="image/*"
                           onChange={handleImageUpload}
                           className="absolute inset-0 opacity-0 cursor-pointer"
+                          disabled={uploadingImages}
                         />
                       </Button>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {imageFiles.map((file, idx) => (
-                          <div key={idx} className="relative">
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt="preview"
-                              className="w-20 h-20 object-cover rounded"
-                            />
-                            <Button
-                              size="icon"
-                              variant="destructive"
-                              className="absolute -top-2 -right-2 p-1"
-                              onClick={() => removeImageFile(idx)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
+                      {imageFiles.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {imageFiles.map((file, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                className="w-20 h-20 object-cover rounded border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImageFile(index)}
+                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <Input
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        placeholder="Or paste image URL"
+                        className="mt-3"
+                      />
+                      {formData.image_url && (
+                        <SafeImage
+                          src={formData.image_url}
+                          alt="Preview"
+                          className="w-32 h-32 rounded border mt-2"
+                        />
+                      )}
                     </div>
-
                   </div>
 
-                  <Button type="submit" className="mt-4 w-full">
+                  <Button type="submit" className="w-full">
                     {editingProduct ? "Update Product" : "Add Product"}
                   </Button>
                 </form>
               </DialogContent>
             </Dialog>
 
-            {/* Product Table */}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>S/N</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product, idx) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>₦{product.price?.toLocaleString()}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell>{product.categories?.name}</TableCell>
-                    <TableCell>
-                      <SafeImage
-                        src={product.image_url || "/placeholder.jpg"}
-                        alt={product.name}
-                        className="w-12 h-12 object-cover rounded"
-                      />
-                    </TableCell>
-                    <TableCell className="flex gap-2">
-                      <Button
-                        size="icon"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setFormData({
-                            name: product.name,
-                            description: product.description,
-                            price: product.price,
-                            original_price: product.original_price,
-                            category_id: product.category_id,
-                            image_url: product.image_url,
-                            size: product.size,
-                            stock: product.stock,
-                            slug: product.slug,
-                          });
-                          setDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        onClick={() => handleSafeDelete(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.categories?.name}</TableCell>
+                      <TableCell>₦{product.price.toLocaleString()}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setFormData({
+                                ...product,
+                                price: product.price.toString(),
+                                stock: product.stock.toString(),
+                              });
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => handleDelete(product.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </TabsContent>
 
          {/* ✅ Orders Tab */}
