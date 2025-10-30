@@ -62,10 +62,15 @@ const App = () => (
           
           {/* ✅ Added Size Chart Route */}
           <Route path="/size-chart" element={<SizeChart />} />
-          
+
+          {/* ✅ Added Thank-You Route */}
+          <Route path="/thank-you/:id" element={<ThankYou />} />
+
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/returns" element={<Returns />} />
+
+          {/* Catch-all 404 route must stay last */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
