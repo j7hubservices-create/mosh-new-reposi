@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Package, Truck, CheckCircle, Clock, User, Edit2 } from "lucide-react";
+import { toast } from "sonner";
 
 const generateShortOrderId = () =>
   `MOSH-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
@@ -20,11 +21,14 @@ const Account = () => {
 
   // Profile form state
   const [editing, setEditing] = useState(false);
-  const [profile, setProfile] = useState<any>({ full_name: "", phone: "", address: "" });
+  const [profile, setProfile] = useState<any>({ full_name: "", phone: "", address: "", avatar_url: "" });
 
   // Drawer / detail state
   const [activeOrder, setActiveOrder] = useState<any>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -46,9 +50,19 @@ const Account = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // If you keep profile info in a `profiles` table: fetch it
       const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
-      if (data) setProfile({ full_name: data.full_name || "", phone: data.phone || "", address: data.address || "" });
+      if (data) setProfile({
+        full_name: data.full_name || "",
+        phone: data.phone || "",
+        address: data.address || "",
+        avatar_url: data.avatar_url || ""
+      });
+      // fallback: if no profile, try to get display name from auth user metadata (if available)
+      if (!data) {
+        const { data: authUser } = await supabase.auth.getUser();
+        const display = (authUser?.user?.user_metadata as any)?.full_name;
+        if (display) setProfile(prev => ({ ...prev, full_name: display }));
+      }
     } catch (err) {
       console.error("Profile fetch error", err);
     }
@@ -71,12 +85,11 @@ const Account = () => {
 
       if (error) throw error;
 
-      // Ensure short_order_id exists locally and in DB (non-blocking)
+      // Ensure short_order_id exists locally and attempt to persist
       const updatedOrders = await Promise.all(
         (data || []).map(async (o: any) => {
           if (!o.short_order_id) {
             const shortId = generateShortOrderId();
-            // update DB with a short id - wrap in try/catch so failures don't break UI
             try {
               await supabase.from("orders").update({ short_order_id: shortId }).eq("id", o.id);
               o.short_order_id = shortId;
@@ -100,19 +113,51 @@ const Account = () => {
   const handleSaveProfile = async () => {
     if (!user) return;
     try {
-      // upsert into profiles table (adjust to your schema)
       const payload = {
         id: user.id,
         full_name: profile.full_name,
         phone: profile.phone,
         address: profile.address,
+        avatar_url: profile.avatar_url || null,
       };
       const { error } = await supabase.from("profiles").upsert(payload);
       if (error) throw error;
       setEditing(false);
+      toast.success("Profile saved");
     } catch (err) {
       console.error("Profile save error", err);
-      alert("Failed to save profile.");
+      toast.error("Failed to save profile");
+    }
+  };
+
+  // Avatar upload handler
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploadingAvatar(true);
+    try {
+      const filePath = `profiles/${user.id}/${Date.now()}_${file.name}`;
+      // upload to bucket 'profiles' (create this bucket in Supabase -> Storage)
+      const { error: uploadErr } = await supabase.storage.from("profiles").upload(filePath, file, { upsert: true });
+      if (uploadErr) throw uploadErr;
+      const { data } = supabase.storage.from("profiles").getPublicUrl(filePath);
+      const publicUrl = data.publicUrl;
+      // upsert to profiles table
+      const { error: upsertErr } = await supabase.from("profiles").upsert({ id: user.id, avatar_url: publicUrl }, { returning: "minimal" });
+      if (upsertErr) throw upsertErr;
+      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+      toast.success("Profile photo updated");
+    } catch (err: any) {
+      console.error("Avatar upload error", err);
+      toast.error("Failed to upload avatar");
+    } finally {
+      setUploadingAvatar(false);
+      // clear input to allow same file reselect
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -127,7 +172,7 @@ const Account = () => {
     setDetailOpen(false);
   };
 
-  // Navigate to a dedicated tracking page (you should have /track-order/:orderId route)
+  // Navigate to a dedicated tracking page
   const goToTrack = (order: any) => {
     const idToUse = order.short_order_id || order.id;
     navigate(`/track-order/${idToUse}`);
@@ -155,12 +200,31 @@ const Account = () => {
           <div className="md:w-1/3">
             <Card className="p-6">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <User className="w-7 h-7" />
+                <div
+                  className="w-14 h-14 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center overflow-hidden cursor-pointer"
+                  onClick={handleAvatarClick}
+                  title="Upload profile photo"
+                >
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-7 h-7" />
+                  )}
                 </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+
                 <div>
                   <div className="text-sm text-muted-foreground">Welcome back,</div>
-                  <div className="font-semibold text-lg">{profile.full_name || user?.email?.split("@")[0]}</div>
+                  <div className="font-semibold text-lg">
+                    {profile.full_name || (user?.user_metadata?.full_name as string) || user?.email?.split("@")[0]}
+                  </div>
                 </div>
               </div>
 
@@ -348,7 +412,7 @@ const Account = () => {
                 <div className="text-sm text-muted-foreground">{new Date(activeOrder.created_at).toLocaleString()}</div>
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => { navigator.clipboard?.writeText(activeOrder.short_order_id || activeOrder.id); }}>Copy ID</Button>
+                <Button variant="ghost" onClick={() => { navigator.clipboard?.writeText(activeOrder.short_order_id || activeOrder.id); toast.success("Copied"); }}>Copy ID</Button>
                 <Button onClick={() => goToTrack(activeOrder)}>Open Tracker</Button>
                 <Button variant="destructive" onClick={closeOrder}>Close</Button>
               </div>
