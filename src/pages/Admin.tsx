@@ -332,7 +332,7 @@ const handleDeleteOrder = async (orderId: string) => {
             <TabsTrigger value="reviews" className="tabs-trigger">Reviews ({reviews.length})</TabsTrigger>
           </TabsList>
 
-     {/* ✅ Products Tab */}
+      {/* ✅ Products Tab */}
           <TabsContent value="products">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -355,7 +355,6 @@ const handleDeleteOrder = async (orderId: string) => {
                         required
                       />
                     </div>
-
                     <div className="md:col-span-2">
                       <Label>Description</Label>
                       <Textarea
@@ -419,19 +418,11 @@ const handleDeleteOrder = async (orderId: string) => {
                       />
                     </div>
 
-                    <div className="md:col-span-2">
-                      <Label>SEO Slug (URL)</Label>
-                      <Input
-                        value={formData.slug}
-                        onChange={(e) =>
-                          setFormData({ ...formData, slug: e.target.value })
-                        }
-                        placeholder="Auto-generated from name"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Leave empty to auto-generate from product name
-                      </p>
-                    </div>
+                      <div className="md:col-span-2">
+                  <Label>SEO Slug (URL)</Label>
+                  <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="Auto-generated from name" />
+                  <p className="text-xs text-muted-foreground mt-1">Leave empty to auto-generate from product name</p>
+                </div>
 
                     <div className="md:col-span-2">
                       <Label>Image Upload</Label>
@@ -452,7 +443,6 @@ const handleDeleteOrder = async (orderId: string) => {
                           disabled={uploadingImages}
                         />
                       </Button>
-
                       {imageFiles.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2">
                           {imageFiles.map((file, index) => (
@@ -473,16 +463,12 @@ const handleDeleteOrder = async (orderId: string) => {
                           ))}
                         </div>
                       )}
-
                       <Input
                         value={formData.image_url}
-                        onChange={(e) =>
-                          setFormData({ ...formData, image_url: e.target.value })
-                        }
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                         placeholder="Or paste image URL"
                         className="mt-3"
                       />
-
                       {formData.image_url && (
                         <SafeImage
                           src={formData.image_url}
@@ -549,7 +535,7 @@ const handleDeleteOrder = async (orderId: string) => {
                 </TableBody>
               </Table>
             </div>
-          </TabsContent>     
+          </TabsContent>
 
          {/* ✅ Orders Tab */}
 <TabsContent value="orders">
