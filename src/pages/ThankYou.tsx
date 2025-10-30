@@ -69,7 +69,7 @@ export default function ThankYou() {
               Order Summary
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-              <p><strong>Order ID:</strong> {order.id}</p>
+              <p><strong>Order Number:</strong> {order.short_order_id || order.id}</p>
               <p><strong>Status:</strong> {order.status}</p>
               <p><strong>Total:</strong> ₦{Number(order.total).toLocaleString()}</p>
               <p><strong>Created At:</strong> {new Date(order.created_at).toLocaleString()}</p>
@@ -81,7 +81,7 @@ export default function ThankYou() {
           {/* ✅ Customer Info */}
           <div className="mb-8 border-t pt-4">
             <h2 className="text-xl font-semibold mb-4 text-purple-700">
-              Customer Details
+              Your Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
               <p><strong>Name:</strong> {order.customer_name}</p>
@@ -150,7 +150,7 @@ export default function ThankYou() {
               Delivery
             </h2>
             <p className="text-sm text-gray-700">
-              Your order will be delivered according to the method selected at checkout.
+              Your order will be delivered according to the method you selected at checkout.
             </p>
           </div>
 
