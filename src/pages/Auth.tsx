@@ -70,37 +70,55 @@ const UserAuth = () => {
   };
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      emailSchema.parse(signupData.email);
-      passwordSchema.parse(signupData.password);
+  try {
+    emailSchema.parse(signupData.email);
+    passwordSchema.parse(signupData.password);
 
-      if (signupData.password !== signupData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-        return;
-      }
+    if (signupData.password !== signupData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
     }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      toast.error(error.errors[0].message);
+      return;
+    }
+  }
 
-    setLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
+  setLoading(true);
+  const redirectUrl = `${window.location.origin}/`;
 
-    const { error } = await supabase.auth.signUp({
-      email: signupData.email,
-      password: signupData.password,
-      options: { emailRedirectTo: redirectUrl },
-    });
+  const { error } = await supabase.auth.signUp({
+    email: signupData.email,
+    password: signupData.password,
+    options: { emailRedirectTo: redirectUrl },
+  });
 
-    if (error) toast.error(error.message);
-    else toast.success("Account created successfully! Please check your email.");
+  if (error) {
+    toast.error(error.message);
+  } else {
+    toast.success("Account created successfully!");
 
-    setLoading(false);
-  };
+    // ✅ Send welcome email via API
+    try {
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: signupData.email.split("@")[0],
+          email: signupData.email,
+        }),
+      });
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+    }
+  }
+
+  setLoading(false);
+};
+
 
   return (
     <div className="min-h-screen flex flex-col">
