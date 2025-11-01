@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: "Mosh Apparels <support@moshapparels.com>",
+      from: "Mosh Apparels <moshapparelsofficial@gmail.com>",
       to: email,
       subject: "Welcome to Mosh Apparels!",
       html: `
