@@ -1,8 +1,17 @@
 import { Resend } from "resend";
 
-const resend = new Resend(import.meta.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function sendEmail({ name, email }) {
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
+  const { name, email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
   try {
     await resend.emails.send({
       from: "Mosh Apparels <support@moshapparels.com>",
@@ -18,9 +27,9 @@ export async function sendEmail({ name, email }) {
     });
 
     console.log("✅ Email sent successfully to:", email);
-    return { success: true };
+    return res.status(200).json({ success: true });
   } catch (error) {
     console.error("❌ Email sending failed:", error);
-    return { success: false, error: error.message };
+    return res.status(500).json({ success: false, error: error.message });
   }
 }
