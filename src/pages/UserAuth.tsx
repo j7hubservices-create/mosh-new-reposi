@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react"; // 👁️ icons for toggle
-import { sendEmail } from "@/lib/email"; // <-- import email utility
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -106,13 +105,16 @@ const UserAuth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      // ✅ Send personalized welcome email
-      await sendEmail({
-        to: signupData.email,
-        subject: "Welcome to Mosh Apparels!",
-        html: `<p>Hi ${signupData.name},</p>
-               <p>Thank you for signing up! We're thrilled to have you at Mosh Apparels.</p>`,
-      });
+     // ✅ Call backend API route to send email safely
+await fetch("/api/email", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    name: signupData.name,
+    email: signupData.email,
+  }),
+});
+
 
       toast.success("Account created successfully! Please check your email.");
     }
