@@ -8,22 +8,28 @@ export default async function handler(req, res) {
   }
 
   const { name, email } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ message: "Name and email are required" });
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
   }
 
   try {
     await resend.emails.send({
-      from: process.env.FROM_EMAIL,
+      from: "Mosh Apparels <support@moshapparels.com>",
       to: email,
-      reply_to: process.env.REPLY_TO_EMAIL,
       subject: "Welcome to Mosh Apparels!",
-      html: `<p>Hi ${name},</p><p>Thank you for signing up! We're thrilled to have you at Mosh Apparels.</p>`,
+      html: `
+        <p>Hi ${name || "there"},</p>
+        <p>Thank you for signing up! We're thrilled to have you as part of Mosh Apparels.</p>
+        <p>Stay tuned for updates, new arrivals, and special offers.</p>
+        <p>Best regards,<br>The Mosh Apparels Team</p>
+      `,
+      reply_to: "moshapparelsofficial@gmail.com",
     });
 
-    return res.status(200).json({ message: "Email sent" });
+    console.log("✅ Email sent successfully to:", email);
+    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Failed to send email:", error);
-    return res.status(500).json({ message: "Failed to send email" });
+    console.error("❌ Email sending failed:", error);
+    return res.status(500).json({ success: false, error: error.message });
   }
 }
