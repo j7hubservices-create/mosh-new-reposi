@@ -7,7 +7,15 @@ export async function sendEmail({ name, email }) {
     });
 
     const data = await response.json();
-    return data;
+
+    // Debug output to confirm success/failure
+    if (!response.ok) {
+      console.error("❌ Email API failed:", data);
+      return { success: false, error: data.message || "Failed to send email" };
+    }
+
+    console.log("✅ Email API response:", data);
+    return { success: true };
   } catch (error) {
     console.error("❌ Failed to send email:", error);
     return { success: false, error: error.message };
