@@ -90,34 +90,44 @@ const UserAuth = () => {
   setLoading(true);
   const redirectUrl = `${window.location.origin}/`;
 
-  const { error } = await supabase.auth.signUp({
+  // 1️⃣ Sign up user with Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email: signupData.email,
     password: signupData.password,
     options: { emailRedirectTo: redirectUrl },
   });
 
-  if (error) {
-    toast.error(error.message);
-  } else {
-    toast.success("Account created successfully!");
-
-    // ✅ Send welcome email via API
-    try {
-      await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: signupData.email.split("@")[0],
-          email: signupData.email,
-        }),
-      });
-    } catch (emailError) {
-      console.error("Failed to send welcome email:", emailError);
-    }
+  if (authError) {
+    toast.error(authError.message);
+    setLoading(false);
+    return;
   }
 
+  if (!authData.user) {
+    toast.error("Signup failed: no user returned");
+    setLoading(false);
+    return;
+  }
+
+  const userId = authData.user.id;
+
+  // 2️⃣ Insert profile into 'profiles' table
+  const { error: profileError } = await supabase.from("profiles").insert({
+    id: userId,
+    name: signupData.email.split("@")[0], // default name from email prefix
+    created_at: new Date(),
+  });
+
+  if (profileError) {
+    toast.error("Error saving profile: " + profileError.message);
+    setLoading(false);
+    return;
+  }
+
+  toast.success("Account created successfully!");
   setLoading(false);
 };
+
 
 
   return (
