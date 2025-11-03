@@ -113,7 +113,7 @@ const UserAuth = () => {
   // 2️⃣ Insert profile into 'profiles' table
   const { error: profileError } = await supabase.from("profiles").insert({
     id: authData.user.id,
-    name: signupData.email.split("@")[0], // default name from email
+    name: name: signupData.name, // use actual user input
     created_at: new Date(),
   });
 
