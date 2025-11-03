@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import SafeImage from "@/components/ui/safe-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { updateOrderStatus } from "@/lib/orderHelpers";
+import { updateOrderStatus } from "@/lib/emailorders.ts";
 import "@/styles/admin.css";
 
 const Admin = () => {
