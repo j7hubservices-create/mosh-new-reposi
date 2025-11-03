@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import SafeImage from "@/components/ui/safe-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { updateOrderStatus } from "@/lib/orderHelpers";
 import "@/styles/admin.css";
 
 const Admin = () => {
@@ -147,11 +148,9 @@ const Admin = () => {
     if (data) setReviews(data);
   };
 
-  const updateOrderStatus = async (orderId: string, status: string) => {
-    const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
-    if (error) toast.error("Failed to update order status");
-    else {
-      toast.success("Order status updated!");
+  const handleOrderStatusUpdate = async (orderId: string, status: string) => {
+    const success = await updateOrderStatus(orderId, status);
+    if (success) {
       fetchOrders();
     }
   };
@@ -176,7 +175,7 @@ const handleDeleteOrder = async (orderId: string) => {
     if (orderError) throw orderError;
 
     // 3️⃣ Update UI
-    setFilteredOrders((prev) => prev.filter((o) => o.id !== orderId));
+    fetchOrders();
     toast.success("Order deleted successfully");
   } catch (err: any) {
     console.error(err);
@@ -220,27 +219,21 @@ const handleDeleteOrder = async (orderId: string) => {
   };
 
   const handleSoftDelete = async (id: string) => {
-    const confirm = window.confirm("Hide this product from the shop?");
+    const confirm = window.confirm("Delete this product permanently?");
     if (!confirm) return;
 
-    const { error } = await supabase.from("products").update({ is_deleted: true }).eq("id", id);
-    if (error) toast.error("Failed to hide product");
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) toast.error("Failed to delete product");
     else {
-      toast.success("Product hidden!");
+      toast.success("Product deleted!");
       fetchProducts();
     }
   };
 
   const handleRestore = async (id: string) => {
-    const confirm = window.confirm("Restore this hidden product?");
-    if (!confirm) return;
-
-    const { error } = await supabase.from("products").update({ is_deleted: false }).eq("id", id);
-    if (error) toast.error("Failed to restore product");
-    else {
-      toast.success("Product restored!");
-      fetchProducts();
-    }
+    // Not needed since we're doing hard delete
+    toast.info("Restore not available");
+    return;
   };
 
   const handleSafeDelete = async (id: string) => {
@@ -577,6 +570,7 @@ const handleDeleteOrder = async (orderId: string) => {
         <TableHead>C/N</TableHead>
         <TableHead>Details</TableHead>
         <TableHead>Status</TableHead>
+        <TableHead>Tracking</TableHead>
         <TableHead>Total</TableHead>
         <TableHead>Actions</TableHead>
       </TableRow>
@@ -666,18 +660,40 @@ const handleDeleteOrder = async (orderId: string) => {
             <TableCell>
               <Select
                 value={order.status}
-                onValueChange={(v) => updateOrderStatus(order.id, v)}
+                onValueChange={(v) => handleOrderStatusUpdate(order.id, v)}
               >
                 <SelectTrigger className="w-[120px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
                   <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
+            </TableCell>
+            <TableCell>
+              <div className="text-xs">
+                {order.tracking_number && (
+                  <div className="font-mono">{order.tracking_number}</div>
+                )}
+                {order.tracking_status && (
+                  <div className="text-muted-foreground capitalize">
+                    {order.tracking_status}
+                  </div>
+                )}
+                {order.tracking_updated_at && (
+                  <div className="text-muted-foreground">
+                    {new Date(order.tracking_updated_at).toLocaleString()}
+                  </div>
+                )}
+                {!order.tracking_number && (
+                  <span className="text-muted-foreground">No tracking</span>
+                )}
+              </div>
             </TableCell>
             <TableCell>₦{order.total?.toLocaleString()}</TableCell>
             <TableCell>
