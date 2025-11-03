@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react"; // 👁️ icons for toggle
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -18,20 +18,18 @@ const passwordSchema = z.string().min(6, "Password must be at least 6 characters
 const UserAuth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
-    name: "",          // 👈 required for profile
     email: "",
     password: "",
     confirmPassword: "",
   });
 
+  // 👇 Password visibility state
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // redirect if already logged in
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) navigate("/account");
@@ -46,9 +44,9 @@ const UserAuth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // LOGIN
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       emailSchema.parse(loginData.email);
       passwordSchema.parse(loginData.password);
@@ -67,10 +65,10 @@ const UserAuth = () => {
 
     if (error) toast.error(error.message);
     else toast.success("Logged in successfully!");
+
     setLoading(false);
   };
 
-  // SIGNUP
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -82,10 +80,6 @@ const UserAuth = () => {
         toast.error("Passwords do not match");
         return;
       }
-      if (!signupData.name.trim()) {
-        toast.error("Full name is required");
-        return;
-      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -94,44 +88,24 @@ const UserAuth = () => {
     }
 
     setLoading(true);
+    const redirectUrl = `${window.location.origin}/`;
 
-    try {
-      // 1️⃣ Sign up user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: { emailRedirectTo: `${window.location.origin}/` },
-      });
+    const { error } = await supabase.auth.signUp({
+      email: signupData.email,
+      password: signupData.password,
+      options: { emailRedirectTo: redirectUrl },
+    });
 
-      if (authError) throw authError;
+    if (error) toast.error(error.message);
+    else toast.success("Account created successfully! Please check your email.");
 
-      const userId = authData.user?.id;
-      if (!userId) throw new Error("Signup failed: no user returned");
-
-      // 2️⃣ Insert profile into public.profiles
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .upsert({
-          id: userId,
-          full_name: signupData.name, // 👈 this was missing before
-          created_at: new Date(),
-        });
-
-      if (profileError) throw profileError;
-
-      toast.success("Account created successfully!");
-      navigate("/account");
-    } catch (err: any) {
-      console.error("Signup error:", err);
-      toast.error(err.message || "Signup failed");
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+
       <div className="container mx-auto px-4 py-16 flex-1 flex items-center justify-center">
         <Card className="w-full max-w-md p-8">
           <h1 className="text-2xl font-bold text-center mb-8">Welcome</h1>
@@ -191,19 +165,6 @@ const UserAuth = () => {
             {/* SIGN UP */}
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
-                <div>
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    value={signupData.name}
-                    onChange={(e) =>
-                      setSignupData({ ...signupData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
                 <div>
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
@@ -289,3 +250,4 @@ const UserAuth = () => {
 };
 
 export default UserAuth;
+
