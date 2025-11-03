@@ -69,7 +69,7 @@ const UserAuth = () => {
     setLoading(false);
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+const handleSignup = async (e: React.FormEvent) => {
   e.preventDefault();
 
   try {
@@ -109,12 +109,10 @@ const UserAuth = () => {
     return;
   }
 
-  const userId = authData.user.id;
-
   // 2️⃣ Insert profile into 'profiles' table
   const { error: profileError } = await supabase.from("profiles").insert({
-    id: userId,
-    name: signupData.email.split("@")[0], // default name from email prefix
+    id: authData.user.id,
+    name: signupData.email.split("@")[0], // default name from email
     created_at: new Date(),
   });
 
@@ -127,7 +125,6 @@ const UserAuth = () => {
   toast.success("Account created successfully!");
   setLoading(false);
 };
-
 
 
   return (
