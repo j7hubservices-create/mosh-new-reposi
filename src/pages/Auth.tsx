@@ -70,64 +70,37 @@ const UserAuth = () => {
   };
 
   const handleSignup = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    emailSchema.parse(signupData.email);
-    passwordSchema.parse(signupData.password);
+    try {
+      emailSchema.parse(signupData.email);
+      passwordSchema.parse(signupData.password);
 
-    if (!signupData.name?.trim()) {
-      toast.error("Full name is required");
-      return;
+      if (signupData.password !== signupData.confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
     }
 
-    if (signupData.password !== signupData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      toast.error(error.errors[0].message);
-      return;
-    }
-  }
+    setLoading(true);
+    const redirectUrl = `${window.location.origin}/`;
 
-  setLoading(true);
-
-  try {
-    // 1️⃣ Create the user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: signupData.email,
       password: signupData.password,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: { emailRedirectTo: redirectUrl },
     });
 
-    if (authError) throw authError;
+    if (error) toast.error(error.message);
+    else toast.success("Account created successfully! Please check your email.");
 
-    const userId = authData.user?.id;
-    if (!userId) throw new Error("Signup failed: no user returned");
-
-    // 2️⃣ Insert profile into public.profiles
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({
-        id: userId,
-        full_name: signupData.name,
-        created_at: new Date(),
-      });
-
-    if (profileError) throw profileError;
-
-    toast.success("Account created successfully!");
-    navigate("/account");
-  } catch (err: any) {
-    console.error("Signup error:", err);
-    toast.error(err.message || "Signup failed");
-  } finally {
     setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
