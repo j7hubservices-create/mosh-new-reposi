@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Eye, EyeOff } from "lucide-react"; // 👁️ icons for toggle
+import { Eye, EyeOff } from "lucide-react"; // 👁️ icons
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -18,18 +18,20 @@ const passwordSchema = z.string().min(6, "Password must be at least 6 characters
 const UserAuth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
+    name: "",           // 👈 required for profile
     email: "",
     password: "",
     confirmPassword: "",
   });
 
-  // 👇 Password visibility state
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Redirect if already logged in
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) navigate("/account");
@@ -44,9 +46,9 @@ const UserAuth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // LOGIN
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       emailSchema.parse(loginData.email);
       passwordSchema.parse(loginData.password);
@@ -65,17 +67,22 @@ const UserAuth = () => {
 
     if (error) toast.error(error.message);
     else toast.success("Logged in successfully!");
-
     setLoading(false);
   };
 
+  // SIGNUP
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Basic validation
     try {
       emailSchema.parse(signupData.email);
       passwordSchema.parse(signupData.password);
 
+      if (!signupData.name.trim()) {
+        toast.error("Full name is required");
+        return;
+      }
       if (signupData.password !== signupData.confirmPassword) {
         toast.error("Passwords do not match");
         return;
@@ -88,18 +95,39 @@ const UserAuth = () => {
     }
 
     setLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
 
-    const { error } = await supabase.auth.signUp({
-      email: signupData.email,
-      password: signupData.password,
-      options: { emailRedirectTo: redirectUrl },
-    });
+    try {
+      // 1️⃣ Sign up user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: signupData.email,
+        password: signupData.password,
+        options: { emailRedirectTo: `${window.location.origin}/` },
+      });
 
-    if (error) toast.error(error.message);
-    else toast.success("Account created successfully! Please check your email.");
+      if (authError) throw authError;
 
-    setLoading(false);
+      const userId = authData.user?.id;
+      if (!userId) throw new Error("Signup failed: no user returned");
+
+      // 2️⃣ Insert profile into public.profiles
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert({
+          id: userId,
+          full_name: signupData.name,
+          created_at: new Date(),
+        });
+
+      if (profileError) throw profileError;
+
+      toast.success("Account created successfully!");
+      navigate("/account");
+    } catch (err: any) {
+      console.error("Signup error:", err);
+      toast.error(err.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -148,11 +176,7 @@ const UserAuth = () => {
                     onClick={() => setShowLoginPassword(!showLoginPassword)}
                     className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
                   >
-                    {showLoginPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
@@ -165,6 +189,19 @@ const UserAuth = () => {
             {/* SIGN UP */}
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
+                <div>
+                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    value={signupData.name}
+                    onChange={(e) =>
+                      setSignupData({ ...signupData, name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
                 <div>
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
@@ -191,47 +228,30 @@ const UserAuth = () => {
                   />
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowSignupPassword(!showSignupPassword)
-                    }
+                    onClick={() => setShowSignupPassword(!showSignupPassword)}
                     className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
                   >
-                    {showSignupPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
                 <div className="relative">
-                  <Label htmlFor="signup-confirm-password">
-                    Confirm Password
-                  </Label>
+                  <Label htmlFor="signup-confirm-password">Confirm Password</Label>
                   <Input
                     id="signup-confirm-password"
                     type={showConfirmPassword ? "text" : "password"}
                     value={signupData.confirmPassword}
                     onChange={(e) =>
-                      setSignupData({
-                        ...signupData,
-                        confirmPassword: e.target.value,
-                      })
+                      setSignupData({ ...signupData, confirmPassword: e.target.value })
                     }
                     required
                   />
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
