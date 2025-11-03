@@ -71,56 +71,61 @@ const UserAuth = () => {
   };
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      if (!signupData.name.trim()) {
-        toast.error("Please enter your full name");
-        return;
-      }
+  try {
+    emailSchema.parse(signupData.email);
+    passwordSchema.parse(signupData.password);
 
-      emailSchema.parse(signupData.email);
-      passwordSchema.parse(signupData.password);
-
-      if (signupData.password !== signupData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-        return;
-      }
+    if (signupData.password !== signupData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
     }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      toast.error(error.errors[0].message);
+      return;
+    }
+  }
 
-    setLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
+  setLoading(true);
+  const redirectUrl = `${window.location.origin}/`;
 
-    const { error } = await supabase.auth.signUp({
-      email: signupData.email,
-      password: signupData.password,
-      options: { emailRedirectTo: redirectUrl },
-    });
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-     // ✅ Call backend API route to send email safely
-await fetch("/api/email", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    name: signupData.name,
+  // 1️⃣ Sign up user with Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email: signupData.email,
-  }),
-});
+    password: signupData.password,
+    options: { emailRedirectTo: redirectUrl },
+  });
 
-
-      toast.success("Account created successfully! Please check your email.");
-    }
-
+  if (authError) {
+    toast.error(authError.message);
     setLoading(false);
-  };
+    return;
+  }
+
+  if (!authData.user) {
+    toast.error("Signup failed: no user returned");
+    setLoading(false);
+    return;
+  }
+
+  // 2️⃣ Insert profile into 'profiles' table
+  const { error: profileError } = await supabase.from("profiles").insert({
+    id: authData.user.id,
+    name: signupData.email.split("@")[0], // default name from email
+    created_at: new Date(),
+  });
+
+  if (profileError) {
+    toast.error("Error saving profile: " + profileError.message);
+    setLoading(false);
+    return;
+  }
+
+  toast.success("Account created successfully!");
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen flex flex-col">
