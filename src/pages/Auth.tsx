@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Eye, EyeOff } from "lucide-react"; // 👁️ icons
+import { Eye, EyeOff } from "lucide-react";
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -21,7 +21,7 @@ const UserAuth = () => {
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
-    name: "",           // 👈 required for profile
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -31,7 +31,6 @@ const UserAuth = () => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) navigate("/account");
@@ -73,46 +72,30 @@ const UserAuth = () => {
   // SIGNUP
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Basic validation
     try {
       emailSchema.parse(signupData.email);
       passwordSchema.parse(signupData.password);
 
-      if (!signupData.name.trim()) {
-        toast.error("Full name is required");
-        return;
-      }
-      if (signupData.password !== signupData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-        return;
-      }
-    }
+      if (!signupData.name.trim()) throw new Error("Full name is required");
+      if (signupData.password !== signupData.confirmPassword) throw new Error("Passwords do not match");
 
-    setLoading(true);
-
-    try {
       // 1️⃣ Sign up user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
         options: { emailRedirectTo: `${window.location.origin}/` },
       });
-
       if (authError) throw authError;
+      if (!authData.user?.id) throw new Error("No user returned from signup");
 
-      const userId = authData.user?.id;
-      if (!userId) throw new Error("Signup failed: no user returned");
+      const userId = authData.user.id;
 
-      // 2️⃣ Insert profile into public.profiles
+      // 2️⃣ Insert profile AFTER user is confirmed
       const { error: profileError } = await supabase
         .from("profiles")
-        .upsert({
+        .insert({
           id: userId,
           full_name: signupData.name,
           created_at: new Date(),
@@ -122,6 +105,7 @@ const UserAuth = () => {
 
       toast.success("Account created successfully!");
       navigate("/account");
+
     } catch (err: any) {
       console.error("Signup error:", err);
       toast.error(err.message || "Signup failed");
@@ -153,9 +137,7 @@ const UserAuth = () => {
                     id="login-email"
                     type="email"
                     value={loginData.email}
-                    onChange={(e) =>
-                      setLoginData({ ...loginData, email: e.target.value })
-                    }
+                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     required
                   />
                 </div>
@@ -166,9 +148,7 @@ const UserAuth = () => {
                     id="login-password"
                     type={showLoginPassword ? "text" : "password"}
                     value={loginData.password}
-                    onChange={(e) =>
-                      setLoginData({ ...loginData, password: e.target.value })
-                    }
+                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     required
                   />
                   <button
@@ -195,9 +175,7 @@ const UserAuth = () => {
                     id="signup-name"
                     type="text"
                     value={signupData.name}
-                    onChange={(e) =>
-                      setSignupData({ ...signupData, name: e.target.value })
-                    }
+                    onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
                     required
                   />
                 </div>
@@ -208,9 +186,7 @@ const UserAuth = () => {
                     id="signup-email"
                     type="email"
                     value={signupData.email}
-                    onChange={(e) =>
-                      setSignupData({ ...signupData, email: e.target.value })
-                    }
+                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                     required
                   />
                 </div>
@@ -221,9 +197,7 @@ const UserAuth = () => {
                     id="signup-password"
                     type={showSignupPassword ? "text" : "password"}
                     value={signupData.password}
-                    onChange={(e) =>
-                      setSignupData({ ...signupData, password: e.target.value })
-                    }
+                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                     required
                   />
                   <button
@@ -241,9 +215,7 @@ const UserAuth = () => {
                     id="signup-confirm-password"
                     type={showConfirmPassword ? "text" : "password"}
                     value={signupData.confirmPassword}
-                    onChange={(e) =>
-                      setSignupData({ ...signupData, confirmPassword: e.target.value })
-                    }
+                    onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                     required
                   />
                   <button
