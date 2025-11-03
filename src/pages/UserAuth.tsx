@@ -20,7 +20,6 @@ const UserAuth = () => {
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
-    name: "",             // <-- added name
     email: "",
     password: "",
     confirmPassword: "",
@@ -71,61 +70,37 @@ const UserAuth = () => {
   };
 
   const handleSignup = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    emailSchema.parse(signupData.email);
-    passwordSchema.parse(signupData.password);
+    try {
+      emailSchema.parse(signupData.email);
+      passwordSchema.parse(signupData.password);
 
-    if (signupData.password !== signupData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
+      if (signupData.password !== signupData.confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
     }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      toast.error(error.errors[0].message);
-      return;
-    }
-  }
 
-  setLoading(true);
-  const redirectUrl = `${window.location.origin}/`;
+    setLoading(true);
+    const redirectUrl = `${window.location.origin}/`;
 
-  // 1️⃣ Sign up user with Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: signupData.email,
-    password: signupData.password,
-    options: { emailRedirectTo: redirectUrl },
-  });
+    const { error } = await supabase.auth.signUp({
+      email: signupData.email,
+      password: signupData.password,
+      options: { emailRedirectTo: redirectUrl },
+    });
 
-  if (authError) {
-    toast.error(authError.message);
+    if (error) toast.error(error.message);
+    else toast.success("Account created successfully! Please check your email.");
+
     setLoading(false);
-    return;
-  }
-
-  if (!authData.user) {
-    toast.error("Signup failed: no user returned");
-    setLoading(false);
-    return;
-  }
-
-  // 2️⃣ Insert profile into 'profiles' table
-const { error: profileError } = await supabase.from("profiles").insert({
-  id: authData.user.id,
-  name: signupData.name, // use actual user input
-  created_at: new Date(),
-});
-
-  if (profileError) {
-    toast.error("Error saving profile: " + profileError.message);
-    setLoading(false);
-    return;
-  }
-
-  toast.success("Account created successfully!");
-  setLoading(false);
-};
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -190,19 +165,6 @@ const { error: profileError } = await supabase.from("profiles").insert({
             {/* SIGN UP */}
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
-                <div>
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    value={signupData.name}
-                    onChange={(e) =>
-                      setSignupData({ ...signupData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
                 <div>
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
